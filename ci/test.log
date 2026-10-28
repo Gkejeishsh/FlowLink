@@ -8,8 +8,10 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources UP-TO-DATE
 > Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileDebug
 > Task :app:checkDebugAarMetadata
+> Task :app:compileDebugJavaWithJavac
 > Task :app:mapDebugSourceSetPaths
 > Task :app:compileDebugNavigationResources
 > Task :app:createDebugCompatibleScreenManifests
@@ -19,51 +21,197 @@ Daemon will be stopped at the end of the build
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
 > Task :app:processDebugManifestForPackage
+> Task :app:processDebugJavaRes
 > Task :app:mergeDebugResources
 > Task :app:processDebugResources
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
 
-> Task :app:compileDebugKotlin
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:127:17 Conflicting declarations:
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:150:17 Conflicting declarations:
-var pendingScan: String?
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:373:20 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:374:9 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:387:21 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:391:25 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:429:21 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
+> Task :app:testDebugUnitTest
 
-> Task :app:compileDebugKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793199056036.json
+ConnectCodeTest > lanCodeSurvivesRoundTrip PASSED
 
-[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+ConnectCodeTest > junkNeverThrowsAndNeverClaimsToBeUsable PASSED
 
-FAILURE: Build failed with an exception.
+ConnectCodeTest > hotspotCodeCarriesNetworkAndEndsUpAsJoinThenConnect PASSED
 
-* What went wrong:
-Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: REDECLARATION
-       Kotlin compiler error
-         Conflicting declarations:
-         var pendingScan: Boolean
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt line 127
+ConnectCodeTest > wifiShareSheetCodeIsReadWithEscapes PASSED
 
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
+ConnectCodeTest > v1LinkStillParses PASSED
 
-BUILD FAILED in 24s
-19 actionable tasks: 12 executed, 1 from cache, 6 up-to-date
+ConnectCodeTest > cameraSplittingThePayloadAcrossLinesIsRecovered PASSED
+
+ConnectCodeTest > sixDigitsIsAPairingCodeAndHttpIsALink PASSED
+
+TransferLoopbackTest > many small files are bundled and verified STANDARD_ERROR
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1080)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > many small files are bundled and verified STANDARD_OUT
+    [sender] ok=true msg=Transfer complete bytes=6097000 files=0 chunks=2000/2000
+    [receiver] ok=true msg=Transfer complete bytes=6097000 files=2000 chunks=2000/2000 ms=1158 path=/tmp/loopjet-test-small-236138127930/dst
+    [loopback] 2000 small files: 5.8 MB in 1076 ms = 5.4 MB/s
+
+TransferLoopbackTest > many small files are bundled and verified PASSED
+
+TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_ERROR
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1080)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_OUT
+    [receiver] ok=true msg=Transfer complete bytes=67108864 files=1 chunks=256/256 ms=669 path=/tmp/loopjet-test-pause-238412770223/dst
+
+TransferLoopbackTest > pause and resume keeps the transfer alive PASSED
+
+TransferLoopbackTest > receiver may decline an offer STANDARD_OUT
+    [sender] ok=false msg=Declined bytes=0 files=0 chunks=0/0
+    [sender-failed] --- engine log (3 lines) ---
+    [sender-failed] R: sender Test Phone connected, code 360652
+    [sender-failed] S: handshake complete with Receiver, code 360652
+    [sender-failed] S: sender stopped: Declined
+    [receiver] ok=false msg=Declined bytes=0 files=0 chunks=0/0 ms=128 path=
+    [receiver-failed] --- engine log (3 lines) ---
+    [receiver-failed] R: sender Test Phone connected, code 360652
+    [receiver-failed] S: handshake complete with Receiver, code 360652
+    [receiver-failed] S: sender stopped: Declined
+
+TransferLoopbackTest > receiver may decline an offer PASSED
+
+TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1080)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > unicode names and nested folders survive STANDARD_OUT
+    [sender] ok=true msg=Transfer complete bytes=15360 files=0 chunks=5/5
+    [receiver] ok=true msg=Transfer complete bytes=15360 files=5 chunks=5/5 ms=148 path=/tmp/loopjet-test-unicode-239464932014/dst
+
+TransferLoopbackTest > unicode names and nested folders survive PASSED
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_ERROR
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
+    [sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=25165824 files=0 chunks=96/96
+    [sender-failed] --- engine log (9 lines) ---
+    [sender-failed] S: handshake complete with Receiver, code 049598
+    [sender-failed] R: sender Test Phone connected, code 049598
+    [sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+    [sender-failed] S: data stream 0 open
+    [sender-failed] S: data stream 1 open
+    [sender-failed] S: data stream 2 open
+    [sender-failed] S: data stream 3 open
+    [sender-failed] R: data stream ended: connection closed while reading DATA
+    [sender-failed] R: stalled for 1985ms, ending session
+    [receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=2097152 files=0 chunks=8/96 ms=2135 path=/tmp/loopjet-test-resume-239641580573/dst
+    [receiver-failed] --- engine log (9 lines) ---
+    [receiver-failed] S: handshake complete with Receiver, code 049598
+    [receiver-failed] R: sender Test Phone connected, code 049598
+    [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] R: data stream ended: connection closed while reading DATA
+    [receiver-failed] R: stalled for 1985ms, ending session
+    [loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_ERROR
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1080)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
+    [sender] ok=true msg=Transfer complete bytes=23068672 files=0 chunks=96/96
+    [receiver] ok=true msg=Transfer complete bytes=23068672 files=1 chunks=96/96 ms=185 path=/tmp/loopjet-test-resume-239641580573/dst
+    [loopback] resume: sender re-sent 23068672 bytes of 25165824, receiver has 23068672 bytes, ok=true
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks PASSED
+
+TransferLoopbackTest > single large file transfers and verifies STANDARD_ERROR
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1009)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1080)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > single large file transfers and verifies STANDARD_OUT
+    [sender] ok=true msg=Transfer complete bytes=201326592 files=0 chunks=768/768
+    [receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=618 path=/tmp/loopjet-test-large-242100369661/dst
+    [loopback] large file: 192.0 MB in 535 ms = 358.9 MB/s
+    [loopback] sender ok=true bytes=201326592 msg=Transfer complete
+    [loopback] receiver ok=true files=1 msg=Transfer complete
+
+TransferLoopbackTest > single large file transfers and verifies PASSED
+
+WebServerTest > sharePageNeedsNoNetworkResourcesBeyondThePhone PASSED
+
+WebServerTest > pinIsRequiredOnEveryRequest PASSED
+
+WebServerTest > rangeRequestResumesAtTheRequestedOffset PASSED
+
+WebServerTest > streamedZipDeclaresItsExactLengthAndExtracts PASSED
+
+WebServerTest > zipEntryNamesCannotEscapeTheExtractionFolder PASSED
+
+WebServerTest > uploadStreamsToDiskAndCannotWriteOutsideItsFolder PASSED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793199392379.json
+
+BUILD SUCCESSFUL in 48s
+26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

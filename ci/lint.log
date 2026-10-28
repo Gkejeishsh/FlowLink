@@ -8,51 +8,22 @@ Daemon will be stopped at the end of the build
 > Task :app:processReleaseNavigationResources UP-TO-DATE
 > Task :app:parseReleaseLocalResources UP-TO-DATE
 > Task :app:generateReleaseRFile UP-TO-DATE
+> Task :app:compileReleaseKotlin UP-TO-DATE
 > Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:extractDeepLinksRelease UP-TO-DATE
 > Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:generateReleaseLintReportModel
+> Task :app:lintAnalyzeRelease
 
-> Task :app:compileReleaseKotlin FAILED
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:127:17 Conflicting declarations:
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:150:17 Conflicting declarations:
-var pendingScan: String?
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:373:20 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:374:9 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:387:21 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:391:25 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:429:21 Overload resolution ambiguity between candidates:
-var pendingScan: String?
-var pendingScan: Boolean
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793199168950.json
+> Task :app:lintReportRelease
+Wrote HTML report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.html
+Wrote SARIF report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.sarif
 
-[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+> Task :app:lintRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793199655331.json
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: REDECLARATION
-       Kotlin compiler error
-         Conflicting declarations:
-         var pendingScan: Boolean
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt line 127
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 21s
-11 actionable tasks: 1 executed, 10 up-to-date
+BUILD SUCCESSFUL in 1m 26s
+16 actionable tasks: 4 executed, 12 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
