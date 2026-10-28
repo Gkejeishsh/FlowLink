@@ -210,6 +210,12 @@ interface TransferListener {
     fun onFileDone(result: FileResult)
     fun onLog(message: String)
     fun onOffer(offer: TransferOffer): OfferDecision = OfferDecision(accepted = true)
+
+    /**
+     * Called once every APK of a received app has been committed, so the UI can offer one
+     * PackageInstaller session with the base and all splits. The default does nothing (tests, tools).
+     */
+    fun onAppReady(app: TransferApp, apks: List<File>) {}
 }
 
 /** Simple listener that prints — used by tests and the loopback benchmark. */
@@ -338,12 +344,7 @@ class LocalFileSinkFactory(
         if (!root.exists()) root.mkdirs()
     }
 
-    private fun probeFree(): Long {
-        freeSpaceProbe?.let { return it() }
-        var probe: File? = root
-        while (probe != null && !probe.exists()) probe = probe.parentFile
-        return probe?.usableSpace ?: 0L
-    }
+    private fun probeFree(): Long = freeSpaceProbe?.invoke() ?: SpaceGuard.usable(root)
 
     override fun prepare(relativePath: String, size: Long, modified: Long, mime: String): FileSink {
         val safe = SafePath.sanitize(relativePath) ?: throw java.io.IOException("unsafe file name")
@@ -409,4 +410,11 @@ class FileSource(private val file: File) : RandomAccessSource {
 /** Free-space guard that keeps 16 MiB of headroom so a full disk cannot corrupt the last file. */
 object SpaceGuard {
     fun hasRoom(free: Long, needed: Long): Boolean = free > needed + 16L * 1024 * 1024
+
+    /** usableSpace of the nearest existing ancestor: a missing directory reports 0, not "full". */
+    fun usable(dir: File?): Long {
+        var probe = dir
+        while (probe != null && !probe.exists()) probe = probe.parentFile
+        return probe?.usableSpace ?: 0L
+    }
 }

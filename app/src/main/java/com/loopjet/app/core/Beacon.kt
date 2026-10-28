@@ -54,7 +54,15 @@ data class BeaconInfo(
  * transfer protocol: a subnet scan has to be able to identify a LoopJet phone in a few milliseconds
  * without a session, a key exchange or a user prompt.
  */
-class BeaconServer(private val infoProvider: () -> BeaconInfo?) : Closeable {
+class BeaconServer(
+    private val infoProvider: () -> BeaconInfo?,
+    /**
+     * The six digits shown on the Receive screen. A probe that carries a code is only answered when
+     * it matches, which is what makes "type the code shown on the other phone" work without
+     * multicast, mDNS or a shared subnet scan.
+     */
+    private val codeProvider: () -> String? = { null }
+) : Closeable {
     private val running = AtomicBoolean(false)
     private var server: ServerSocket? = null
     private val handled = AtomicInteger(0)
@@ -90,9 +98,17 @@ class BeaconServer(private val infoProvider: () -> BeaconInfo?) : Closeable {
             val reader = BufferedReader(InputStreamReader(client.getInputStream(), Charsets.UTF_8))
             val line = reader.readLine() ?: return
             if (!line.startsWith(BeaconClient.REQUEST)) return
+            val asked = line.removePrefix(BeaconClient.REQUEST).removePrefix("loopjet").trim()
+            if (asked.isNotEmpty()) {
+                // A code probe: only the phone showing that code answers.
+                val mine = codeProvider() ?: return
+                if (asked != mine) return
+            }
             val info = infoProvider() ?: return
+            val payload = LinkedHashMap<String, Any?>(info.toJson(port))
+            codeProvider()?.let { payload["code"] = it }
             val writer = OutputStreamWriter(client.getOutputStream(), Charsets.UTF_8)
-            writer.write(Json.stringify(info.toJson(port)))
+            writer.write(Json.stringify(payload))
             writer.write("\n")
             writer.flush()
             handled.incrementAndGet()
@@ -110,7 +126,7 @@ class BeaconServer(private val infoProvider: () -> BeaconInfo?) : Closeable {
 
 class BeaconClient {
     /** Returns the peer's beacon with the measured round-trip time, or null if nothing answered. */
-    fun probe(address: String, port: Int, timeoutMs: Int = 400): BeaconInfo? {
+    fun probe(address: String, port: Int, timeoutMs: Int = 400, code: String? = null): BeaconInfo? {
         val started = System.nanoTime()
         var socket: Socket? = null
         return try {
@@ -118,7 +134,8 @@ class BeaconClient {
             socket.connect(InetSocketAddress(address, port), timeoutMs)
             socket.soTimeout = timeoutMs
             val writer = OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8)
-            writer.write("$REQUEST loopjet\n")
+            val suffix = if (code.isNullOrBlank()) "" else " $code"
+            writer.write("$REQUEST loopjet$suffix\n")
             writer.flush()
             val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))
             val line = reader.readLine() ?: return null
@@ -132,7 +149,12 @@ class BeaconClient {
     }
 
     /** Scans a /24 around [localAddress] in parallel for beacons. */
-    fun scanSubnet(localAddress: InetAddress, beaconPortBase: Int, timeoutMs: Int = 260): List<BeaconInfo> {
+    fun scanSubnet(
+        localAddress: InetAddress,
+        beaconPortBase: Int,
+        timeoutMs: Int = 260,
+        code: String? = null
+    ): List<BeaconInfo> {
         val raw = localAddress.address
         if (raw.size != 4) return emptyList()
         val prefix = "${raw[0].toInt() and 0xFF}.${raw[1].toInt() and 0xFF}.${raw[2].toInt() and 0xFF}"
@@ -147,7 +169,7 @@ class BeaconClient {
             }
             pool.execute {
                 try {
-                    val info = probe(address, beaconPortBase, timeoutMs)
+                    val info = probe(address, beaconPortBase, timeoutMs, code)
                     if (info != null) found.add(info)
                 } finally {
                     latch.countDown()

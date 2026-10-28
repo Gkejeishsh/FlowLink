@@ -72,7 +72,7 @@ class DiscoveryEngine(
 ) {
     private val peers = ConcurrentHashMap<String, DiscoveredPeer>()
     private val running = AtomicBoolean(false)
-    private val pool = Executors.newScheduledThreadPool(4)
+    @Volatile private var pool = newPool()
     private var multicast: MulticastBeacon? = null
     private var nsd: NsdHelper? = null
     private val beaconClient = BeaconClient()
@@ -84,8 +84,13 @@ class DiscoveryEngine(
     private var controlPort = ProtocolLimits.DEFAULT_PORT
     private var beaconPort = ProtocolLimits.BEACON_PORT
 
+    private fun newPool(): java.util.concurrent.ScheduledExecutorService =
+        Executors.newScheduledThreadPool(4)
+
     fun start(advertise: Boolean, controlPort: Int, beaconPort: Int) {
         if (!running.compareAndSet(false, true)) return
+        // The pool is shut down by stop(); reusing it would throw RejectedExecutionException.
+        if (pool.isShutdown) pool = newPool()
         this.advertise = advertise
         this.controlPort = controlPort
         this.beaconPort = beaconPort
@@ -171,30 +176,116 @@ class DiscoveryEngine(
     }
 
     private fun scan() {
-        if (!running.get() || advertise) {
-            if (running.get() && advertise) {
-                // Advertisers still listen for other phones that want to send; nothing to scan.
-                return
+        // A phone that is advertising for senders has nothing to scan for.
+        if (!running.get() || advertise) return
+        val address = tools.sessionBinding()?.address ?: return
+        val executor = pool
+        if (executor.isShutdown) return
+        runCatching {
+            executor.execute {
+                val found = beaconClient.scanSubnet(address, ProtocolLimits.BEACON_PORT)
+                for (info in found) merge(peerFrom(info, PeerKind.LAN))
             }
         }
-        val address = tools.sessionBinding()?.address ?: return
-        pool.execute {
-            val found = beaconClient.scanSubnet(address, ProtocolLimits.BEACON_PORT)
-            for (info in found) merge(
-                DiscoveredPeer(
-                    id = info.deviceId.ifBlank { info.fingerprint },
-                    name = info.name,
-                    fingerprint = info.fingerprint,
-                    address = info.address,
-                    controlPort = info.controlPort,
-                    beaconPort = ProtocolLimits.BEACON_PORT,
-                    rttMicros = info.rttMicros,
-                    kind = PeerKind.LAN,
-                    sdk = info.sdk,
-                    capabilities = info.capabilities
-                )
-            )
+    }
+
+    private fun peerFrom(info: BeaconInfo, kind: PeerKind, p2pAddress: String? = null) = DiscoveredPeer(
+        id = info.deviceId.ifBlank { info.fingerprint },
+        name = info.name.ifBlank { "Phone" },
+        fingerprint = info.fingerprint,
+        address = info.address,
+        controlPort = info.controlPort,
+        beaconPort = ProtocolLimits.BEACON_PORT,
+        rttMicros = info.rttMicros,
+        kind = kind,
+        sdk = info.sdk,
+        capabilities = info.capabilities,
+        p2pDeviceAddress = p2pAddress
+    )
+
+    /**
+     * Manual pairing, part 1: the six digits on the receiving phone. A code probe is sent to every
+     * address in the /24; only the phone displaying that code answers, so no multicast, mDNS or
+     * firewall cooperation is required.
+     */
+    fun pairWithCode(code: String, onResult: (DiscoveredPeer?, String) -> Unit) {
+        val executor = pool
+        if (executor.isShutdown) {
+            onResult(null, "Discovery is not running")
+            return
         }
+        runCatching {
+            executor.execute {
+                val address = tools.sessionBinding()?.address
+                if (address == null) {
+                    onResult(null, "Connect to Wi-Fi first, or use the hotspot option")
+                    return@execute
+                }
+                val found = beaconClient.scanSubnet(address, ProtocolLimits.BEACON_PORT, 350, code)
+                val first = found.firstOrNull()
+                if (first == null) {
+                    onResult(null, "No phone on this Wi-Fi is showing $code")
+                } else {
+                    val peer = peerFrom(first, PeerKind.LAN)
+                    merge(peer)
+                    onResult(peer, "Found ${first.name}")
+                }
+            }
+        }.onFailure { onResult(null, "Discovery is not running") }
+    }
+
+    /**
+     * Manual pairing, part 2: the link inside the receiver's QR code
+     * (`loopjet://ip:port#fingerprint#device`). Pasting it works when a network scan is blocked.
+     */
+    fun pairWithLink(link: String, onResult: (DiscoveredPeer?, String) -> Unit) {
+        val executor = pool
+        if (executor.isShutdown) {
+            onResult(null, "Discovery is not running")
+            return
+        }
+        runCatching {
+            executor.execute {
+                val parsed = parseLink(link)
+                if (parsed == null) {
+                    onResult(null, "That does not look like a LoopJet link")
+                    return@execute
+                }
+                val (host, port, fingerprint) = parsed
+                // Ask the beacon for the live port and name; fall back to the pasted values so a
+                // firewall that blocks new connections still gets a chance to fail loudly.
+                val info = beaconClient.probe(host, ProtocolLimits.BEACON_PORT, 700)
+                val peer = DiscoveredPeer(
+                    id = info?.deviceId?.ifBlank { fingerprint } ?: fingerprint,
+                    name = info?.name ?: "Phone at $host",
+                    fingerprint = info?.fingerprint ?: fingerprint,
+                    address = host,
+                    controlPort = info?.controlPort ?: port,
+                    beaconPort = ProtocolLimits.BEACON_PORT,
+                    rttMicros = info?.rttMicros ?: 0,
+                    kind = PeerKind.LAN,
+                    sdk = info?.sdk ?: 0,
+                    capabilities = info?.capabilities ?: emptyList()
+                )
+                merge(peer)
+                onResult(peer, "Found ${peer.name}")
+            }
+        }.onFailure { onResult(null, "Discovery is not running") }
+    }
+
+    /** Accepts `loopjet://ip:port#fingerprint#device` with or without the device segment. */
+    private fun parseLink(link: String): Triple<String, Int, String>? {
+        val trimmed = link.trim()
+        if (!trimmed.startsWith("loopjet://")) return null
+        val body = trimmed.removePrefix("loopjet://")
+        val hostPort = body.substringBefore('#')
+        val rest = if (body.contains('#')) body.substringAfter('#') else ""
+        if (!hostPort.contains(':')) return null
+        val host = hostPort.substringBefore(':').trim()
+        val port = hostPort.substringAfter(':').substringBefore('/').toIntOrNull() ?: return null
+        if (host.isBlank() || port !in 1..65535) return null
+        val fingerprint = rest.substringBefore('#').trim()
+        return Triple(host, port, fingerprint)
     }
 
     private fun merge(peer: DiscoveredPeer) {
@@ -541,18 +632,25 @@ class P2pController(private val context: Context) {
         initialize()
         val m = manager ?: return onResult(false, "Wi-Fi Direct is not available")
         val c = channel ?: return onResult(false, "Wi-Fi Direct is not available")
-        val config = if (Build.VERSION.SDK_INT >= 29) {
-            val builder = WifiP2pConfig.Builder().setDeviceAddress(android.net.MacAddress.fromString(deviceAddress))
-            when (preferBand) {
-                BAND_5 -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
-                BAND_6 -> if (Build.VERSION.SDK_INT >= 36) builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_6GHZ) else builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
-                else -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_AUTO)
+        // A malformed address throws inside the Builder, so the legacy path stays available as a
+        // fallback rather than turning a pairing attempt into a crash.
+        val config = runCatching {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val builder = WifiP2pConfig.Builder().setDeviceAddress(android.net.MacAddress.fromString(deviceAddress))
+                when (preferBand) {
+                    BAND_5 -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
+                    BAND_6 -> if (Build.VERSION.SDK_INT >= 36) builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_6GHZ) else builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
+                    else -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_AUTO)
+                }
+                builder.build()
+            } else {
+                WifiP2pConfig().apply {
+                    this.deviceAddress = deviceAddress
+                }
             }
-            builder.build()
-        } else {
-            WifiP2pConfig().apply {
-                this.deviceAddress = deviceAddress
-            }
+        }.getOrElse {
+            @Suppress("DEPRECATION")
+            WifiP2pConfig().apply { this.deviceAddress = deviceAddress }
         }
         runCatching {
             m.connect(c, config, object : WifiP2pManager.ActionListener {

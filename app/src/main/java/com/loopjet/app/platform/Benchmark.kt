@@ -56,19 +56,24 @@ class Benchmark(private val context: Context) {
         onStage("Sealing 128 MB")
         val encryptRate = measureEncrypt(size)
         onStage("Transferring through the engine")
-        val engineRate = measureEngine(file, dir)
+        val engine = measureEngine(file, dir)
         file.delete()
         val tools = NetworkTools(context)
         val link = tools.linkSpeedMbps()
         val band = tools.bandLabel()
-        val utilisation = if (link > 0) (engineRate * 8) / link else 0.0
-        notes.add("Engine throughput is measured over loopback, so it includes AES-256-GCM sealing, chunk maps and disk writes.")
+        // The engine number is a loopback ceiling: real airtime, another phone's flash and any relay
+        // are not in it, so "utilisation" only answers "would this CPU keep the radio busy?".
+        val utilisation = if (link > 0 && engine.mbPerSec > 0) (engine.mbPerSec * 8) / link else 0.0
+        if (!engine.ok) {
+            notes.add("Engine loopback run did not complete: ${engine.note}. Treat the engine number as unavailable.")
+        }
+        notes.add("Engine throughput is measured over loopback, so it includes AES-256-GCM sealing, chunk maps and disk writes — it is a ceiling, not what a phone-to-phone link will do.")
         notes.add("Link rate is what the Wi-Fi chip reports; a router or hotspot relay uses airtime twice.")
         if (link == 0) notes.add("Wi-Fi link rate unavailable — connect to Wi-Fi for a meaningful comparison.")
         Result(
             writeMbPerSec = writeRate,
             readMbPerSec = readRate,
-            engineMbPerSec = engineRate,
+            engineMbPerSec = engine.mbPerSec,
             encryptMbPerSec = encryptRate,
             linkMbps = link,
             band = band,
@@ -130,7 +135,14 @@ class Benchmark(private val context: Context) {
         return (done / (1024.0 * 1024.0)) / seconds
     }
 
-    private fun measureEngine(file: File, workDir: File): Double {
+    private class EngineRun(val ok: Boolean, val mbPerSec: Double, val note: String)
+
+    // A bind failure or a dead thread must not take the whole screen down with it.
+    private fun measureEngine(file: File, workDir: File): EngineRun =
+        runCatching { measureEngineOnLoopback(file, workDir) }
+            .getOrElse { EngineRun(false, 0.0, it.message ?: it.javaClass.simpleName) }
+
+    private fun measureEngineOnLoopback(file: File, workDir: File): EngineRun {
         val receiveDir = File(workDir, "recv").apply { mkdirs() }
         val receiver = ReceiverEngine(
             identity = SoftwareIdentity.generate(),
@@ -176,16 +188,27 @@ class Benchmark(private val context: Context) {
         thread.join(30_000)
         receiver.close()
         receiveDir.deleteRecursively()
-        val bytes = if (senderResult.bytesTransferred > 0) senderResult.bytesTransferred else 1
-        return (bytes / (1024.0 * 1024.0)) / elapsed
+        // A benchmark that silently turns a failed transfer into a fast number is worse than no
+        // benchmark: report the failure instead of dividing by a placeholder.
+        if (!senderResult.ok) return EngineRun(false, 0.0, senderResult.message)
+        if (senderResult.bytesTransferred <= 0 || elapsed <= 0.0) {
+            return EngineRun(false, 0.0, "no bytes were transferred")
+        }
+        return EngineRun(true, (senderResult.bytesTransferred / (1024.0 * 1024.0)) / elapsed, "")
     }
 
     fun format(result: Result): String = buildString {
         appendLine("Storage write : ${"%.0f".format(result.writeMbPerSec)} MB/s")
         appendLine("Storage read  : ${"%.0f".format(result.readMbPerSec)} MB/s")
         appendLine("Encryption    : ${"%.0f".format(result.encryptMbPerSec)} MB/s")
-        appendLine("Engine        : ${"%.1f".format(result.engineMbPerSec)} MB/s")
+        appendLine(
+            "Engine        : " + if (result.engineMbPerSec > 0) {
+                "${"%.1f".format(result.engineMbPerSec)} MB/s (loopback ceiling)"
+            } else {
+                "not measured"
+            }
+        )
         appendLine("Wi-Fi link    : ${result.linkMbps} Mbps (${result.band})")
-        appendLine("Utilisation   : ${"%.0f".format(result.linkUtilisation * 100)} % of link rate")
+        appendLine("Headroom      : ${"%.0f".format(result.linkUtilisation * 100)} % of link rate, if a real link reached the engine ceiling")
     }
 }

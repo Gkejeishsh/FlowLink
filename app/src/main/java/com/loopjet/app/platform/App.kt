@@ -89,9 +89,12 @@ object IdentityFactory {
         }
     }
 
+    /**
+     * True only when the identity actually in use is the Keystore one. Checking the alias alone used
+     * to report "hardware" even after [load] had fallen back to a software key.
+     */
     fun isHardwareBacked(): Boolean = runCatching {
-        val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }
-        ks.containsAlias(ALIAS)
+        LoopJetApp.instance.identity is KeystoreIdentity
     }.getOrDefault(false)
 
     private fun softwareIdentity(context: Context): Identity {
@@ -203,6 +206,11 @@ class Prefs(context: Context) {
     var trustedDevices: Set<String>
         get() = prefs.getStringSet("trusted", emptySet()) ?: emptySet()
         set(value) = prefs.edit().putStringSet("trusted", value).apply()
+
+    /** Permissions this install has already asked for, so a refusal can be told apart from a no. */
+    var askedPermissions: Set<String>
+        get() = prefs.getStringSet("asked.perms", emptySet()) ?: emptySet()
+        set(value) = prefs.edit().putStringSet("asked.perms", value).apply()
 
     var bypassBatteryOpt: Boolean
         get() = prefs.getBoolean("battery.bypass", false)

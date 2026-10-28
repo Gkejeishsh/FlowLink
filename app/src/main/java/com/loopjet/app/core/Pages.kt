@@ -105,7 +105,7 @@ background:transparent;color:var(--ink);font-size:17px;letter-spacing:.4em;text-
   <div><h1>${esc(config.title)}</h1><p class="sub">Install once, then send at full speed.</p></div>
 </div>
 <div class="card">
-  <a class="btn" href="$href">Download ${esc(config.title)} <span style="opacity:.75">· ${Fmt.bytes(size)}</span></a>
+  <a class="btn" data-name="LoopJet-${esc(config.versionName)}-release.apk" href="$href">Download ${esc(config.title)} <span style="opacity:.75">· ${Fmt.bytes(size)}</span></a>
   <div class="meta"><span class="pill">Version ${esc(config.versionName)}</span>
   <span class="pill"><span class="dot"></span> Local only</span>
   <span class="pill">No account · No ads</span></div>
@@ -123,13 +123,35 @@ background:transparent;color:var(--ink);font-size:17px;letter-spacing:.4em;text-
 <p class="foot">Served from the sender's phone over the local network.<br>
 Nothing leaves your Wi-Fi. This link expires automatically.</p>
 <script>
+// Real byte counts from the response stream - no invented progress bar.
 const bar=document.getElementById('bar'),fill=document.getElementById('fill'),st=document.getElementById('status');
-document.querySelector('.btn').addEventListener('click',()=>{
-  bar.style.display='block';st.textContent='Downloading…';
-  let p=0;const timer=setInterval(()=>{p=Math.min(97,p+Math.random()*14);fill.style.width=p+'%';},240);
-  setTimeout(()=>{clearInterval(timer);fill.style.width='100%';st.textContent='Download started — open it from your notifications.';},${
-            (size / (6.0 * 1024 * 1024) * 1000).toLong().coerceIn(1500, 15000)
-        });
+const link=document.querySelector('.btn');
+link.addEventListener('click',async (ev)=>{
+  if(!window.fetch||!window.ReadableStream){return;}          // plain navigation is the fallback
+  ev.preventDefault();
+  bar.style.display='block';fill.style.width='0%';
+  try{
+    const res=await fetch(link.getAttribute('href'));
+    if(!res.ok){throw new Error('HTTP '+res.status)}
+    const total=Number(res.headers.get('content-length')||0);
+    const reader=res.body.getReader(),chunks=[];let got=0;
+    for(;;){
+      const {done,value}=await reader.read();
+      if(done)break;
+      chunks.push(value);got+=value.length;
+      if(total>0){fill.style.width=Math.min(100,got/total*100)+'%';
+        st.textContent='Downloading '+(got/1048576).toFixed(1)+' of '+(total/1048576).toFixed(1)+' MB';}
+    }
+    const blob=new Blob(chunks,{type:'application/vnd.android.package-archive'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=link.dataset.name||'loopjet.apk';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+    fill.style.width='100%';st.textContent='Saved — open the file from your downloads.';
+  }catch(e){
+    st.textContent='Download failed: '+e.message+' — opening the link directly.';
+    window.location.href=link.getAttribute('href');
+  }
 });
 </script>
 """ + TAIL
@@ -137,7 +159,19 @@ document.querySelector('.btn').addEventListener('click',()=>{
 
     fun sharePage(config: WebConfig, request: WebServer.HttpRequest): String {
         val token = request.query["t"] ?: ""
-        val suffix = if (token.isNotEmpty()) "?t=$token" else ""
+        val pin = request.query["pin"] ?: ""
+        // Every link has to carry both credentials, or a PIN-protected page would break its own
+        // download buttons.
+        val suffix = buildString {
+            val parts = ArrayList<String>(2)
+            if (token.isNotEmpty()) parts.add("t=$token")
+            if (pin.isNotEmpty()) parts.add("pin=$pin")
+            if (parts.isNotEmpty()) append("?").append(parts.joinToString("&"))
+        }
+        val credentials = buildString {
+            if (token.isNotEmpty()) append("&t=").append(token)
+            if (pin.isNotEmpty()) append("&pin=").append(pin)
+        }
         val list = if (config.files.isEmpty()) {
             "<p class=\"sub\">Nothing shared yet. Add files on the phone.</p>"
         } else {
@@ -147,8 +181,12 @@ document.querySelector('.btn').addEventListener('click',()=>{
             }
             "<ul class=\"files\">$items</ul>"
         }
+        val tooBigForZip = config.files.filter { it.file.length() > WebServer.ZIP_ENTRY_LIMIT }
         val zip = if (config.files.size > 1) {
-            "<a class=\"btn ghost\" style=\"margin-top:14px\" href=\"/api/zip$suffix\">Download all as ZIP</a>"
+            val note = if (tooBigForZip.isEmpty()) "" else
+                "<p class=\"sub\" style=\"margin-top:8px\">${esc(tooBigForZip.joinToString { it.name })} " +
+                    "is over 4 GB and is left out of the ZIP — download it on its own.</p>"
+            "<a class=\"btn ghost\" style=\"margin-top:14px\" href=\"/api/zip$suffix\">Download all as ZIP</a>$note"
         } else ""
         val upload = if (config.allowUpload) """
 <div class="card">
@@ -174,7 +212,7 @@ async function upload(files){
     const f=files[i];ust.textContent='Uploading '+f.name+' ('+(i+1)+'/'+files.length+')';
     await new Promise((resolve,reject)=>{
       const xhr=new XMLHttpRequest();
-      xhr.open('POST','/api/upload?name='+encodeURIComponent(f.name)+'&t=$token');
+      xhr.open('POST','/api/upload?name='+encodeURIComponent(f.name)+'$credentials');
       xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);ufill.style.width=p+'%';}};
       xhr.onload=()=>{ufill.style.width='100%';resolve()};
       xhr.onerror=()=>{ust.textContent='Upload failed';reject()};
@@ -202,17 +240,22 @@ Plain HTTP on your own Wi-Fi so no certificate warnings appear.</p>
 """ + TAIL
     }
 
-    fun pinPage(path: String, hint: String): String = head("PIN required") + """
+    fun pinPage(path: String, hint: String, token: String? = null): String {
+        val hidden = if (token.isNullOrBlank()) "" else
+            """<input type="hidden" name="t" value="${esc(token)}">"""
+        return head("PIN required") + """
 <div class="hero"><img class="logo" src="/logo.svg" alt="">
 <div><h1>PIN required</h1><p class="sub">The phone owner must approve this browser.</p></div></div>
 <div class="card">
   <form method="get" action="${esc(path)}">
+    $hidden
     <input type="password" name="pin" inputmode="numeric" maxlength="6" placeholder="••••" autofocus>
     <button class="btn" style="margin-top:14px" type="submit">Unlock</button>
   </form>
   <p class="sub" style="margin-top:12px">${esc(hint)}</p>
 </div>
 """ + TAIL
+    }
 
     fun messagePage(title: String, body: String): String = head(title) + """
 <div class="hero"><img class="logo" src="/logo.svg" alt="">

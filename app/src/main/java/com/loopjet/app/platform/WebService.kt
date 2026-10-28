@@ -14,7 +14,9 @@ import com.loopjet.app.MainActivity
 import com.loopjet.app.R
 import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.ProtocolLimits
+import com.loopjet.app.core.SafePath
 import com.loopjet.app.core.SharedFile
+import com.loopjet.app.core.SpaceGuard
 import com.loopjet.app.core.WebConfig
 import com.loopjet.app.core.WebMode
 import com.loopjet.app.core.WebServer
@@ -22,10 +24,14 @@ import com.loopjet.app.core.WebServerEvents
 import com.loopjet.app.platform.net.HotspotController
 import com.loopjet.app.platform.net.NetworkTools
 import com.loopjet.app.platform.net.WifiQr
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 
 data class WebUi(
     val active: Boolean = false,
@@ -40,15 +46,35 @@ data class WebUi(
     val pin: String = "",
     val expiresAt: Long = 0,
     val message: String = "",
-    val addressLabel: String = ""
+    val addressLabel: String = "",
+    /** Address of a browser waiting for the phone owner to allow it. */
+    val pendingBrowser: String = ""
 )
 
 object WebHub {
     private val _state = MutableStateFlow(WebUi())
     val state: StateFlow<WebUi> = _state
 
+    private val pendingApproval = AtomicReference<CompletableDeferred<Boolean>?>(null)
+
     fun update(block: (WebUi) -> WebUi) {
         _state.value = block(_state.value)
+    }
+
+    /** Called from the browser thread; blocks until the phone owner answers or the wait expires. */
+    fun awaitBrowserApproval(remote: String, timeoutMs: Long = 90_000): Boolean {
+        val deferred = CompletableDeferred<Boolean>()
+        pendingApproval.set(deferred)
+        update { it.copy(pendingBrowser = remote, message = "A browser is asking for permission") }
+        val answer = runBlocking { withTimeoutOrNull(timeoutMs) { deferred.await() } }
+        pendingApproval.compareAndSet(deferred, null)
+        update { it.copy(pendingBrowser = "") }
+        return answer == true
+    }
+
+    fun answerBrowser(accepted: Boolean) {
+        update { it.copy(pendingBrowser = "") }
+        pendingApproval.getAndSet(null)?.complete(accepted)
     }
 }
 
@@ -72,6 +98,7 @@ class WebService : Service() {
     private var server: WebServer? = null
     private var hotspot: HotspotController? = null
     private var hotspotInfo: HotspotController.HotspotInfo? = null
+    private var stagingDir: File? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -114,22 +141,30 @@ class WebService : Service() {
         val address = hotspot?.address ?: binding?.address?.hostAddress ?: "127.0.0.1"
         val addressInet = runCatching { java.net.InetAddress.getByName(address) }.getOrNull()
         val token = UUID.randomUUID().toString().replace("-", "").take(12)
+        // Files that only exist behind a content:// URI must be materialised. They go into a session
+        // folder with a unique name (two picks can share a display name) and are deleted on stop; if
+        // there is not enough space the file is skipped with a message instead of filling the disk.
+        val staging = File(cacheDir, "web-$token").apply { mkdirs() }
+        stagingDir = staging
         val files = if (mode == WebMode.SHARE) {
-            WebShareQueue.snapshot().mapIndexed { index, item ->
-                val file = item.filePath?.let { File(it) }
-                    ?: runCatching {
-                        File(cacheDir, item.displayName).also { target ->
-                            contentResolver.openInputStream(android.net.Uri.parse(item.uri))
-                                ?.use { input -> target.outputStream().use { input.copyTo(it, 512 * 1024) } }
-                        }
-                    }.getOrNull()
-                if (file == null) null else SharedFile(index + 1, item.displayName, file.length(), item.mime, file)
-            }.filterNotNull()
+            val free = SpaceGuard.usable(staging)
+            WebShareQueue.snapshot().mapIndexedNotNull { index, item ->
+                val file = item.filePath?.let { File(it) } ?: runCatching {
+                    val target = File(staging, "${index + 1}-" + (SafePath.sanitizeComponent(item.displayName) ?: "file"))
+                    val size = item.size
+                    if (size > 0 && free > 0 && size > free - 32L * 1024 * 1024) return@runCatching null
+                    contentResolver.openInputStream(android.net.Uri.parse(item.uri))
+                        ?.use { input -> target.outputStream().use { input.copyTo(it, 512 * 1024) } }
+                    target
+                }.getOrNull()
+                if (file == null || !file.isFile) null
+                else SharedFile(index + 1, item.displayName, file.length(), item.mime, file)
+            }
         } else emptyList()
         val installApk = if (mode == WebMode.INVITE) {
             runCatching { File(applicationInfo.sourceDir) }.getOrNull()
         } else null
-        val downloadFolder = File(getExternalFilesDir(null), "web-uploads").apply { mkdirs() }
+        val downloadFolder = uploadFolder()
         val pin = if (app.prefs.webRequirePin && app.prefs.webPin.isNotBlank()) app.prefs.webPin else null
         val expiresAt = System.currentTimeMillis() + 30 * 60 * 1000
         val config = WebConfig(
@@ -144,12 +179,24 @@ class WebService : Service() {
             bindAddress = addressInet,
             pin = pin,
             requirePin = pin != null,
+            // Web Share is an inbound door: the first request from each browser needs a tap on the
+            // phone. Invite is outbound only, so it does not need the extra gate.
+            token = token,
+            requireApproval = mode == WebMode.SHARE,
             expiresAt = expiresAt
         )
         val webServer = WebServer(config, object : WebServerEvents {
             override fun onLog(message: String) { Log.d(TAG, message) }
-            override fun onDownload(name: String, sent: Long, total: Long) {
-                WebHub.update { it.copy(bytesServed = it.bytesServed + 0) }
+            override fun onDownload(name: String, sent: Long, total: Long) = Unit
+
+            override fun onApprovalNeeded(remote: String, userAgent: String): Boolean {
+                Log.d(TAG, "browser $remote asking for approval")
+                return WebHub.awaitBrowserApproval(remote)
+            }
+
+            override fun onUploadFinished(name: String, file: java.io.File) {
+                // Published so a photo dropped from the browser shows up in the gallery at once.
+                MediaIndex.index(this@WebService, file, mimeOf(name))
             }
 
             override fun onUpload(name: String, received: Long, total: Long) {
@@ -185,16 +232,20 @@ class WebService : Service() {
                 pin = pin ?: "",
                 expiresAt = expiresAt,
                 addressLabel = hotspot?.band ?: tools.bandLabel(),
-                message = if (mode == WebMode.INVITE) "Share this link to install LoopJet" else "Open this link on any device"
+                message = when {
+                    address == "127.0.0.1" ->
+                        "No Wi-Fi network found — connect to Wi-Fi or use the hotspot option"
+                    mode == WebMode.INVITE -> "Share this link to install LoopJet"
+                    else -> "Open this link on any device on this Wi-Fi"
+                }
             )
         }
         // Index uploaded media so it appears in the gallery immediately.
         Thread({
-            var lastServed = 0L
-            while (server != null) {
+            while (server === webServer) {
                 Thread.sleep(1000)
-                lastServed = webServer.totalBytesServed
-                WebHub.update { it.copy(bytesServed = lastServed, clients = webServer.activeClients) }
+                val served = webServer.totalBytesServed
+                WebHub.update { it.copy(bytesServed = served, clients = webServer.activeClients) }
             }
         }, "lj-web-stats").apply { isDaemon = true }.start()
     }
@@ -204,7 +255,56 @@ class WebService : Service() {
         server = null
         runCatching { hotspot?.stop() }
         hotspot = null
+        // The staging copies existed only to serve this session.
+        runCatching { stagingDir?.deleteRecursively() }
+        stagingDir = null
         WebHub.update { WebUi() }
+    }
+
+    /**
+     * Uploads land where the user can find them: public Downloads when all-files access is granted,
+     * otherwise app storage with a MediaStore publish on completion.
+     */
+    private fun uploadFolder(): File {
+        val name = LoopJetApp.instance.prefs.saveFolderName.ifBlank { "LoopJet" }.let {
+            SafePath.sanitizeComponent(it) ?: "LoopJet"
+        }
+        val canWrite = if (android.os.Build.VERSION.SDK_INT >= 30) {
+            android.os.Environment.isExternalStorageManager()
+        } else true
+        val base = if (canWrite) {
+            File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOWNLOADS
+                ),
+                name
+            )
+        } else {
+            File(getExternalFilesDir(null) ?: filesDir, name)
+        }
+        val folder = File(base, "Web")
+        if (!folder.exists() && !folder.mkdirs()) return File(filesDir, "web-uploads").apply { mkdirs() }
+        return folder
+    }
+
+    private fun mimeOf(name: String): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        return when (ext) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "webp" -> "image/webp"
+            "gif" -> "image/gif"
+            "heic" -> "image/heic"
+            "mp4" -> "video/mp4"
+            "mkv" -> "video/x-matroska"
+            "mov" -> "video/quicktime"
+            "mp3" -> "audio/mpeg"
+            "m4a" -> "audio/mp4"
+            "wav" -> "audio/wav"
+            "pdf" -> "application/pdf"
+            "apk" -> "application/vnd.android.package-archive"
+            else -> "application/octet-stream"
+        }
     }
 
     private fun stopSelfSafely() {

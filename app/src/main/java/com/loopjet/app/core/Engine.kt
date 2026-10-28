@@ -124,6 +124,10 @@ class SenderEngine(
     private val failures = ConcurrentLinkedQueue<String>()
     private val rate = RateMeter()
     private val queue = ConcurrentLinkedQueue<WorkItem>()
+    /** Items taken off [queue] but not yet sent, failed or requeued. */
+    private val inFlight = AtomicInteger(0)
+    /** How many times a failed item may be pushed back for another stream to try. */
+    private val requeueBudget = AtomicInteger(MAX_REQUEUES)
     private val sources = ConcurrentHashMap<Int, RandomAccessSource>()
     private val chunksDone = AtomicInteger(0)
     private val currentFiles = ConcurrentHashMap.newKeySet<String>()
@@ -166,6 +170,7 @@ class SenderEngine(
         var ok = false
         var message = "Transfer did not start"
         var reporter: Thread? = null
+        var confirmed = false
         try {
             listener.onState(TransferState.CONNECTING, "Connecting")
             val control = connector.connect(controlPort, CONNECT_TIMEOUT_MS)
@@ -198,7 +203,8 @@ class SenderEngine(
 
             channel.writeJson(Frame.MANIFEST, manifest.toJson())
             channel.flush()
-            control.soTimeout = 300_000
+            // The receiving human has to look at the offer and decide; give them real time.
+            control.soTimeout = OFFER_TIMEOUT_MS
             val prepare = try {
                 awaitPrepare(channel)
             } finally {
@@ -244,19 +250,23 @@ class SenderEngine(
                 if (!controlReader.isAlive) break
                 Thread.sleep(40)
             }
+            // "Sent" is not "received": a file only counts once the receiver confirmed it.
+            confirmed = acceptedIds.isNotEmpty() && completedIds.containsAll(acceptedIds)
             try {
                 sendControl(Frame.BYE, Json.obj("reason" to if (cancelled.get()) "cancelled" else "finished"))
                 controlChannel?.flush()
             } catch (_: Exception) {
             }
-            ok = failures.isEmpty() && !cancelled.get()
+            ok = failures.isEmpty() && !cancelled.get() && confirmed
             message = when {
                 cancelled.get() -> "Cancelled"
                 failures.isNotEmpty() -> failures.joinToString("; ")
+                !confirmed -> "The receiver did not confirm ${acceptedIds.size - completedIds.size} file(s)"
                 else -> "Transfer complete"
             }
             if (!ok && cancelled.get()) listener.onState(TransferState.CANCELLED, message)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // A bug inside the engine must not become a process crash: the service reports it.
             message = e.message ?: e.javaClass.simpleName
             sessionLog("sender stopped: $message")
         } finally {
@@ -357,6 +367,14 @@ class SenderEngine(
 
     // --- workers ---------------------------------------------------------------------------------
 
+    /**
+     * One sender worker: pull an item, push it, and only give up on it when the session itself is gone.
+     *
+     * An item that fails [MAX_ITEM_ATTEMPTS] times on this stream is put back on the shared queue and
+     * sent by whichever worker reconnects next, up to [requeueBudget] times per session. That is what
+     * turns "one bad data stream" into a retry instead of a lost chunk: the receiver keeps its chunk
+     * map, so the re-sent chunk is accepted exactly like the first attempt.
+     */
     private fun workerLoop(index: Int) {
         var socket: Socket? = null
         var channel: RecordChannel? = null
@@ -370,37 +388,62 @@ class SenderEngine(
                     Thread.sleep(25)
                     continue
                 }
-                val item = queue.poll() ?: break
-                var attempts = 0
-                var sent = false
-                while (attempts < 3 && !sent) {
-                    try {
-                        if (channel == null) {
-                            val pair = openDataStream(index)
-                            socket = pair.first
-                            channel = pair.second
-                            dataSockets[index] = pair.first
-                        }
-                        when (item) {
-                            is WorkItem.Chunk -> sendChunk(channel, item, readBuffer, staging, digest)
-                            is WorkItem.Bundle -> sendBundle(channel, item, readBuffer, staging, entryDigests)
-                        }
-                        sent = true
-                    } catch (e: Exception) {
-                        attempts++
-                        sessionLog("stream $index: ${e.message} (attempt $attempts)")
-                        socket?.shutDownQuietly()
-                        socket = null
-                        channel = null
-                        if (cancelled.get() || finished.get()) return
-                        if (attempts >= 3) failures.add("send failed: ${e.message}")
-                        else Thread.sleep(60L * attempts)
+                val item = queue.poll()
+                if (item == null) {
+                    // Another worker may be about to put its item back after a failed stream; only
+                    // stop when nothing is queued *and* nothing is in flight.
+                    if (inFlight.get() > 0) {
+                        Thread.sleep(20)
+                        continue
                     }
+                    break
+                }
+                inFlight.incrementAndGet()
+                try {
+                    var attempts = 0
+                    var sent = false
+                    while (attempts < MAX_ITEM_ATTEMPTS && !sent) {
+                        try {
+                            if (channel == null) {
+                                val pair = openDataStream(index)
+                                socket = pair.first
+                                channel = pair.second
+                                dataSockets[index] = pair.first
+                            }
+                            when (item) {
+                                is WorkItem.Chunk -> sendChunk(channel, item, readBuffer, staging, digest)
+                                is WorkItem.Bundle -> sendBundle(channel, item, readBuffer, staging, entryDigests)
+                            }
+                            sent = true
+                        } catch (e: Exception) {
+                            attempts++
+                            sessionLog("stream $index: ${e.message} (attempt $attempts)")
+                            socket?.shutDownQuietly()
+                            socket = null
+                            channel = null
+                            if (cancelled.get() || finished.get()) return
+                            if (attempts >= MAX_ITEM_ATTEMPTS) {
+                                if (requeueBudget.getAndDecrement() > 0) {
+                                    queue.add(item)
+                                    sessionLog("stream $index: requeued after $attempts failed attempts")
+                                    // Give the receiver time to accept a fresh stream before retrying.
+                                    Thread.sleep(200)
+                                } else {
+                                    failures.add("send failed: ${e.message}")
+                                }
+                            } else {
+                                Thread.sleep(60L * attempts)
+                            }
+                        }
+                    }
+                } finally {
+                    inFlight.decrementAndGet()
                 }
             }
             runCatching { channel?.flush() }
         } finally {
             socket?.shutDownQuietly()
+            dataSockets.remove(index)
         }
     }
 
@@ -508,7 +551,18 @@ class SenderEngine(
                     Frame.COMPLETE -> {
                         val m = channel.payloadJson()
                         val fileId = m.int("id") ?: -1
-                        if (fileId >= 0) completedIds.add(fileId)
+                        val accepted = m.bool("ok") ?: true
+                        if (fileId >= 0) {
+                            if (accepted) {
+                                completedIds.add(fileId)
+                            } else {
+                                failures.add(
+                                    "receiver refused ${m.str("p") ?: "file #$fileId"}: " +
+                                        (m.str("msg") ?: "verification failed")
+                                )
+                                completedIds.add(fileId)
+                            }
+                        }
                     }
                     Frame.ERROR -> failures.add(channel.payloadJson().str("msg") ?: "Receiver error")
                     Frame.BYE -> break
@@ -584,7 +638,12 @@ class SenderEngine(
 
     companion object {
         const val CONNECT_TIMEOUT_MS = 6000
+        /** Attempts on one data stream before the item goes back on the queue. */
+        const val MAX_ITEM_ATTEMPTS = 3
+        /** Total requeues per session; bounded so a dead peer cannot loop forever. */
+        const val MAX_REQUEUES = 64
         const val COMPLETION_TIMEOUT_MS = 90_000L
+        const val OFFER_TIMEOUT_MS = 600_000
     }
 }
 
@@ -671,7 +730,15 @@ class ReceiverEngine(
         var session: Session? = null
         var ok = false
         var message = "No connection"
-        val results = ArrayList<FileResult>()
+        // Written from the accept thread, every data thread and the finaliser.
+        val results: MutableList<FileResult> =
+            java.util.Collections.synchronizedList(ArrayList<FileResult>())
+        // Where each committed file actually landed, so a received app can be installed as one item.
+        val committedPaths = ConcurrentHashMap<Int, java.io.File>()
+        val recordCommit: (TransferFile, java.io.File) -> Unit = { f, file ->
+            committedPaths[f.id] = file
+            onCommitted(f, file)
+        }
         var totalBytes = 0L
         var transferred = 0L
         var pathLabel = ""
@@ -784,7 +851,17 @@ class ReceiverEngine(
             val haveMap = HashMap<Int, ChunkMap>()
             for (file in m.files) {
                 if (!accepted.contains(file.id)) continue
-                val sink = sinkFactory.prepare(file.relPath, file.size, file.mtime, file.mime)
+                // One unusable destination (read-only provider, name clash with a device file, ...)
+                // must not take the whole session down before it starts.
+                val sink = try {
+                    sinkFactory.prepare(file.relPath, file.size, file.mtime, file.mime)
+                } catch (e: Exception) {
+                    sessionLog("cannot create ${file.relPath}: ${e.message}")
+                    skipped[file.id] = "cannot-write"
+                    accepted.remove(file.id)
+                    results.add(FileResult(file.id, file.relPath, file.size, false, e.message ?: "cannot write"))
+                    continue
+                }
                 sinks[file.id] = sink
                 val map = ChunkMap.forSize(file.size, m.chunkSize)
                 val resumed = saved[file.id]
@@ -820,7 +897,7 @@ class ReceiverEngine(
                 val sink = sinks[file.id] ?: continue
                 try {
                     val committed = sink.commit(file.sha256)
-                    onCommitted(file, committed)
+                    recordCommit(file, committed)
                     results.add(FileResult(file.id, file.relPath, 0, true, "created"))
                 } catch (e: Exception) {
                     results.add(FileResult(file.id, file.relPath, 0, false, e.message ?: "failed"))
@@ -896,7 +973,10 @@ class ReceiverEngine(
 
             // Data acceptor.
             val pool = Executors.newFixedThreadPool(maxStreams)
-            dataServer!!.soTimeout = 600
+            // A local handle: `close()` nulls neither field, but the `!!`s here could still trip if a
+            // caller closed the engine between bind() and runOnce().
+            val data = dataServer ?: throw IllegalStateException("bind() not called")
+            data.soTimeout = 600
             val finishedAccepting = AtomicBoolean(false)
             val pendingCommits = AtomicInteger(0)
             val maybeFinish = Runnable {
@@ -906,12 +986,18 @@ class ReceiverEngine(
             }
             val acceptThread = Thread({
                 while (!closed.get() && !finishedAccepting.get()) {
-                    try {
-                        val socket = dataServer!!.accept()
-                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, onCommitted, pendingFiles, maybeFinish, pendingCommits) }
+                    val socket = try {
+                        data.accept()
                     } catch (_: SocketTimeoutException) {
-                        if (remaining.get() <= 0) break
+                        if (remaining.get() <= 0) break else continue
                     } catch (_: Exception) {
+                        break
+                    }
+                    try {
+                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, recordCommit, pendingFiles, maybeFinish, pendingCommits) }
+                    } catch (_: Exception) {
+                        // The pool is shutting down: do not leave the peer waiting on an unread socket.
+                        runCatching { socket.close() }
                         break
                     }
                 }
@@ -954,6 +1040,8 @@ class ReceiverEngine(
                 while (doneLatch.count > 0 && !closed.get()) {
                     Thread.sleep(1000)
                     val idle = System.currentTimeMillis() - lastActivity.get()
+                    // A user-initiated pause is silence by design; only a dead link is a stall.
+                    if (progressState.get() == TransferState.PAUSED) continue
                     if (idle > stallTimeoutMs && remaining.get() > 0) {
                         sessionLog("stalled for ${idle}ms, ending session")
                         doneLatch.countDown()
@@ -970,8 +1058,11 @@ class ReceiverEngine(
                 Thread.sleep(20)
             }
             finishedAccepting.set(true)
-            pool.shutdownNow()
             dataServer?.shutDownQuietly()
+            // Let a stream finish the record it is writing before the finaliser reads the same sinks:
+            // committing while a data thread was still writing produced false checksum failures.
+            pool.shutdownNow()
+            runCatching { pool.awaitTermination(30, TimeUnit.SECONDS) }
             progressState.set(if (remaining.get() <= 0) TransferState.DONE else TransferState.PAUSED)
 
             // Finish whatever is complete, keep partial files for resume.
@@ -983,11 +1074,11 @@ class ReceiverEngine(
                     try {
                         pendingCommits.incrementAndGet()
                         val committed = try {
-                            sink.commit(file.sha256)
+                            synchronized(sink) { sink.commit(file.sha256) }
                         } finally {
                             pendingCommits.decrementAndGet()
                         }
-                        onCommitted(file, committed)
+                        recordCommit(file, committed)
                         results.add(FileResult(file.id, file.relPath, file.size, true, "received"))
                         synchronized(commitLock) {
                             channel.writeJson(
@@ -1011,6 +1102,16 @@ class ReceiverEngine(
                 } else {
                     pending.add(file)
                     sink.close()
+                }
+            }
+            // An app is only installable when the base APK and every split are on disk.
+            for (app in m.apps) {
+                val ids = ArrayList<Int>(app.splitFileIds.size + 1)
+                ids.add(app.baseFileId)
+                ids.addAll(app.splitFileIds)
+                val files = ids.mapNotNull { committedPaths[it] }
+                if (files.size == ids.size && files.isNotEmpty()) {
+                    runCatching { listener.onAppReady(app, files) }
                 }
             }
             // Persist every file that is not complete: this is what a later session resumes from.
@@ -1042,16 +1143,24 @@ class ReceiverEngine(
             watchdog.interrupt()
             transferred = rate.total()
             chunksDone = chunksTotal - remaining.get()
-            ok = remaining.get() <= 0
+            val failed = results.filter { !it.ok }
+            // Every chunk arriving is not success: a file whose checksum failed is a failure, and the
+            // user must not be told "complete" while it sits in the folder half-written.
+            ok = remaining.get() <= 0 && failed.isEmpty()
             message = when {
                 ok -> "Transfer complete"
+                failed.isNotEmpty() ->
+                    "${failed.size} file(s) did not complete: " + failed.first().message.ifBlank { "unknown reason" }
                 pending.isNotEmpty() -> "Interrupted — ${pending.size} file(s) can resume"
                 else -> "Transfer incomplete"
             }
         } catch (e: SocketTimeoutException) {
             message = "No sender connected"
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Hostile or malformed input ends this session with a message; it must never take the
+            // whole process down.
             message = e.message ?: e.javaClass.simpleName
+            sessionLog("receiver stopped: $message")
         } finally {
             try {
                 session?.channel?.flush()

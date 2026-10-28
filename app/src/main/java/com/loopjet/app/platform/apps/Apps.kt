@@ -1,6 +1,5 @@
 package com.loopjet.app.platform.apps
 
-import android.Manifest
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -66,10 +65,7 @@ class AppRepository(private val context: Context) {
                     apkPaths = paths,
                     minSdk = if (Build.VERSION.SDK_INT >= 24) info.minSdkVersion else 0,
                     targetSdk = info.targetSdkVersion,
-                    nativeAbis = runCatching<List<String>> {
-                        val libDir = info.nativeLibraryDir
-                        if (libDir.isNullOrBlank()) emptyList() else listOf(libDir.substringAfterLast('/'))
-                    }.getOrDefault(emptyList()),
+                    nativeAbis = nativeAbisOf(info),
                     system = system,
                     icon = runCatching { pm.getApplicationIcon(packageName) }.getOrNull()
                 )
@@ -77,6 +73,24 @@ class AppRepository(private val context: Context) {
         }
         apps.sortBy { it.label.lowercase() }
         apps
+    }
+
+    /**
+     * ABIs the app ships code for. `nativeLibraryDir` names the directory this device uses
+     * (`.../lib/arm64`), so it is reported as the single ABI that is certain to be present.
+     */
+    private fun nativeAbisOf(info: ApplicationInfo): List<String> {
+        val dir = info.nativeLibraryDir ?: return emptyList()
+        val abi = dir.substringAfterLast('/')
+        if (abi.isBlank()) return emptyList()
+        val normalised = when (abi) {
+            "arm64" -> "arm64-v8a"
+            "arm" -> "armeabi-v7a"
+            "x86" -> "x86"
+            "x86_64" -> "x86_64"
+            else -> abi
+        }
+        return listOf(normalised)
     }
 
     private fun packageVersionCode(pm: PackageManager, packageName: String): Long {
@@ -109,7 +123,10 @@ class AppRepository(private val context: Context) {
                 appVersionCode = app.versionCode,
                 splitName = splitName,
                 isBaseApk = index == 0,
-                kind = com.loopjet.app.core.FileKind.APP_APK
+                kind = com.loopjet.app.core.FileKind.APP_APK,
+                appMinSdk = app.minSdk,
+                appTargetSdk = app.targetSdk,
+                appAbis = app.nativeAbis
             )
         }
     }
@@ -141,7 +158,11 @@ class AppInstaller(private val context: Context) {
             val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
                 setAppPackageName(packageName)
                 setSize(totalBytes)
-                if (Build.VERSION.SDK_INT >= 31) setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+                // Best effort: a privileged app can skip the confirm dialog, a normal one cannot. Never
+                // let the attempt abort an install that would otherwise work.
+                if (Build.VERSION.SDK_INT >= 31) {
+                    runCatching { setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED) }
+                }
             }
             val sessionId = installer.createSession(params)
             val session = installer.openSession(sessionId)
@@ -244,7 +265,4 @@ class AppInstaller(private val context: Context) {
         return null
     }
 
-    companion object {
-        private const val UNUSED = Manifest.permission.INSTALL_PACKAGES
-    }
 }

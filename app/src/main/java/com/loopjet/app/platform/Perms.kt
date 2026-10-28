@@ -19,6 +19,9 @@ import androidx.core.content.ContextCompat
  * folder, no notification permission ⇒ silent foreground service.
  */
 object Perms {
+    /** Android 17 runtime permission for LAN access; asked on its own prompt. */
+    const val LOCAL_NETWORK = "android.permission.ACCESS_LOCAL_NETWORK"
+
     data class Requirement(val permission: String, val title: String, val why: String)
 
     fun runtimeRequirements(context: Context, forReceive: Boolean): List<Requirement> {
@@ -50,7 +53,7 @@ object Perms {
         if (sdk >= 37) {
             list.add(
                 Requirement(
-                    "android.permission.ACCESS_LOCAL_NETWORK",
+                    LOCAL_NETWORK,
                     "Local network",
                     "Android 17 blocks LAN access without this. LoopJet never talks to the internet."
                 )
@@ -105,6 +108,10 @@ object Perms {
 
     fun installIntent(context: Context): Intent =
         Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
+
+    /** The only route back once a permission has been refused "for good". */
+    fun appDetailsIntent(context: Context): Intent =
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
 
     fun notificationsEnabled(context: Context): Boolean =
         androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()

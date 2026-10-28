@@ -25,7 +25,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,17 +67,49 @@ class MainActivity : ComponentActivity() {
     private var pendingReceive by mutableStateOf(false)
     private var vmRef: AppViewModel? = null
 
+    private var pendingRest: Array<String> = emptyArray()
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { granted ->
-        val denied = granted.filterValues { !it }
-        if (denied.isNotEmpty()) {
-            vmRef?.notice("Some permissions were refused — falling back to the paths that still work")
-        }
+        reportDenials(granted)
         if (pendingReceive) {
             pendingReceive = false
-            vmRef?.startDiscovery(advertise = false)
+            // Receive means "let the other phone find me", so this side advertises.
+            vmRef?.startDiscovery(advertise = true)
         }
+    }
+
+    /**
+     * Android 17 shows a dedicated local-network prompt, so it is asked on its own and the rest of
+     * the permissions are requested afterwards.
+     */
+    private val localNetworkLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { granted ->
+        reportDenials(granted)
+        val rest = pendingRest
+        pendingRest = emptyArray()
+        if (rest.isNotEmpty()) permissionLauncher.launch(rest)
+        else if (pendingReceive) {
+            pendingReceive = false
+            vmRef?.startDiscovery(advertise = true)
+        }
+    }
+
+    private fun reportDenials(granted: Map<String, Boolean>) {
+        val denied = granted.filterValues { !it }.keys
+        if (denied.isEmpty()) return
+        val blocked = denied.filter { permission ->
+            !shouldShowRequestPermissionRationale(permission)
+        }
+        vmRef?.notice(
+            if (blocked.isEmpty()) {
+                "Refused for now — LoopJet will fall back to the paths that still work"
+            } else {
+                "Refused for good: LoopJet may not be able to find phones. Settings › Permissions opens the app settings."
+            }
+        )
     }
 
     private val folderLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -159,7 +193,8 @@ class MainActivity : ComponentActivity() {
                                     onPickFolder = { folderLauncher.launch(null) },
                                     onBattery = { runCatching { settingsLauncher.launch(Perms.batteryIntent(activity)) } },
                                     onAllFiles = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
-                                    onInstallApps = { runCatching { settingsLauncher.launch(Perms.installIntent(activity)) } }
+                                    onInstallApps = { runCatching { settingsLauncher.launch(Perms.installIntent(activity)) } },
+                                    onAppSettings = { runCatching { settingsLauncher.launch(Perms.appDetailsIntent(activity)) } }
                                 )
                             }
                             Screen.About -> AboutScreen(vm)
@@ -201,7 +236,7 @@ class MainActivity : ComponentActivity() {
             if (Perms.missing(this, Perms.runtimeRequirements(this, false)).isEmpty() &&
                 vm.state.value.screen == Screen.Receive
             ) {
-                vm.startDiscovery(advertise = false)
+                vm.startDiscovery(advertise = true)
             }
         }
     }
@@ -211,11 +246,17 @@ class MainActivity : ComponentActivity() {
         val missing = Perms.missing(this, Perms.runtimeRequirements(this, receive))
         if (missing.isEmpty()) {
             vmRef?.notice(null)
+            if (receive) vmRef?.startDiscovery(advertise = true)
             return
         }
         val array = missing.map { it.permission }.toTypedArray()
-        if (Build.VERSION.SDK_INT >= 30 && array.any { it == "android.permission.ACCESS_LOCAL_NETWORK" }) {
+        LoopJetApp.instance.prefs.askedPermissions = LoopJetApp.instance.prefs.askedPermissions + array.toSet()
+        val localNetwork = array.firstOrNull { it == Perms.LOCAL_NETWORK }
+        if (localNetwork != null) {
             // Never bundled silently with the rest: Android 17 shows a dedicated local-network prompt.
+            pendingRest = array.filter { it != localNetwork }.toTypedArray()
+            localNetworkLauncher.launch(arrayOf(localNetwork))
+            return
         }
         permissionLauncher.launch(array)
     }
@@ -241,11 +282,30 @@ private fun PermissionsCard(
     onPickFolder: () -> Unit,
     onBattery: () -> Unit,
     onAllFiles: () -> Unit,
-    onInstallApps: () -> Unit
+    onInstallApps: () -> Unit,
+    onAppSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val requirements = Perms.runtimeRequirements(context, false)
-    val missing = Perms.missing(context, requirements)
+    // Permissions can be changed in system settings while this screen is in the background, so the
+    // list is recomputed every time the activity comes back to the front.
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    var refresh by remember { mutableIntStateOf(0) }
+    DisposableEffect(owner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) refresh++
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
+    val missing = remember(refresh, context) { Perms.missing(context, requirements) }
+    // "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android
+    // reports false for both. So the app remembers what it has asked for on this install.
+    val activity = LocalContext.current as? android.app.Activity
+    val asked = LoopJetApp.instance.prefs.askedPermissions
+    val permanentlyBlocked = if (activity == null) emptyList() else missing.filter { requirement ->
+        requirement.permission in asked && !activity.shouldShowRequestPermissionRationale(requirement.permission)
+    }
     Column {
         SectionCard {
             Text("Permissions", style = MaterialTheme.typography.titleMedium)
@@ -265,6 +325,16 @@ private fun PermissionsCard(
                 }
                 Spacer(Modifier.height(6.dp))
                 TextButton(onClick = onGrant) { Text("Grant what is missing") }
+                if (permanentlyBlocked.isNotEmpty()) {
+                    Text(
+                        "Android will not show the dialog again for " +
+                            permanentlyBlocked.joinToString { it.title.lowercase() } +
+                            ". The system settings page below is the only way to turn them back on.",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                TextButton(onClick = onAppSettings) { Text("Open app settings") }
             }
             Spacer(Modifier.height(6.dp))
             TextButton(onClick = onPickFolder) { Text("Choose an exact save folder (SAF)") }

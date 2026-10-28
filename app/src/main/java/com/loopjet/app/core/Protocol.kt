@@ -485,16 +485,51 @@ class TransferManifest(
     )
 
     companion object {
-        fun fromJson(m: Map<String, Any?>) = TransferManifest(
-            sessionId = m.requiredStr("sid"),
-            files = m.objList("files").map { TransferFile.fromJson(it) },
-            dirs = m.arr("dirs").orEmpty().mapNotNull { it as? String },
-            apps = m.objList("apps").map { TransferApp.fromJson(it) },
-            totalBytes = m.long("total") ?: 0L,
-            chunkSize = m.int("chunk") ?: ProtocolLimits.CHUNK_SIZE,
-            senderName = m.str("sender") ?: "Phone",
-            startedAt = m.long("at") ?: 0L
-        )
+        /** Ceiling on entries in one manifest, so a hostile peer cannot exhaust memory or the queue. */
+        const val MAX_FILES: Int = 200_000
+
+        /** Ceiling for a single file's declared size (16 TiB): rejects negative and absurd values. */
+        const val MAX_FILE_BYTES: Long = 16L * 1024 * 1024 * 1024 * 1024
+
+        /**
+         * Parses a manifest defensively. Everything crossing this boundary is untrusted: a zero or
+         * negative chunk size used to divide by zero on the receiving side, and duplicate ids made two
+         * files share one sink.
+         */
+        fun fromJson(m: Map<String, Any?>): TransferManifest {
+            val chunk = m.int("chunk") ?: ProtocolLimits.CHUNK_SIZE
+            if (chunk < 4096 || chunk > ProtocolLimits.MAX_RECORD) {
+                throw ProtocolException("unsupported chunk size $chunk")
+            }
+            val raw = m.objList("files")
+            if (raw.size > MAX_FILES) throw ProtocolException("too many files in one manifest")
+            val files = ArrayList<TransferFile>(raw.size)
+            val ids = HashSet<Int>(raw.size * 2)
+            for (entry in raw) {
+                val file = TransferFile.fromJson(entry)
+                if (file.size < 0 || file.size > MAX_FILE_BYTES) {
+                    throw ProtocolException("implausible size for ${file.relPath}")
+                }
+                if (!ids.add(file.id)) throw ProtocolException("duplicate file id ${file.id}")
+                files.add(file)
+            }
+            var declaredTotal = m.long("total") ?: 0L
+            val actualTotal = files.sumOf { it.size }
+            if (declaredTotal < 0) declaredTotal = 0
+            val sessionId = m.requiredStr("sid")
+            return TransferManifest(
+                sessionId = sessionId,
+                files = files,
+                dirs = m.arr("dirs").orEmpty().mapNotNull { it as? String }.take(MAX_FILES),
+                apps = m.objList("apps").map { TransferApp.fromJson(it) }.take(20_000),
+                // The declared total is only used for the "do I have room" check, so take whichever is
+                // larger: a peer must not be able to make its own transfer look smaller than it is.
+                totalBytes = maxOf(declaredTotal, actualTotal),
+                chunkSize = chunk,
+                senderName = (m.str("sender") ?: "Phone").take(80),
+                startedAt = m.long("at") ?: 0L
+            )
+        }
     }
 }
 
@@ -520,7 +555,8 @@ class PrepareResponse(
             accepted = m.arr("accept").orEmpty().longList().map { it.toInt() },
             skipped = m.objList("skip").associate { (it.int("id") ?: -1) to (it.str("why") ?: "skip") },
             freeBytes = m.long("free") ?: 0L,
-            chunkSize = m.int("chunk") ?: ProtocolLimits.CHUNK_SIZE,
+            chunkSize = (m.int("chunk") ?: ProtocolLimits.CHUNK_SIZE)
+                .takeIf { it in 4096..ProtocolLimits.MAX_RECORD } ?: ProtocolLimits.CHUNK_SIZE,
             chunks = (m.obj("have") ?: emptyMap()).entries.associate { (k, v) ->
                 (k.toIntOrNull() ?: -1) to ChunkMap.fromBase64(v as? String ?: "")
             },
@@ -597,27 +633,45 @@ class ChunkMap(val chunkCount: Int, private var bits: LongArray = LongArray((chu
     }
 
     companion object {
+        /**
+         * Hard ceiling on a chunk count that arrives from a peer. At the default 256 KiB chunk this is
+         * 4 TiB, far beyond any phone; anything larger is a hostile or broken bitmap and is refused
+         * instead of being used to size an allocation.
+         */
+        const val MAX_CHUNKS: Int = 1 shl 24
+
         fun fromBase64(text: String): ChunkMap {
             if (text.isEmpty()) return ChunkMap(0)
-            return fromBytes(Bytes.fromB64(text))
+            val raw = try {
+                Bytes.fromB64(text)
+            } catch (_: IllegalArgumentException) {
+                return ChunkMap(0)
+            }
+            return fromBytes(raw)
         }
 
         fun fromBytes(bytes: ByteArray): ChunkMap {
             if (bytes.size < 4) return ChunkMap(0)
             val count = Bytes.readU32(bytes, 0)
-            val words = LongArray((count + 63) ushr 6)
+            // A count straight off the wire used to size a LongArray directly: 0xFFFFFFFF meant a
+            // 512 MB allocation (an out-of-memory crash triggered by the peer).
+            if (count < 0 || count > MAX_CHUNKS) return ChunkMap(0)
+            val words = (count + 63) ushr 6
+            if (bytes.size < 4 + words * 8) return ChunkMap(0)
+            val bits = LongArray(words)
             var o = 4
-            for (i in words.indices) {
-                if (o + 8 > bytes.size) break
-                words[i] = Bytes.readU64(bytes, o)
+            for (i in bits.indices) {
+                bits[i] = Bytes.readU64(bytes, o)
                 o += 8
             }
-            return ChunkMap(count, words)
+            return ChunkMap(count, bits)
         }
 
         fun forSize(size: Long, chunkSize: Int): ChunkMap {
-            val count = if (size <= 0) 0 else ((size + chunkSize - 1) / chunkSize).toInt()
-            return ChunkMap(count)
+            if (size <= 0 || chunkSize <= 0) return ChunkMap(0)
+            val count = ((size + chunkSize - 1) / chunkSize)
+            if (count <= 0 || count > MAX_CHUNKS) return ChunkMap(0)
+            return ChunkMap(count.toInt())
         }
     }
 }

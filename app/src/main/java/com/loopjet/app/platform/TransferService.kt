@@ -32,6 +32,7 @@ import com.loopjet.app.core.RandomAccessSource
 import com.loopjet.app.core.ReceiverEngine
 import com.loopjet.app.core.SenderEngine
 import com.loopjet.app.core.SocketConnector
+import com.loopjet.app.core.SpaceGuard
 import com.loopjet.app.core.SafePath
 import com.loopjet.app.core.TransferFile
 import com.loopjet.app.core.TransferListener
@@ -40,6 +41,7 @@ import com.loopjet.app.core.TransferOffer
 import com.loopjet.app.core.TransferProgress
 import com.loopjet.app.core.TransferResult
 import com.loopjet.app.core.TransferState
+import com.loopjet.app.platform.net.DirectLink
 import com.loopjet.app.platform.net.DiscoveredPeer
 import com.loopjet.app.platform.net.NetworkTools
 import kotlinx.coroutines.CompletableDeferred
@@ -69,6 +71,16 @@ data class IncomingOfferUi(
     val trusted: Boolean
 )
 
+/** An app whose base APK and every split arrived, ready for one PackageInstaller session. */
+data class ReceivedAppUi(
+    val packageName: String,
+    val label: String,
+    val versionName: String,
+    val files: List<String>,
+    val installed: Boolean = false,
+    val message: String = ""
+)
+
 data class SessionUi(
     val mode: SessionMode = SessionMode.IDLE,
     val state: TransferState = TransferState.IDLE,
@@ -89,7 +101,10 @@ data class SessionUi(
     val receiveReady: Boolean = false,
     val receiveQr: String = "",
     val offer: IncomingOfferUi? = null,
-    val deviceName: String = ""
+    val deviceName: String = "",
+    val receivedApps: List<ReceivedAppUi> = emptyList(),
+    /** Six digits shown on the Receive screen for manual pairing. */
+    val receiveCode: String = ""
 ) {
     val active: Boolean get() = mode != SessionMode.IDLE
 }
@@ -100,6 +115,7 @@ object TransferHub {
     val session: StateFlow<SessionUi> = _session
 
     private val pending = AtomicReference<CompletableDeferred<OfferDecision>?>(null)
+    private val earlyAnswer = AtomicReference<OfferDecision?>(null)
 
     fun update(block: (SessionUi) -> SessionUi) {
         _session.value = block(_session.value)
@@ -115,12 +131,24 @@ object TransferHub {
 
     fun answerOffer(accepted: Boolean, trust: Boolean) {
         update { it.copy(offer = null) }
-        pending.getAndSet(null)?.complete(OfferDecision(accepted, trust))
+        val decision = OfferDecision(accepted, trust)
+        val waiter = pending.getAndSet(null)
+        if (waiter != null) {
+            waiter.complete(decision)
+        } else {
+            // The dialog can be answered a frame before the engine starts waiting; keep it.
+            earlyAnswer.set(decision)
+        }
     }
 
     fun awaitDecision(timeoutMs: Long): OfferDecision {
+        earlyAnswer.getAndSet(null)?.let { return it }
         val deferred = CompletableDeferred<OfferDecision>()
         pending.set(deferred)
+        earlyAnswer.getAndSet(null)?.let {
+            pending.compareAndSet(deferred, null)
+            return it
+        }
         val result = runBlocking { withTimeoutOrNull(timeoutMs) { deferred.await() } }
         pending.compareAndSet(deferred, null)
         return result ?: OfferDecision(accepted = false, reason = "No answer")
@@ -143,7 +171,10 @@ data class SendItem(
     val appVersionCode: Long = 0,
     val splitName: String? = null,
     val isBaseApk: Boolean = false,
-    val kind: Int = FileKind.FILE
+    val kind: Int = FileKind.FILE,
+    val appMinSdk: Int = 0,
+    val appTargetSdk: Int = 0,
+    val appAbis: List<String> = emptyList()
 )
 
 object SendQueue {
@@ -184,6 +215,8 @@ class TransferService : Service() {
     private var beacon: BeaconServer? = null
     private var sender: SenderEngine? = null
     private var paused = false
+    @Volatile private var receiveCode: String = ""
+    @Volatile private var p2pGroupHosted = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -204,13 +237,23 @@ class TransferService : Service() {
                 startReceiver()
             }
             ACTION_PAUSE -> {
+                val engine = sender
+                if (engine == null) {
+                    stopSelfSafely("Nothing to pause")
+                    return START_NOT_STICKY
+                }
                 paused = true
-                sender?.requestPause()
+                engine.requestPause()
                 updateNotification()
             }
             ACTION_RESUME -> {
+                val engine = sender
+                if (engine == null) {
+                    stopSelfSafely("Nothing to resume")
+                    return START_NOT_STICKY
+                }
                 paused = false
-                sender?.requestResume()
+                engine.requestResume()
                 updateNotification()
             }
             ACTION_STOP -> {
@@ -225,7 +268,16 @@ class TransferService : Service() {
     }
 
     private fun startWorker(block: () -> Unit) {
-        if (!running.compareAndSet(false, true)) return
+        if (!running.compareAndSet(false, true)) {
+            // A session is already running (send while receiving, or a double tap). Say so instead of
+            // silently dropping the request, which used to look like a dead button.
+            TransferHub.update {
+                it.copy(message = "Another transfer is already running — finish or cancel it first")
+            }
+            MediaIndex.notifyFinished(this, false, "Another transfer is already running")
+            stopSelfSafely("Already running")
+            return
+        }
         acquireLocks()
         val thread = Thread({
             try {
@@ -245,7 +297,7 @@ class TransferService : Service() {
 
     // --- sending ---------------------------------------------------------------------------------
 
-    private fun runSend(peer: DiscoveredPeer) {
+    private fun runSend(discovered: DiscoveredPeer) {
         val items = SendQueue.snapshot
         if (items.isEmpty()) {
             stopSelfSafely("Nothing selected")
@@ -254,7 +306,65 @@ class TransferService : Service() {
         val app = LoopJetApp.instance
         val tools = NetworkTools(this)
         val startedAt = System.currentTimeMillis()
-        val manifest = buildManifest(items, app.prefs.deviceName, startedAt)
+        // A Wi-Fi Direct peer is a MAC address, not something a socket can connect to. Join the group
+        // first, learn the owner's IP from the platform, then ask its beacon where the server really is.
+        var directUsed = false
+        var peer = discovered
+        if (discovered.kind == com.loopjet.app.platform.net.PeerKind.DIRECT ||
+            discovered.p2pDeviceAddress != null
+        ) {
+            val mac = discovered.p2pDeviceAddress ?: discovered.address
+            TransferHub.update {
+                it.copy(
+                    mode = SessionMode.SEND,
+                    state = TransferState.CONNECTING,
+                    peerName = discovered.name,
+                    message = "Joining Wi-Fi Direct…"
+                )
+            }
+            updateNotification()
+            val joined = joinDirect(mac)
+            if (!joined.ok) {
+                val result = TransferResult(
+                    ok = false,
+                    message = joined.reason,
+                    files = emptyList(),
+                    bytesTransferred = 0,
+                    durationMs = System.currentTimeMillis() - startedAt,
+                    chunksTotal = 0,
+                    chunksDone = 0,
+                    pathLabel = ""
+                )
+                finishSession(result, Direction.SEND, discovered.name, "", startedAt, items)
+                return
+            }
+            val address = joined.address ?: discovered.address
+            directUsed = true
+            val info = com.loopjet.app.core.BeaconClient().probe(
+                address, ProtocolLimits.BEACON_PORT, 900
+            )
+            peer = DiscoveredPeer(
+                id = info?.deviceId?.ifBlank { discovered.id } ?: discovered.id,
+                name = info?.name ?: discovered.name,
+                fingerprint = info?.fingerprint ?: discovered.fingerprint,
+                address = address,
+                controlPort = info?.controlPort ?: ProtocolLimits.DEFAULT_PORT,
+                beaconPort = ProtocolLimits.BEACON_PORT,
+                rttMicros = info?.rttMicros ?: 0,
+                kind = com.loopjet.app.platform.net.PeerKind.DIRECT,
+                sdk = info?.sdk ?: discovered.sdk,
+                capabilities = info?.capabilities ?: discovered.capabilities,
+                p2pDeviceAddress = mac
+            )
+            if (info == null) {
+                TransferHub.update {
+                    it.copy(message = "Wi-Fi Direct is up, but the other phone is not receiving")
+                }
+            }
+        }
+        val built = buildManifest(items, app.prefs.deviceName, startedAt)
+        val manifest = built.first
+        val itemById = built.second
         TransferHub.update {
             it.copy(
                 mode = SessionMode.SEND,
@@ -305,7 +415,7 @@ class TransferService : Service() {
         val engine = SenderEngine(
             identity = app.identity,
             manifest = manifest,
-            sourceFor = { file -> openSource(file) },
+            sourceFor = { file -> openSource(file, itemById) },
             connector = connector,
             controlPort = peer.controlPort,
             listener = listener,
@@ -338,7 +448,7 @@ class TransferService : Service() {
             val resumed = SenderEngine(
                 identity = app.identity,
                 manifest = manifest,
-                sourceFor = { file -> openSource(file) },
+                sourceFor = { file -> openSource(file, itemById) },
                 connector = connector,
                 controlPort = peer.controlPort,
                 listener = listener,
@@ -350,11 +460,25 @@ class TransferService : Service() {
             result = resumed.run()
             attempt++
         }
-        val trusted = peer.fingerprint.isNotBlank() && app.prefs.trustedDevices.contains(peer.fingerprint)
-        if (result.ok && trusted) {
-            app.prefs.trust(peer.fingerprint, peer.name)
-        }
+        // Sending to a device never grants it trust: trust is something the *receiver* decides when it
+        // accepts an offer (and can be revoked in Settings).
         finishSession(result, Direction.SEND, peer.name, peer.fingerprint, startedAt, items)
+        if (directUsed) {
+            // Leaving a group behind drains the battery and blocks the next session.
+            DirectLink.teardown()
+        }
+    }
+
+    /** Blocks this service worker (never the main thread) until the group is joined or fails. */
+    private fun joinDirect(mac: String): DirectLink.Result {
+        val latch = java.util.concurrent.CountDownLatch(1)
+        val ref = AtomicReference(DirectLink.Result(null, "Wi-Fi Direct did not start"))
+        DirectLink.join(mac) { outcome ->
+            ref.set(outcome)
+            latch.countDown()
+        }
+        runCatching { latch.await(DirectLink.JOIN_TIMEOUT_MS + 8000, java.util.concurrent.TimeUnit.MILLISECONDS) }
+        return ref.get()
     }
 
     private fun pathLabelFor(peer: DiscoveredPeer): String = when (peer.kind) {
@@ -370,12 +494,18 @@ class TransferService : Service() {
         else -> 4
     }
 
-    private fun buildManifest(items: List<SendItem>, deviceName: String, startedAt: Long): TransferManifest {
+    private fun buildManifest(
+        items: List<SendItem>,
+        deviceName: String,
+        startedAt: Long
+    ): Pair<TransferManifest, Map<Int, SendItem>> {
         val files = ArrayList<TransferFile>()
+        val idToItem = LinkedHashMap<Int, SendItem>(items.size * 2)
         val apps = ArrayList<com.loopjet.app.core.TransferApp>()
         val appGroups = LinkedHashMap<String, MutableList<Int>>()
         items.forEachIndexed { index, item ->
             val id = index + 1
+            idToItem[id] = item
             files.add(
                 TransferFile(
                     id = id,
@@ -401,13 +531,13 @@ class TransferService : Service() {
                     versionName = sample.appVersionName ?: "",
                     baseFileId = ids.first(),
                     splitFileIds = ids.drop(1),
-                    minSdk = 0,
-                    targetSdk = 0,
-                    abis = emptyList()
+                    minSdk = sample.appMinSdk,
+                    targetSdk = sample.appTargetSdk,
+                    abis = sample.appAbis
                 )
             )
         }
-        return TransferManifest(
+        val manifest = TransferManifest(
             sessionId = java.util.UUID.randomUUID().toString().replace("-", "").take(16),
             files = files,
             dirs = items.map { it.relativePath.substringBeforeLast('/', "") }.filter { it.isNotBlank() }.distinct(),
@@ -417,10 +547,15 @@ class TransferService : Service() {
             senderName = deviceName,
             startedAt = startedAt
         )
+        return manifest to idToItem
     }
 
-    private fun openSource(file: TransferFile): RandomAccessSource {
-        val item = SendQueue.snapshot.firstOrNull { it.relativePath == file.relPath }
+    /**
+     * Resolves the source by file id, not by display path: two picked files can legitimately share a
+     * relative name, and matching by name used to send the wrong bytes (then fail the checksum).
+     */
+    private fun openSource(file: TransferFile, itemById: Map<Int, SendItem>): RandomAccessSource {
+        val item = itemById[file.id]
             ?: throw IOException("source disappeared: ${file.relPath}")
         return openSourceForItem(item)
     }
@@ -432,7 +567,13 @@ class TransferService : Service() {
         val tools = NetworkTools(this)
         val binding = tools.sessionBinding()
         val saveRoot = resolveSaveRoot()
-        val factory = LocalFileSinkFactory(saveRoot) { saveRoot.usableSpace }
+        // Media goes straight into the gallery through a pending MediaStore item (API 29+), so the
+        // photo appears in Photos the moment it lands and no second copy is written.
+        val factory = GallerySinkFactory(
+            this,
+            LocalFileSinkFactory(saveRoot) { SpaceGuard.usable(saveRoot) },
+            app.prefs.saveFolderName.ifBlank { "LoopJet" }
+        )
         val engine = ReceiverEngine(
             identity = app.identity,
             sinkFactory = factory,
@@ -480,7 +621,36 @@ class TransferService : Service() {
                         )
                     )
                     updateNotification()
-                    return TransferHub.awaitDecision(120_000)
+                    val decision = TransferHub.awaitDecision(180_000)
+                    // "Remember this device" is only meaningful if it is actually stored.
+                    if (decision.accepted && decision.trustDevice && offer.peerFingerprint.isNotBlank()) {
+                        app.prefs.trust(offer.peerFingerprint, offer.peerName)
+                        Log.d(TAG, "trusted ${offer.peerName} on request")
+                    }
+                    return decision
+                }
+
+                override fun onAppReady(
+                    transferApp: com.loopjet.app.core.TransferApp,
+                    apks: List<java.io.File>
+                ) {
+                    val warning = when {
+                        transferApp.minSdk > Build.VERSION.SDK_INT ->
+                            "Needs Android SDK ${transferApp.minSdk}; this phone runs ${Build.VERSION.SDK_INT}"
+                        apks.none { it.length() > 0 } -> "The APK files are empty"
+                        else -> ""
+                    }
+                    TransferHub.update { current ->
+                        current.copy(
+                            receivedApps = current.receivedApps + ReceivedAppUi(
+                                packageName = transferApp.packageName,
+                                label = transferApp.label,
+                                versionName = transferApp.versionName,
+                                files = apks.map { it.absolutePath },
+                                message = warning
+                            )
+                        )
+                    }
                 }
             },
             resumeStore = ResumeRepo(this),
@@ -501,7 +671,12 @@ class TransferService : Service() {
             capabilities = listOf("resume", "aes-gcm", "sdk${Build.VERSION.SDK_INT}"),
             address = localAddress
         )
-        val beaconServer = BeaconServer { info }
+        // Six digits for manual pairing: a sender can find this phone by code when multicast, mDNS
+        // and subnet scans are all blocked. It is a convenience channel, not a secret: the real
+        // authentication is the key exchange plus the accept prompt.
+        val code = (100_000 + java.security.SecureRandom().nextInt(900_000)).toString()
+        receiveCode = code
+        val beaconServer = BeaconServer({ info }, { receiveCode })
         runCatching { beaconServer.bind(ProtocolLimits.BEACON_PORT) }
         beacon = beaconServer
         val qr = "loopjet://${localAddress}:${engine.controlPort}#${app.identity.fingerprintHex}#${app.prefs.deviceId()}"
@@ -511,10 +686,24 @@ class TransferService : Service() {
                 state = TransferState.IDLE,
                 receiveReady = true,
                 receiveQr = qr,
+                receiveCode = code,
                 deviceName = app.prefs.deviceName,
                 pathLabel = factory.rootLabel(),
                 linkLabel = localAddress
             )
+        }
+        // Host a Wi-Fi Direct group so a sender that cannot see this phone on the Wi-Fi can still join
+        // one. Best effort: on phones/ROMs without support the LAN and hotspot paths stay available.
+        if (tools.supportsWifiDirect()) {
+            DirectLink.host { ok, detail ->
+                Log.d(TAG, "wi-fi direct host: $ok $detail")
+                if (ok) {
+                    p2pGroupHosted = true
+                    TransferHub.update {
+                        it.copy(message = "Wi-Fi Direct ready ($detail)")
+                    }
+                }
+            }
         }
         updateNotification()
         startWorker {
@@ -537,17 +726,32 @@ class TransferService : Service() {
 
     private fun resolveSaveRoot(): File {
         val prefs = LoopJetApp.instance.prefs
-        val publicDownloads = File(android.os.Environment.getExternalStoragePublicDirectory(
-            android.os.Environment.DIRECTORY_DOWNLOADS
-        ), prefs.saveFolderName)
+        // The folder name comes from a text field: keep it a single safe component so it can never
+        // escape the directory it is joined to.
+        val folder = SafePath.sanitizeComponent(prefs.saveFolderName) ?: "LoopJet"
+        val external = getExternalFilesDir(null) ?: filesDir
         val canWrite = if (Build.VERSION.SDK_INT >= 30) {
             android.os.Environment.isExternalStorageManager()
         } else {
             true
         }
-        val root = if (canWrite) publicDownloads else File(getExternalFilesDir(null), prefs.saveFolderName)
-        val day = File(root, Fmt.dayFolder(System.currentTimeMillis()))
-        day.mkdirs()
+        val publicDownloads = File(
+            android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS
+            ),
+            folder
+        )
+        val base = if (canWrite) {
+            publicDownloads.takeIf { it.exists() || it.mkdirs() } ?: File(external, folder)
+        } else {
+            File(external, folder)
+        }
+        val day = File(base, Fmt.dayFolder(System.currentTimeMillis()))
+        if (!day.exists() && !day.mkdirs()) {
+            val fallback = File(filesDir, "received/${Fmt.dayFolder(System.currentTimeMillis())}")
+            fallback.mkdirs()
+            return fallback
+        }
         return day
     }
 
@@ -610,6 +814,21 @@ class TransferService : Service() {
         beacon = null
         receiver?.close()
         receiver = null
+        // Without this the engine kept transferring after the service was told to stop: no foreground
+        // notification, no wake lock, and the OS free to kill the process mid-file.
+        runCatching { sender?.requestCancel() }
+        sender = null
+        worker.get()?.let { thread ->
+            if (thread !== Thread.currentThread()) {
+                runCatching { thread.interrupt() }
+                runCatching { thread.join(1500) }
+            }
+        }
+        if (p2pGroupHosted) {
+            p2pGroupHosted = false
+            DirectLink.teardown()
+        }
+        receiveCode = ""
         releaseLocks()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         TransferHub.update { it.copy(mode = SessionMode.IDLE, receiveReady = false, offer = null, message = reason) }
@@ -620,6 +839,11 @@ class TransferService : Service() {
         running.set(false)
         beacon?.close()
         receiver?.close()
+        runCatching { sender?.requestCancel() }
+        if (p2pGroupHosted) {
+            p2pGroupHosted = false
+            DirectLink.teardown()
+        }
         releaseLocks()
         super.onDestroy()
     }
@@ -747,17 +971,24 @@ class TransferService : Service() {
             androidx.core.content.ContextCompat.startForegroundService(context, intent)
         }
 
+        // startService throws on Android 8+ when the app is in the background; a notification action
+        // or a UI tap is an exempt start, but a race must not crash the caller either.
         fun stop(context: Context) {
-            val intent = Intent(context, TransferService::class.java).setAction(ACTION_STOP)
-            context.startService(intent)
+            runCatching {
+                context.startService(Intent(context, TransferService::class.java).setAction(ACTION_STOP))
+            }
         }
 
         fun pause(context: Context) {
-            context.startService(Intent(context, TransferService::class.java).setAction(ACTION_PAUSE))
+            runCatching {
+                context.startService(Intent(context, TransferService::class.java).setAction(ACTION_PAUSE))
+            }
         }
 
         fun resume(context: Context) {
-            context.startService(Intent(context, TransferService::class.java).setAction(ACTION_RESUME))
+            runCatching {
+                context.startService(Intent(context, TransferService::class.java).setAction(ACTION_RESUME))
+            }
         }
 
         fun openSourceForItem(item: SendItem): RandomAccessSource {
@@ -793,10 +1024,11 @@ class UriSource(private val context: Context, private val uri: Uri) : RandomAcce
         input = stream
         val ch = stream.channel
         val seekable = runCatching { ch.read(java.nio.ByteBuffer.allocate(0), 0) }.isSuccess
-        if (seekable) {
+        val reported = pfd.statSize.takeIf { it > 0 } ?: runCatching { ch.size() }.getOrDefault(0L)
+        if (seekable && reported > 0) {
             channel = ch
             direct = true
-            size = pfd.statSize.takeIf { it >= 0 } ?: ch.size()
+            size = reported
         } else {
             // Fall back to a cached copy (rare: pipes, cloud providers without seek support).
             val cached = File(context.cacheDir, "loopjet-cache-${uri.toString().hashCode()}.bin")
@@ -842,6 +1074,23 @@ class UriSource(private val context: Context, private val uri: Uri) : RandomAcce
 class ResumeRepo(context: Context) : com.loopjet.app.core.ResumeStore {
     private val dir = File(context.filesDir, "resume").apply { mkdirs() }
 
+    init {
+        // Chunk maps are small but they were never removed; keep a week's worth.
+        runCatching {
+            val cutoff = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+            dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
+        }
+    }
+
+    /**
+     * The session id comes from the other phone. It is used as a file name, so anything that is not a
+     * plain identifier is dropped — otherwise `../../databases/x` would write outside this folder.
+     */
+    private fun fileFor(sessionId: String): File {
+        val safe = sessionId.filter { it.isLetterOrDigit() || it == '-' || it == '_' }.take(64)
+        return File(dir, (safe.ifBlank { "session" }) + ".json")
+    }
+
     override fun save(sessionId: String, chunkSize: Int, maps: Map<Int, com.loopjet.app.core.ChunkMap>, paths: Map<Int, String>) {
         if (maps.isEmpty()) {
             clear(sessionId)
@@ -853,11 +1102,11 @@ class ResumeRepo(context: Context) : com.loopjet.app.core.ResumeStore {
                 "maps" to maps.entries.associate { it.key.toString() to it.value.toBase64() }
             )
         )
-        runCatching { File(dir, "$sessionId.json").writeText(payload) }
+        runCatching { fileFor(sessionId).writeText(payload) }
     }
 
     override fun load(sessionId: String): Map<Int, com.loopjet.app.core.ChunkMap> {
-        val file = File(dir, "$sessionId.json")
+        val file = fileFor(sessionId)
         if (!file.isFile) return emptyMap()
         return runCatching {
             val map = com.loopjet.app.core.Json.parseObject(file.readText())
@@ -871,6 +1120,6 @@ class ResumeRepo(context: Context) : com.loopjet.app.core.ResumeStore {
     }
 
     override fun clear(sessionId: String) {
-        runCatching { File(dir, "$sessionId.json").delete() }
+        runCatching { fileFor(sessionId).delete() }
     }
 }

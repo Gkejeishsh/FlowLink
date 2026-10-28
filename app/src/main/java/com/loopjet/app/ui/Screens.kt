@@ -89,6 +89,7 @@ import com.loopjet.app.core.FileResult
 import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.TransferState
 import com.loopjet.app.platform.IncomingOfferUi
+import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.SessionMode
 import com.loopjet.app.platform.SessionUi
 import com.loopjet.app.platform.apps.InstalledApp
@@ -452,6 +453,16 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                     else "No files matched. Try another category or search."
                 )
                 else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
+                    if (picker.truncated) {
+                        item {
+                            Text(
+                                "Showing the first ${picker.items.size} items. Use search to narrow down.",
+                                Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     itemsIndexed(picker.items, key = { _, item -> item.key }) { index, item ->
                         StaggeredEntrance(index) {
                             PickRow(item, picker.selection.containsKey(item.key)) {
@@ -537,16 +548,7 @@ private fun PickRow(item: PickItem, selected: Boolean, onClick: () -> Unit) {
             .padding(horizontal = 18.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            Modifier.size(44.dp).clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                if (item.isFolder) "📁" else extensionBadge(item.name),
-                style = MaterialTheme.typography.labelMedium
-            )
-        }
+        Thumbnail(item = item, badge = if (item.isFolder) "📁" else extensionBadge(item.name))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(item.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -641,6 +643,7 @@ fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitmap {
 fun NearbyScreen(vm: AppViewModel, state: AppState) {
     val discovery = state.discovery
     var manualCode by remember { mutableStateOf("") }
+    var manualLink by remember { mutableStateOf("") }
     ScreenFrame(title = "Send to", onBack = { vm.back() }) {
         Box(Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
             RadarPulse(active = discovery.active, modifier = Modifier.size(210.dp))
@@ -690,9 +693,30 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
                         )
                         Spacer(Modifier.width(10.dp))
                         PrimaryAction("Connect", Modifier.width(120.dp), enabled = manualCode.length == 6) {
-                            vm.notice("Manual pairing uses the code shown on the receiving phone")
+                            vm.pairWithCode(manualCode)
                         }
                     }
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Or paste the loopjet:// link from the other phone's QR code.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = manualLink,
+                        onValueChange = { manualLink = it.trim().take(300) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("loopjet://192.168.1.20:43130#…") },
+                        shape = MaterialTheme.shapes.large
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    PrimaryAction(
+                        "Connect with link",
+                        Modifier.fillMaxWidth(),
+                        enabled = manualLink.startsWith("loopjet://")
+                    ) { vm.pairWithLink(manualLink) }
                 }
             }
         }
@@ -758,11 +782,27 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                             )
                         }
                     }
+                    if (session.receiveCode.isNotBlank()) {
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            session.receiveCode.chunked(3).joinToString(" "),
+                            style = MaterialTheme.typography.displaySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            "Pairing code — type it on the other phone under Send › Pair without discovery",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Spacer(Modifier.height(18.dp))
                     QrPanel(session.receiveQr.ifBlank { "loopjet://waiting" })
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "On the other phone: LoopJet › Send › pick this name. Or scan the code with the LoopJet camera.",
+                        "On the other phone: LoopJet › Send › pick this name, type the code, or paste the link from this QR.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -945,6 +985,12 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                     modifier = Modifier.fillMaxWidth().height(20.dp)
                 )
                 Spacer(Modifier.height(14.dp))
+                if (session.receivedApps.isNotEmpty()) {
+                    Text("Apps received", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(6.dp))
+                    session.receivedApps.forEach { received -> ReceivedAppRow(vm, received) }
+                    Spacer(Modifier.height(10.dp))
+                }
                 if (session.fileResults.isNotEmpty()) {
                     Text("Files", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
@@ -954,10 +1000,7 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                 when (session.state) {
                     TransferState.TRANSFERRING, TransferState.CONNECTING, TransferState.WAITING_ACCEPT -> {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PrimaryAction(
-                                if (session.state == TransferState.PAUSED) "Resume" else "Pause",
-                                Modifier.weight(1f)
-                            ) { if (session.state == TransferState.PAUSED) vm.resumeTransfer() else vm.pauseTransfer() }
+                            PrimaryAction("Pause", Modifier.weight(1f)) { vm.pauseTransfer() }
                             TextButton(onClick = { vm.cancelTransfer() }, modifier = Modifier.weight(1f)) {
                                 Text("Cancel")
                             }
@@ -978,6 +1021,65 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * One received app: a single Install action that feeds the base APK and every split to one
+ * PackageInstaller session, with the honest state of that install underneath.
+ */
+@Composable
+private fun ReceivedAppRow(vm: AppViewModel, received: ReceivedAppUi) {
+    val installs by vm.installs.collectAsStateSafe()
+    val ui = installs[received.packageName] ?: InstallUi()
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(received.label, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    "${received.files.size} APK(s)" + if (received.versionName.isNotBlank()) " · v${received.versionName}" else "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            TextButton(
+                onClick = {
+                    if (ui.needsPermission) {
+                        vm.openInstallPermission()
+                    } else {
+                        vm.installReceivedApp(received)
+                    }
+                },
+                enabled = !ui.running
+            ) {
+                Text(if (ui.needsPermission) "Allow" else "Install")
+            }
+        }
+        if (ui.running) {
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { ui.progress.coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+            )
+        }
+        val note = ui.message.ifBlank { received.message }
+        if (note.isNotBlank()) {
+            Text(
+                note,
+                style = MaterialTheme.typography.labelSmall,
+                color = when {
+                    received.message.isNotBlank() && ui.message.isBlank() -> MaterialTheme.colorScheme.error
+                    ui.done -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
         }
     }
 }
@@ -1017,6 +1119,25 @@ fun WebScreen(vm: AppViewModel, state: AppState, invite: Boolean) {
     ScreenFrame(title = if (invite) "Invite" else "Web Share", onBack = { vm.back() }) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp)) {
             item {
+                if (web.pendingBrowser.isNotBlank()) {
+                    SectionCard {
+                        Text("A browser wants in", style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "${web.pendingBrowser} is asking to ${if (invite) "download" else "open your files"}.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            PrimaryAction("Allow", Modifier.weight(1f)) { vm.answerBrowser(true) }
+                            TextButton(onClick = { vm.answerBrowser(false) }, modifier = Modifier.weight(1f)) {
+                                Text("Deny")
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
                 if (!web.active) {
                     EmptyState(
                         title = if (invite) "Share the app" else "Share files with a PC",
@@ -1052,6 +1173,11 @@ fun WebScreen(vm: AppViewModel, state: AppState, invite: Boolean) {
                             Spacer(Modifier.height(6.dp))
                             StatRow("PIN", web.pin)
                         }
+                        Spacer(Modifier.height(6.dp))
+                        StatRow(
+                            "Session ends in",
+                            Fmt.duration((web.expiresAt - System.currentTimeMillis()).coerceAtLeast(0))
+                        )
                         Spacer(Modifier.height(6.dp))
                         StatRow("Network", web.addressLabel.ifBlank { "local" })
                         Spacer(Modifier.height(16.dp))

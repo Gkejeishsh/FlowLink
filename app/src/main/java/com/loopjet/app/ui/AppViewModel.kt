@@ -11,6 +11,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.Json
 import com.loopjet.app.platform.Benchmark
+import com.loopjet.app.platform.Perms
+import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.HistoryEntry
 import com.loopjet.app.platform.LoopJetApp
 import com.loopjet.app.platform.SendItem
@@ -20,6 +22,7 @@ import com.loopjet.app.platform.TransferService
 import com.loopjet.app.platform.WebHub
 import com.loopjet.app.platform.WebService
 import com.loopjet.app.platform.WebShareQueue
+import com.loopjet.app.platform.apps.AppInstaller
 import com.loopjet.app.platform.apps.AppRepository
 import com.loopjet.app.platform.apps.InstalledApp
 import com.loopjet.app.platform.net.DiscoveredPeer
@@ -72,7 +75,9 @@ data class PickerState(
     val apps: List<InstalledApp> = emptyList(),
     val folderStack: List<Pair<String, String>> = emptyList(),
     val error: String? = null,
-    val webShareMode: Boolean = false
+    val webShareMode: Boolean = false,
+    /** The category had more rows than the picker loads in one pass. */
+    val truncated: Boolean = false
 ) {
     val selectedBytes: Long get() = selection.values.sumOf { it.size }
 }
@@ -82,6 +87,15 @@ data class DiscoveryState(
     val peers: List<DiscoveredPeer> = emptyList(),
     val log: String = "",
     val error: String? = null
+)
+
+/** Install progress for one received app. */
+data class InstallUi(
+    val running: Boolean = false,
+    val progress: Float = 0f,
+    val done: Boolean = false,
+    val message: String = "",
+    val needsPermission: Boolean = false
 )
 
 data class AppState(
@@ -99,6 +113,8 @@ data class AppState(
     val notice: String? = null,
     val selectedPeerName: String = ""
 )
+
+private const val PICKER_ROW_LIMIT = 20_000
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as LoopJetApp
@@ -118,6 +134,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     )
     val state: StateFlow<AppState> = _state
 
+    private val _installs = MutableStateFlow<Map<String, InstallUi>>(emptyMap())
+    val installs: StateFlow<Map<String, InstallUi>> = _installs
+
     private var discovery: DiscoveryEngine? = null
     private var pendingScan = false
 
@@ -133,6 +152,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (screen != Screen.Nearby) stopDiscovery()
         if (screen == Screen.Receive) {
             TransferService.startReceive(getApplication())
+            // The receiving phone is the one that has to be findable: it announces itself over mDNS,
+            // multicast and BLE while the sender scans. Without this only a manual code or QR could
+            // ever reach it.
+            startDiscovery(advertise = true)
         }
     }
 
@@ -217,6 +240,43 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(discovery = DiscoveryState(active = false))
     }
 
+    /**
+     * Manual pairing by the six digits on the other phone. Resolves through a code probe, then sends
+     * the current selection to the phone that answered.
+     */
+    fun pairWithCode(code: String) {
+        if (sendItems.value.isEmpty()) {
+            notice("Pick at least one file first")
+            return
+        }
+        notice("Looking for the phone showing $code…")
+        discovery?.pairWithCode(code) { peer, message ->
+            if (peer == null) {
+                notice(message)
+            } else {
+                notice(message)
+                sendTo(peer)
+            }
+        } ?: notice("Open Send first so discovery is running")
+    }
+
+    /** Manual pairing by the link inside the receiver's QR code. */
+    fun pairWithLink(link: String) {
+        if (sendItems.value.isEmpty()) {
+            notice("Pick at least one file first")
+            return
+        }
+        notice("Connecting to the link…")
+        discovery?.pairWithLink(link) { peer, message ->
+            if (peer == null) {
+                notice(message)
+            } else {
+                notice(message)
+                sendTo(peer)
+            }
+        } ?: notice("Open Send first so discovery is running")
+    }
+
     fun sendTo(peer: DiscoveredPeer) {
         val items = SendQueue.snapshot
         if (items.isEmpty()) {
@@ -232,14 +292,79 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         TransferService.stop(getApplication())
     }
 
+    fun answerBrowser(accepted: Boolean) {
+        WebHub.answerBrowser(accepted)
+    }
+
+    /**
+     * Installs a received app: one PackageInstaller session holding the base APK and every split.
+     * Progress and the outcome are published per package so the screen can show them.
+     */
+    fun installReceivedApp(received: ReceivedAppUi) {
+        val context = getApplication<Application>()
+        if (!Perms.canInstallPackages(context)) {
+            updateInstall(received.packageName) {
+                InstallUi(
+                    message = "Allow “Install unknown apps” for LoopJet, then tap Install again",
+                    needsPermission = true
+                )
+            }
+            return
+        }
+        val files = received.files.map { java.io.File(it) }.filter { it.isFile }
+        if (files.isEmpty()) {
+            updateInstall(received.packageName) { InstallUi(message = "The APK files are gone") }
+            return
+        }
+        updateInstall(received.packageName) {
+            InstallUi(running = true, message = "Installing ${files.size} APK(s)…")
+        }
+        AppInstaller(context).install(
+            packageName = received.packageName,
+            apkFiles = files,
+            onProgress = { fraction ->
+                updateInstall(received.packageName) {
+                    it.copy(running = true, progress = fraction, message = "Copying ${(fraction * 100).toInt()}%")
+                }
+            },
+            onResult = { ok, message ->
+                updateInstall(received.packageName) {
+                    InstallUi(running = false, progress = 1f, done = ok, message = message)
+                }
+            }
+        )
+    }
+
+    /** Opens the "install unknown apps" screen for this app, then the user taps Install again. */
+    fun openInstallPermission() {
+        val context = getApplication<Application>()
+        runCatching {
+            context.startActivity(
+                Perms.installIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+    }
+
+    private fun updateInstall(packageName: String, block: (InstallUi) -> InstallUi) {
+        _installs.value = _installs.value.toMutableMap().apply {
+            put(packageName, block(get(packageName) ?: InstallUi()))
+        }
+    }
+
+    fun installState(packageName: String): InstallUi = _installs.value[packageName] ?: InstallUi()
+
     fun pauseTransfer() = TransferService.pause(getApplication())
 
     fun resumeTransfer() = TransferService.resume(getApplication())
 
     fun answerOffer(accepted: Boolean, trust: Boolean) {
         TransferHub.answerOffer(accepted, trust)
-        if (trust) {
-            _state.value = _state.value.copy(trustedCount = prefs.trustedDevices.size)
+        if (accepted && trust) {
+            // The service persists the trust right after the decision; re-read a moment later.
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(600)
+                _state.value = _state.value.copy(trustedCount = prefs.trustedDevices.size)
+            }
         }
     }
 
@@ -250,9 +375,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         loadCategory()
     }
 
+    private var queryJob: kotlinx.coroutines.Job? = null
+
     fun setQuery(query: String) {
         _state.value = _state.value.copy(picker = _state.value.picker.copy(query = query))
-        loadCategory()
+        // Typing used to start a full MediaStore query per keystroke.
+        queryJob?.cancel()
+        queryJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(220)
+            loadCategory()
+        }
     }
 
     fun setSort(sort: SortOrder) {
@@ -274,8 +406,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadApps() {
+        // Listing ~200 packages with icons and reading each APK's length is disk work: never on the
+        // main thread, or the picker freezes the first time the Apps category is opened.
         viewModelScope.launch {
-            val apps = appRepo.load(includeSystem = false)
+            val apps = withContext(Dispatchers.IO) { appRepo.load(includeSystem = false) }
             _state.value = _state.value.copy(picker = _state.value.picker.copy(apps = apps))
         }
     }
@@ -286,7 +420,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(picker = picker.copy(loading = true, error = null))
             val items = withContext(Dispatchers.IO) { queryCategory(picker) }
             _state.value = _state.value.copy(
-                picker = _state.value.picker.copy(loading = false, items = items, error = null)
+                picker = _state.value.picker.copy(
+                    loading = false,
+                    items = items,
+                    error = null,
+                    truncated = resultTruncated
+                )
             )
         }
     }
@@ -351,6 +490,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 args = null
             }
         }
+        var truncated = false
         runCatching {
             resolver.query(collection, projections, selection, args, "$sortColumn $order")?.use { cursor ->
                 val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
@@ -360,7 +500,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val mimeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
                 val pathIndex = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
                 var count = 0
-                while (cursor.moveToNext() && count < 5000) {
+                while (cursor.moveToNext()) {
+                    if (count >= PICKER_ROW_LIMIT) {
+                        truncated = true
+                        break
+                    }
                     val name = cursor.getString(nameIndex) ?: continue
                     if (query.isNotEmpty() && !name.lowercase().contains(query)) continue
                     val size = cursor.getLong(sizeIndex)
@@ -368,12 +512,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     val id = cursor.getLong(idIndex)
                     val uri = ContentUris.withAppendedId(collection, id)
                     val relative = if (pathIndex >= 0) cursor.getString(pathIndex) ?: "" else ""
+                    // Keep the real bucket so two files with the same name stay two files.
+                    val folder = relative.ifBlank { picker.category.label + "/" }
                     val mime = cursor.getString(mimeIndex) ?: "application/octet-stream"
                     result.add(
                         PickItem(
                             key = uri.toString(),
                             name = name,
-                            relativePath = picker.category.label + "/" + name,
+                            relativePath = folder.trimEnd('/') + "/" + name,
                             size = size,
                             mtime = cursor.getLong(dateIndex) * 1000,
                             mime = mime,
@@ -384,8 +530,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+        resultTruncated = truncated
         return result
     }
+
+    @Volatile private var resultTruncated = false
 
     fun toggleSelection(item: PickItem) {
         val current = _state.value.picker.selection.toMutableMap()
@@ -395,7 +544,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectAllVisible() {
         val current = _state.value.picker.selection.toMutableMap()
-        _state.value.picker.items.take(500).forEach { current[it.key] = it }
+        // Everything the picker loaded, not an arbitrary 500: "select all" has to mean all.
+        _state.value.picker.items.forEach { current[it.key] = it }
         _state.value = _state.value.copy(picker = _state.value.picker.copy(selection = current))
     }
 
@@ -468,8 +618,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Adds files handed to us by the system share sheet. */
     fun addSharedUris(uris: List<Uri>) {
         viewModelScope.launch {
+            val unreadable = java.util.concurrent.atomic.AtomicInteger()
             val items = withContext(Dispatchers.IO) {
                 uris.mapNotNull { uri ->
+                    // Some apps hand over a transient read grant; make it stick when the provider
+                    // allows it, so the send still works after the task is recreated.
+                    runCatching {
+                        getApplication<Application>().contentResolver.takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    }
                     runCatching {
                         val resolver = getApplication<Application>().contentResolver
                         var name = "shared_file"
@@ -488,8 +646,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }
                         }
-                        if (size == 0L) {
+                        if (size <= 0L) {
                             resolver.openAssetFileDescriptor(uri, "r")?.use { size = it.length }
+                        }
+                        // A file whose size cannot be read would arrive as a 0-byte file: refuse it
+                        // here, where it can be explained, instead of failing mid-transfer.
+                        if (size <= 0L) {
+                            unreadable.incrementAndGet()
+                            return@runCatching null
                         }
                         PickItem(
                             key = uri.toString(),
@@ -503,11 +667,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }.getOrNull()
                 }
             }
-            val selection = items.associateBy { it.key }
+            val readable = items.filterNotNull()
+            val selection = readable.associateBy { it.key }
+            val skipped = unreadable.get()
             _state.value = _state.value.copy(
                 screen = Screen.Picker,
                 picker = _state.value.picker.copy(selection = selection, category = PickCategory.Downloads),
-                notice = "Shared ${items.size} file(s) — pick who receives them"
+                notice = buildString {
+                    append("Shared ${readable.size} file(s) — pick who receives them")
+                    if (skipped > 0) append(" · $skipped could not be read")
+                }
             )
             loadCategory()
         }

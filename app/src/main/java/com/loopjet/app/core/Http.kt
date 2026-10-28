@@ -35,6 +35,15 @@ interface WebServerEvents {
     fun onUpload(name: String, received: Long, total: Long)
     fun onClientSeen(remote: String, userAgent: String)
     fun onFinished(reason: String)
+
+    /**
+     * Asked once per browser address before it may read or write anything. The phone shows the
+     * request; returning false serves a 403. Default: no gate (Invite page needs none).
+     */
+    fun onApprovalNeeded(remote: String, userAgent: String): Boolean = true
+
+    /** Called after an upload is complete and renamed into place, so it can be published. */
+    fun onUploadFinished(name: String, file: java.io.File) {}
 }
 
 /**
@@ -54,6 +63,7 @@ class WebServer(
     private var server: ServerSocket? = null
     private val pool = Executors.newFixedThreadPool(config.maxConnections)
     private val clients = java.util.concurrent.ConcurrentHashMap.newKeySet<Socket>()
+    private val approved = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     private val activeDownloads = AtomicInteger(0)
     private val bytesServed = AtomicLong(0)
     private val startedAt = System.currentTimeMillis()
@@ -115,20 +125,45 @@ class WebServer(
         }
     }
 
-    /** Accepts only clients on a private/link-local address in the same /24 or /64 as this host. */
+    /**
+     * Accepts only clients on a private/link-local address in the same /24 (IPv4) or /64 (IPv6) as
+     * this host.
+     *
+     * When no bind address was configured we compare against every private address on the device
+     * instead of shrugging and accepting anything, and an address family mismatch is a rejection
+     * rather than an accept: an IPv4 client arriving on an IPv6-only link is not a neighbour.
+     */
     private fun isSameSubnet(address: InetAddress): Boolean {
         if (address.isLoopbackAddress) return true
+        if (address.isAnyLocalAddress || address.isMulticastAddress) return false
         if (!address.isSiteLocalAddress && !address.isLinkLocalAddress) return false
-        val local = config.bindAddress ?: return true
+        val candidates = config.bindAddress?.let { listOf(it) } ?: localPrivateAddresses()
         val a = address.address
-        val b = local.address
-        if (a.size != b.size) return true
-        if (a.size == 4) {
-            return (a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
+        for (local in candidates) {
+            val b = local.address
+            if (a.size != b.size) continue
+            if (a.size == 4) {
+                if (a[0] == b[0] && a[1] == b[1] && a[2] == b[2]) return true
+            } else {
+                var same = true
+                for (i in 0 until 8) {
+                    if (a[i] != b[i]) {
+                        same = false
+                        break
+                    }
+                }
+                if (same) return true
+            }
         }
-        for (i in 0 until 8) if (a[i] != b[i]) return false
-        return true
+        return false
     }
+
+    private fun localPrivateAddresses(): List<InetAddress> = runCatching {
+        java.net.NetworkInterface.getNetworkInterfaces().toList()
+            .filter { it.isUp && !it.isLoopback }
+            .flatMap { it.inetAddresses.toList() }
+            .filter { it.isSiteLocalAddress || it.isLinkLocalAddress }
+    }.getOrDefault(emptyList())
 
     private fun handleClient(client: Socket) {
         activeDownloads.incrementAndGet()
@@ -172,10 +207,47 @@ class WebServer(
             writeHtml(output, 410, "Link expired", Pages.messagePage("This link expired", "Ask the sender for a new link."))
             return false
         }
-        val tokenParam = request.query["t"]
-        val pinParam = request.query["pin"]
-        if (config.requirePin && config.pin != null && pinParam != config.pin && tokenParam != null) {
-            writeHtml(output, 401, "PIN required", Pages.pinPage(request.path, config.pinFailedHint))
+        // Per-browser approval first: holding the link is not the same as being let in.
+        if (config.requireApproval) {
+            val remote = client.inetAddress?.hostAddress ?: "unknown"
+            if (!approved.contains(remote)) {
+                val allowed = try {
+                    events.onApprovalNeeded(remote, request.header("user-agent") ?: "")
+                } catch (t: Throwable) {
+                    false
+                }
+                if (!allowed) {
+                    writeHtml(
+                        output, 403, "Not approved",
+                        Pages.messagePage(
+                            "This browser was not approved",
+                            "The phone owner refused this browser. Ask them to share the link again."
+                        )
+                    )
+                    return false
+                }
+                approved.add(remote)
+            }
+        }
+        // The share link carries a session token. Without it a browser on the same Wi-Fi could walk
+        // the endpoints by hand, so every route requires it when one is configured.
+        if (config.token != null && !same(config.token, request.query["t"])) {
+            writeHtml(
+                output, 403, "Open the link",
+                Pages.messagePage(
+                    "Use the link from the phone",
+                    "This page only answers the exact address the phone is showing, including its session code."
+                )
+            )
+            return false
+        }
+        // The optional PIN is checked on every request, with or without the token. It used to be
+        // skipped entirely when the token was absent, which made it decorative.
+        if (config.requirePin && config.pin != null && !same(config.pin, request.query["pin"])) {
+            writeHtml(
+                output, 401, "PIN required",
+                Pages.pinPage(request.path, config.pinFailedHint, request.query["t"])
+            )
             return keepAlive
         }
         return when {
@@ -242,8 +314,8 @@ class WebServer(
                     writeText(output, 403, "text/plain", "uploads disabled")
                 } else {
                     receiveUpload(request, input, output)
-                    false
                 }
+                // Uploads are read by exact Content-Length, so the connection may be reused.
                 true
             }
             else -> {
@@ -324,40 +396,64 @@ class WebServer(
     }
 
     /** Streams every shared file as one ZIP (stored, so a slow CPU never limits the network). */
+    /**
+     * Streams every shareable file as one STORED archive.
+     *
+     * A stored entry needs its CRC and size *before* its bytes, so each file is read once to compute
+     * them and once to send them — that is inherent to ZIP, not an oversight, and it costs no memory.
+     * What was an oversight before: the response had no `Content-Length`, so no browser could show a
+     * progress bar. The exact archive size is predictable (local header + data + central record +
+     * terminator) and is now sent; if anything makes it unpredictable — a name that is not encodable,
+     * or an archive past the classic 4 GiB limit — the response falls back to chunked framing.
+     */
     private fun streamZip(request: HttpRequest, output: OutputStream, client: Socket) {
-        val files = config.files.filter { it.file.isFile }
+        // A STORED zip entry above 4 GiB needs ZIP64, which java.util.zip does not write for stored
+        // entries. Those files are excluded here and listed on the page so the browser can fetch them
+        // one by one (single-file downloads are range-capable and have no such limit).
+        val files = config.files.filter { it.file.isFile && it.file.length() <= ZIP_ENTRY_LIMIT }
+        // Entry names come from user files, so they are sanitised (no "..", no absolute paths) and
+        // de-duplicated: an archive with two identical entries makes most extractors ask questions.
+        val names = zipEntryNames(files)
+        val declaredLength = zipContentLength(files, names)
         val header = StringBuilder()
         header.append("HTTP/1.1 200 OK\r\n")
         header.append("Content-Type: application/zip\r\n")
         header.append("Content-Disposition: attachment; filename=\"${urlEncode(brandZipName())}\"\r\n")
         header.append("Cache-Control: no-store\r\n")
-        header.append("Connection: close\r\n\r\n")
+        header.append("X-Content-Type-Options: nosniff\r\n")
+        if (declaredLength != null) {
+            header.append("Content-Length: $declaredLength\r\n")
+            header.append("Connection: close\r\n\r\n")
+        } else {
+            // Chunked framing keeps the response well-formed when the size cannot be stated up front.
+            header.append("Transfer-Encoding: chunked\r\n")
+            header.append("Connection: close\r\n\r\n")
+        }
         output.write(header.toString().toByteArray(Charsets.ISO_8859_1))
         if (request.method == "HEAD") return
-        ZipOutputStream(java.io.BufferedOutputStream(output, 256 * 1024)).use { zip ->
+        val body = if (declaredLength != null) output else ChunkedOutputStream(output)
+        ZipOutputStream(java.io.BufferedOutputStream(body, 256 * 1024)).use { zip ->
             zip.setMethod(ZipOutputStream.STORED)
-            for (file in files) {
+            val buffer = ByteArray(256 * 1024)
+            for ((index, file) in files.withIndex()) {
                 if (!running.get()) break
+                val size = file.file.length()
                 val crc = CRC32()
-                var size = 0L
                 java.io.RandomAccessFile(file.file, "r").use { raf ->
-                    val buffer = ByteArray(256 * 1024)
                     while (true) {
                         val n = raf.read(buffer)
                         if (n <= 0) break
                         crc.update(buffer, 0, n)
-                        size += n
                     }
                 }
-                val entry = ZipEntry(file.name)
+                val entry = ZipEntry(names[index])
                 entry.method = ZipEntry.STORED
                 entry.size = size
                 entry.compressedSize = size
                 entry.crc = crc.value
                 zip.putNextEntry(entry)
+                var sent = 0L
                 java.io.RandomAccessFile(file.file, "r").use { raf ->
-                    val buffer = ByteArray(256 * 1024)
-                    var sent = 0L
                     while (true) {
                         val n = raf.read(buffer)
                         if (n <= 0) break
@@ -365,12 +461,52 @@ class WebServer(
                         sent += n
                         if (sent % (4L * 1024 * 1024) < n) events.onDownload(file.name, sent, size)
                     }
-                    bytesServed.addAndGet(sent)
                 }
+                bytesServed.addAndGet(sent)
                 zip.closeEntry()
+                if (sent != size) {
+                    events.onLog("zip: ${file.name} changed while being archived ($sent of $size bytes)")
+                    break
+                }
             }
         }
         output.flush()
+    }
+
+    /**
+     * Exact byte length of the archive java.util.zip writes for these entries, or null when it cannot
+     * be stated honestly (non-UTF-8 name, or a size that would need ZIP64).
+     */
+    private fun zipContentLength(files: List<SharedFile>, names: List<String>): Long? {
+        var total = ZIP_END_RECORD
+        for ((index, file) in files.withIndex()) {
+            val nameBytes = runCatching { names[index].toByteArray(Charsets.UTF_8).size }.getOrNull() ?: return null
+            val size = file.file.length()
+            if (size < 0 || size >= ZIP_ENTRY_LIMIT) return null
+            total += ZIP_LOCAL_HEADER + nameBytes + size + ZIP_CENTRAL_ENTRY + nameBytes
+            if (total >= ZIP_ENTRY_LIMIT) return null
+        }
+        return total
+    }
+
+    private fun zipEntryNames(files: List<SharedFile>): List<String> {
+        val used = HashSet<String>(files.size * 2)
+        return files.map { file ->
+            var base = SafePath.sanitize(file.name, "file") ?: "file"
+            if (!used.add(base.lowercase())) {
+                val dot = base.lastIndexOf('.')
+                val stem = if (dot > 0) base.substring(0, dot) else base
+                val ext = if (dot > 0) base.substring(dot) else ""
+                var n = 2
+                var candidate = "$stem ($n)$ext"
+                while (!used.add(candidate.lowercase())) {
+                    n++
+                    candidate = "$stem ($n)$ext"
+                }
+                base = candidate
+            }
+            base
+        }
     }
 
     private fun brandZipName(): String = "LoopJet-${Fmt.dayFolder(System.currentTimeMillis())}.zip"
@@ -379,7 +515,17 @@ class WebServer(
         val rawName = request.query["name"] ?: "upload.bin"
         val safe = SafePath.sanitize(rawName, "upload.bin") ?: "upload.bin"
         val total = request.header("content-length")?.toLongOrNull() ?: -1L
+        if (total > MAX_UPLOAD_BYTES) {
+            writeText(output, 413, "text/plain", "upload too large")
+            return
+        }
         val dir = config.uploadDir ?: config.root
+        // Leave headroom: an upload that fills the disk takes the rest of the phone down with it.
+        val free = runCatching { SpaceGuard.usable(dir) }.getOrDefault(0L)
+        if (free > 0 && total > free - 32L * 1024 * 1024) {
+            writeText(output, 507, "text/plain", "not enough free space on the phone")
+            return
+        }
         // Receive as <name>.part and rename only when the browser finished cleanly.
         val target = synchronized(this) { SafePath.uniqueFile(dir, safe) }
         val part = File(target.parentFile, target.name + ".part")
@@ -396,6 +542,7 @@ class WebServer(
                         out.write(buffer, 0, n)
                         received += n
                         remaining -= n
+                        if (received > MAX_UPLOAD_BYTES) throw IOException("upload too large")
                         if (received % (2L * 1024 * 1024) < n) events.onUpload(target.name, received, total)
                     }
                 } else {
@@ -405,6 +552,7 @@ class WebServer(
                         if (n <= 0) break
                         out.write(buffer, 0, n)
                         received += n
+                        if (received > MAX_UPLOAD_BYTES) throw IOException("upload too large")
                         if (received % (2L * 1024 * 1024) < n) events.onUpload(target.name, received, received)
                     }
                 }
@@ -416,6 +564,7 @@ class WebServer(
                 part.delete()
             }
             events.onUpload(target.name, received, received)
+            runCatching { events.onUploadFinished(target.name, target) }
             val body = Json.stringify(Json.obj("ok" to true, "name" to target.name, "size" to received))
             writeBytes(output, 200, "application/json", body.toByteArray(), false)
         } catch (e: Exception) {
@@ -483,12 +632,36 @@ class WebServer(
         404 -> "Not Found"
         405 -> "Method Not Allowed"
         410 -> "Gone"
+        413 -> "Payload Too Large"
         500 -> "Internal Server Error"
+        507 -> "Insufficient Storage"
         else -> "OK"
+    }
+
+    companion object {
+        /** 4 GiB minus one byte: the largest entry a classic (non-ZIP64) stored entry can hold. */
+        const val ZIP_ENTRY_LIMIT: Long = 4L * 1024 * 1024 * 1024 - 1
+
+        /** Hard cap for one browser upload (64 GiB); the real bound is free space. */
+        const val MAX_UPLOAD_BYTES: Long = 64L * 1024 * 1024 * 1024
+
+        /** Fixed sizes in the ZIP format (no extra fields, no comment): header, central record, end. */
+        private const val ZIP_LOCAL_HEADER = 30L
+        private const val ZIP_CENTRAL_ENTRY = 46L
+        private const val ZIP_END_RECORD = 22L
     }
 
     private fun urlEncode(value: String): String =
         java.net.URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+
+    /** Constant-time comparison, so a PIN cannot be guessed a character at a time. */
+    private fun same(expected: String, actual: String?): Boolean {
+        if (actual == null) return false
+        return java.security.MessageDigest.isEqual(
+            expected.toByteArray(Charsets.UTF_8),
+            actual.toByteArray(Charsets.UTF_8)
+        )
+    }
 
     override fun close() {
         if (!running.getAndSet(false)) return
@@ -569,6 +742,37 @@ class WebServer(
     }
 }
 
+/**
+ * Minimal HTTP/1.1 chunked encoder: hex size, CRLF, payload, CRLF, terminated by a zero chunk.
+ * Used only when a response length cannot be declared (the streamed ZIP in the rare case).
+ */
+internal class ChunkedOutputStream(private val target: OutputStream) : OutputStream() {
+    private var closed = false
+
+    override fun write(b: Int) = write(byteArrayOf(b.toByte()), 0, 1)
+
+    override fun write(b: ByteArray, off: Int, len: Int) {
+        if (closed || len == 0) return
+        target.write(java.lang.Integer.toHexString(len).toByteArray(Charsets.ISO_8859_1))
+        target.write(CRLF)
+        target.write(b, off, len)
+        target.write(CRLF)
+    }
+
+    override fun flush() = target.flush()
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        target.write("0\r\n\r\n".toByteArray(Charsets.ISO_8859_1))
+        target.flush()
+    }
+
+    private companion object {
+        val CRLF = "\r\n".toByteArray(Charsets.ISO_8859_1)
+    }
+}
+
 enum class WebMode { INVITE, SHARE }
 
 data class WebConfig(
@@ -584,6 +788,8 @@ data class WebConfig(
     val bindAddress: InetAddress? = null,
     val pin: String? = null,
     val requirePin: Boolean = false,
+    val token: String? = null,
+    val requireApproval: Boolean = false,
     val pinFailedHint: String = "Ask the sender for the 4-digit code.",
     val expiresAt: Long = 0,
     val maxConnections: Int = 16,
