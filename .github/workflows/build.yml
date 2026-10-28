@@ -138,9 +138,15 @@ jobs:
           # "no release apk produced" while the build itself succeeded. Search the whole tree,
           # prefer the largest non-unaligned file, and print the tree when nothing is found.
           find app/build/outputs -name "*.apk" 2>/dev/null | sed 's/^/apk candidate: /'
-          UNSIGNED=$(find app/build/outputs -name "*.apk" ! -name "*unaligned*" -printf "%s %p\n" 2>/dev/null \
-            | sort -rn | head -1 | cut -d' ' -f2-)
+          # Release only. A plain "largest APK" search picks app-debug.apk (unminified, ~14 MB,
+          # debuggable) over the real 2 MB release build -- that is exactly what happened once.
+          UNSIGNED=$(find app/build/outputs -name "*.apk" ! -name "*unaligned*" ! -name "*androidTest*" \
+            ! -path "*/debug/*" -printf "%s %p\n" 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
           echo "unsigned apk: $UNSIGNED"
+          if [ -n "$UNSIGNED" ] && $BT/aapt2 dump badging "$UNSIGNED" 2>/dev/null | grep -q "application-debuggable"; then
+            echo "::error::$UNSIGNED is debuggable -- refusing to ship a debug build"
+            exit 1
+          fi
           if [ -z "$UNSIGNED" ]; then
             {
               echo "no release apk produced"
