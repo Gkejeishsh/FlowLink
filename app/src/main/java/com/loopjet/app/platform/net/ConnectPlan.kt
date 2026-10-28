@@ -1,6 +1,5 @@
 package com.loopjet.app.platform.net
 
-import android.util.Base64
 import com.loopjet.app.core.Json
 import com.loopjet.app.core.int
 import com.loopjet.app.core.obj
@@ -60,10 +59,10 @@ data class ConnectCode(
                 "p" to net.port
             )
         }
-        val payload = Base64.encodeToString(
-            Json.stringify(map).toByteArray(Charsets.UTF_8),
-            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
-        )
+        // java.util.Base64 (API 26+, matching minSdk) rather than android.util.Base64: identical
+        // output, but it also runs in plain JVM unit tests, so the code format is covered by CI.
+        val payload = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(Json.stringify(map).toByteArray(Charsets.UTF_8))
         return PREFIX + payload
     }
 
@@ -79,14 +78,27 @@ data class ConnectCode(
     companion object {
         const val PREFIX = "loopjet2:"
 
+        /**
+         * Tolerates what a camera app may do to the payload: line breaks from a wrapped display,
+         * missing padding, and the standard (+/) alphabet. Strict rejection here means "that is not
+         * a LoopJet code", which sends the user hunting for a problem that does not exist.
+         */
+        private fun decodePayload(raw: String): ByteArray {
+            val cleaned = raw.filterNot { it.isWhitespace() }.replace('-', '+').replace('_', '/')
+            val padded = when (cleaned.length % 4) {
+                2 -> "$cleaned=="
+                3 -> "$cleaned="
+                else -> cleaned
+            }
+            return Base64.getMimeDecoder().decode(padded)
+        }
+
         fun decode(text: String): ConnectCode? {
             val trimmed = text.trim()
-            if (!trimmed.startsWith(PREFIX)) return null
-            val raw = trimmed.removePrefix(PREFIX)
-            val json = runCatching {
-                val bytes = Base64.decode(raw, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-                String(bytes, Charsets.UTF_8)
-            }.getOrNull() ?: return null
+            if (!trimmed.startsWith(PREFIX, ignoreCase = true)) return null
+            val raw = trimmed.substring(PREFIX.length)
+            val json = runCatching { String(decodePayload(raw), Charsets.UTF_8) }.getOrNull()
+                ?: return null
             val map = runCatching { Json.parseObject(json) }.getOrNull() ?: return null
             if ((map.int("v") ?: 0) < 2) return null
             val lan = map.obj("l")

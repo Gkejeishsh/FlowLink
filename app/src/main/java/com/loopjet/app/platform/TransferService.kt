@@ -795,6 +795,9 @@ class TransferService : Service() {
      * reported instead of being swallowed, and the p2p path stays available.
      */
     private fun startFallbackHotspot() {
+        // Service restarts (user taps Receive again) used to leave the previous reservation open, and
+        // the OS then refuses the new one with no way back. Close it first.
+        runCatching { hotspot?.stop() }
         val controller = HotspotController(this)
         hotspot = controller
         controller.start { info, message ->
@@ -808,6 +811,12 @@ class TransferService : Service() {
             val controlPort = receiver?.controlPort ?: ProtocolLimits.DEFAULT_PORT
             val app = LoopJetApp.instance
             if (host.isNullOrBlank()) {
+                // Started, but no AP address: the code would advertise 0.0.0.0 and the sender would
+                // spin. Say so instead of showing a code that cannot work.
+                Log.d(TAG, "hotspot started without an address")
+                TransferHub.update {
+                    it.copy(message = "Hotspot started but has no address yet — tap Receive again, or use Wi-Fi Direct")
+                }
                 return@start
             }
             val code = ConnectCode(

@@ -152,35 +152,6 @@ class HotspotController(private val context: Context) {
         cancelJoin()
     }
 
-    /**
-     * Joins a hotspot/hotspot-like network. Android shows its own "connect to this network" sheet —
-     * we cannot and should not bypass that consent step.
-     */
-    fun join(ssid: String, passphrase: String?, onResult: (Boolean, String) -> Unit) {
-        val connectivity = context.getSystemService(ConnectivityManager::class.java)
-        val specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
-            if (passphrase != null && passphrase.length >= 8) setWpa2Passphrase(passphrase)
-        }.build()
-        val request = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .setNetworkSpecifier(specifier)
-            .build()
-        cancelJoin()
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                onResult(true, "joined $ssid")
-            }
-
-            override fun onUnavailable() {
-                onResult(false, "Could not join $ssid")
-            }
-        }
-        networkCallback = callback
-        runCatching { connectivity.requestNetwork(request, callback) }
-            .onFailure { onResult(false, it.message ?: "join failed") }
-    }
-
     fun cancelJoin() {
         val callback = networkCallback ?: return
         runCatching { context.getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(callback) }
@@ -206,9 +177,15 @@ class HotspotController(private val context: Context) {
      * "one tap" rather than pretending otherwise.
      */
     fun joinAp(ssid: String, passphrase: String?, onResult: (Network?, String) -> Unit) {
+        // ConnectivityManager answers on its own binder thread. Every caller here mutates UI state
+        // (notice text, screen, PendingPeer), so hand results back on the main thread or the
+        // notification can land with no recomposition and look like a dead button.
+        val deliver: (Network?, String) -> Unit = { n, m ->
+            android.os.Handler(android.os.Looper.getMainLooper()).post { onResult(n, m) }
+        }
         val connectivity = context.getSystemService(ConnectivityManager::class.java)
         if (connectivity == null) {
-            onResult(null, "Connectivity service unavailable")
+            deliver(null, "Connectivity service unavailable")
             return
         }
         val specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
@@ -226,7 +203,7 @@ class HotspotController(private val context: Context) {
                 joinedNetwork = network
                 if (!answered) {
                     answered = true
-                    onResult(network, "joined $ssid")
+                    deliver(network, "joined $ssid")
                 }
             }
 
@@ -234,7 +211,7 @@ class HotspotController(private val context: Context) {
                 if (!answered) {
                     answered = true
                     joinedNetwork = null
-                    onResult(null, "Could not join \"$ssid\" — the other phone may have stopped sharing")
+                    deliver(null, "Could not join \"$ssid\" — the other phone may have stopped sharing")
                 }
             }
 
@@ -248,7 +225,7 @@ class HotspotController(private val context: Context) {
             .onFailure {
                 if (!answered) {
                     answered = true
-                    onResult(null, it.message ?: "join failed")
+                    deliver(null, it.message ?: "join failed")
                 }
             }
     }
