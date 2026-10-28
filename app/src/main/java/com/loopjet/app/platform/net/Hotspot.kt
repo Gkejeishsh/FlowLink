@@ -1,0 +1,194 @@
+package com.loopjet.app.platform.net
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSpecifier
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import java.net.Inet4Address
+import java.net.NetworkInterface
+import java.util.Collections
+
+/**
+ * Local-only hotspot.
+ *
+ * Android's public API cannot pin the band: `startLocalOnlyHotspot(SoftApConfiguration, …)` is a
+ * `@SystemApi`, and calling it through reflection is blocked by the hidden-API policy. So we use the
+ * public call, report the *actual* band we were given, and offer the user's own 5 GHz hotspot as the
+ * explicitly-manual alternative (the receiver joins it with one system tap).
+ */
+class HotspotController(private val context: Context) {
+    private val wifi = context.getSystemService(WifiManager::class.java)
+    private var reservation: WifiManager.LocalOnlyHotspotReservation? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+
+    data class HotspotInfo(val ssid: String, val passphrase: String?, val address: String?, val band: String)
+
+    fun start(onResult: (HotspotInfo?, String) -> Unit) {
+        val manager = wifi ?: return onResult(null, "Wi-Fi is not available")
+        if (reservation != null) {
+            return onResult(readInfo(), "already running")
+        }
+        val callback = object : WifiManager.LocalOnlyHotspotCallback() {
+            override fun onStarted(res: WifiManager.LocalOnlyHotspotReservation) {
+                reservation = res
+                // The AP interface takes a moment to appear; poll briefly for its IPv4 address.
+                var attempts = 0
+                val handler = Handler(Looper.getMainLooper())
+                val poll = object : Runnable {
+                    override fun run() {
+                        val info = readInfo()
+                        if (info?.address != null || attempts >= 10) {
+                            onResult(info, "hotspot started")
+                        } else {
+                            attempts++
+                            handler.postDelayed(this, 250)
+                        }
+                    }
+                }
+                handler.postDelayed(poll, 250)
+            }
+
+            override fun onStopped() {
+                reservation = null
+                onResult(null, "hotspot stopped")
+            }
+
+            override fun onFailed(reason: Int) {
+                reservation = null
+                onResult(null, failureText(reason))
+            }
+        }
+        runCatching {
+            manager.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))
+        }.onFailure { onResult(null, it.message ?: "hotspot failed") }
+    }
+
+    private fun failureText(reason: Int): String = when (reason) {
+        WifiManager.LocalOnlyHotspotCallback.ERROR_NO_CHANNEL -> "No Wi-Fi channel available for a hotspot"
+        WifiManager.LocalOnlyHotspotCallback.ERROR_INCOMPATIBLE_MODE -> "Wi-Fi is busy (turn off Wi-Fi hotspot or p2p)"
+        WifiManager.LocalOnlyHotspotCallback.ERROR_TETHERING_DISALLOWED -> "Hotspot is disabled by the device policy"
+        else -> "Could not start the hotspot (code $reason)"
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun readInfo(): HotspotInfo? {
+        val res = reservation ?: return null
+        val config = runCatching { res.softApConfiguration }.getOrNull()
+        var ssid: String? = null
+        var passphrase: String? = null
+        if (config != null) {
+            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull()
+            if (ssid == null) {
+                @Suppress("DEPRECATION")
+                ssid = runCatching { config.ssid }.getOrNull()
+            }
+            passphrase = runCatching { config.passphrase }.getOrNull()
+        }
+        if (ssid == null) {
+            @Suppress("DEPRECATION")
+            @SuppressLint("MissingPermission")
+            val legacy = runCatching { res.wifiConfiguration }.getOrNull()
+            ssid = legacy?.SSID?.trim('"')
+            passphrase = passphrase ?: legacy?.preSharedKey?.trim('"')
+        }
+        val address = apAddress()
+        val band = when {
+            address == null -> "unknown band"
+            else -> {
+                val freq = runCatching { wifi?.connectionInfo?.frequency ?: 0 }.getOrDefault(0)
+                when (freq) {
+                    in 4900..5900 -> "5 GHz"
+                    in 2400..2500 -> "2.4 GHz"
+                    else -> "hotspot band"
+                }
+            }
+        }
+        return HotspotInfo(ssid ?: "LoopJet hotspot", passphrase, address, band)
+    }
+
+    /** Finds the hotspot AP interface address (never cellular). */
+    private fun apAddress(): String? {
+        for (iface in Collections.list(NetworkInterface.getNetworkInterfaces())) {
+            if (!iface.isUp || iface.isLoopback) continue
+            val name = iface.name ?: continue
+            val looksLikeAp = name.startsWith("ap") || name.startsWith("swlan") || name.startsWith("wlan1") ||
+                name.startsWith("softap")
+            if (!looksLikeAp) continue
+            for (address in Collections.list(iface.inetAddresses)) {
+                if (address is Inet4Address && !address.isLoopbackAddress) return address.hostAddress
+            }
+        }
+        return null
+    }
+
+    fun stop() {
+        runCatching { reservation?.close() }
+        reservation = null
+        cancelJoin()
+    }
+
+    /**
+     * Joins a hotspot/hotspot-like network. Android shows its own "connect to this network" sheet —
+     * we cannot and should not bypass that consent step.
+     */
+    fun join(ssid: String, passphrase: String?, onResult: (Boolean, String) -> Unit) {
+        val connectivity = context.getSystemService(ConnectivityManager::class.java)
+        val specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
+            if (passphrase != null && passphrase.length >= 8) setWpa2Passphrase(passphrase)
+        }.build()
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .setNetworkSpecifier(specifier)
+            .build()
+        cancelJoin()
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                onResult(true, "joined $ssid")
+            }
+
+            override fun onUnavailable() {
+                onResult(false, "Could not join $ssid")
+            }
+        }
+        networkCallback = callback
+        runCatching { connectivity.requestNetwork(request, callback) }
+            .onFailure { onResult(false, it.message ?: "join failed") }
+    }
+
+    fun cancelJoin() {
+        val callback = networkCallback ?: return
+        runCatching { context.getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(callback) }
+        networkCallback = null
+    }
+}
+
+/** Builds the Wi-Fi QR payload the other phone can scan with its system camera. */
+object WifiQr {
+    private fun escapeWifi(value: String): String = value
+        .replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace(":", "\\:")
+
+    fun payload(ssid: String, passphrase: String?, hidden: Boolean = false): String {
+        val type = if (passphrase.isNullOrBlank()) "nopass" else "WPA"
+        val escaped = escapeWifi(ssid)
+        val pass = passphrase?.let { escapeWifi(it) } ?: ""
+        val hiddenPart = if (hidden) "H:true;" else ""
+        return if (type == "nopass") {
+            "WIFI:T:nopass;S:$escaped;$hiddenPart;"
+        } else {
+            "WIFI:T:WPA;S:$escaped;P:$pass;$hiddenPart;"
+        }
+    }
+
+    fun log(message: String) = Log.d("LoopJetHotspot", message)
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LoopJet mark: a bolt that closes into a loop between two nodes.
+     Same geometry as LoopJetMark() in ui/Theme.kt and res/drawable/ic_launcher_foreground.xml. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <defs>
+    <linearGradient id="loop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2F6BFF"/>
+      <stop offset="0.55" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0.3" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" rx="26" fill="#0B1020"/>
+  <path d="M40 76 C26 64 28 44 44 37 C53 33 62 35 69 42 L76 49"
+        fill="none" stroke="url(#loop)" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M78 38 C91 51 89 72 73 79 C63 83 54 80 47 73 L41 66"
+        fill="none" stroke="url(#loop)" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M59 32 L43 58 L52 58 L47 77 L66 51 L55 51 Z" fill="url(#bolt)"/>
+  <circle cx="38" cy="75" r="5.6" fill="#22D3EE"/>
+  <circle cx="79" cy="39" r="5.6" fill="#2F6BFF"/>
+</svg>

@@ -1,0 +1,27 @@
+# Signing material must never enter the repository.
+*.jks
+*.keystore
+*.p12
+*.p12.b64
+keys/
+keystore.properties
+local.properties
+loopjet-credentials.txt
+*credentials*.txt
+
+# Gradle / IDE / build output
+.gradle/
+build/
+app/build/
+.idea/
+*.iml
+captures/
+.cxx/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Local signing scratch
+/tmp/
+tools/out/

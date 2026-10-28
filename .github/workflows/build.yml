@@ -1,0 +1,224 @@
+name: build
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: 'Sign the release APK'
+        type: boolean
+        default: true
+      keystore_b64:
+        description: 'base64 of release keystore (PKCS12)'
+        type: string
+        required: false
+      store_pass:
+        description: 'keystore password'
+        type: string
+        required: false
+      key_alias:
+        description: 'key alias'
+        type: string
+        default: 'loopjet'
+      key_pass:
+        description: 'key password'
+        type: string
+        required: false
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Android SDK
+        run: |
+          set -x
+          SDK=$HOME/android-sdk
+          mkdir -p $SDK/cmdline-tools
+          curl -sSL -o /tmp/cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+          unzip -q /tmp/cmdline.zip -d $SDK/cmdline-tools
+          mv $SDK/cmdline-tools/cmdline-tools $SDK/cmdline-tools/latest
+          export ANDROID_HOME=$SDK
+          SM=$SDK/cmdline-tools/latest/bin/sdkmanager
+          yes | $SM --licenses > /dev/null 2>&1 || true
+          for p in "platform-tools" "platforms;android-37" "platforms;android-37.0" "build-tools;36.0.0"; do
+            $SM "$p" > /dev/null 2>&1 || echo "skip $p"
+          done
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
+          ls $SDK/build-tools $SDK/platforms
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      # Two sources for the release key, both outside the repository:
+      #   1. workflow_dispatch inputs (nothing stored in GitHub),
+      #   2. repository secrets LJ_KEYSTORE_B64 / LJ_STORE_PASS / LJ_KEY_PASS / LJ_KEY_ALIAS — once
+      #      those exist, every push produces a signed APK, so any agent that can push can ship.
+      # The key is written to $RUNNER_TEMP, never into the checkout, and never echoed.
+      - name: Prepare signing material
+        # `secrets` is not a legal context inside a step-level `if`, so the values are mapped into
+        # env first and the condition tests those. Empty means "no key available": skip this step.
+        env:
+          KS_INPUT: ${{ inputs.keystore_b64 }}
+          KS_SECRET: ${{ secrets.LJ_KEYSTORE_B64 }}
+          SP: ${{ inputs.store_pass || secrets.LJ_STORE_PASS }}
+          KP: ${{ inputs.key_pass || secrets.LJ_KEY_PASS }}
+          AL: ${{ inputs.key_alias || secrets.LJ_KEY_ALIAS || 'loopjet' }}
+          WANT_SIGN: ${{ inputs.sign }}
+        if: ${{ (env.KS_INPUT != '' || env.KS_SECRET != '') && (github.event_name == 'push' || env.WANT_SIGN == 'true') }}
+        run: |
+          set -eu
+          umask 077
+          KS="$KS_INPUT"
+          [ -n "$KS" ] || KS="$KS_SECRET"
+          printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.p12"
+          # Fail loudly instead of quietly shipping an unsigned APK.
+          if ! head -c 2 "$RUNNER_TEMP/release.p12" | od -An -tx1 | grep -qi '30 82'; then
+            echo "::error::the supplied signing material is not a PKCS#12/DER keystore"
+            exit 1
+          fi
+          [ -n "$SP" ] || { echo "::error::no keystore password supplied"; exit 1; }
+          echo "LJ_KEYSTORE=$RUNNER_TEMP/release.p12" >> $GITHUB_ENV
+          echo "LJ_STORE_PASS=$SP" >> $GITHUB_ENV
+          echo "LJ_KEY_PASS=${KP:-$SP}" >> $GITHUB_ENV
+          echo "LJ_KEY_ALIAS=${AL:-loopjet}" >> $GITHUB_ENV
+          echo "LJ_SIGNING=1" >> $GITHUB_ENV
+          echo "signing material prepared ($(stat -c%s "$RUNNER_TEMP/release.p12") bytes)"
+      - name: Compile, test, package
+        run: |
+          mkdir -p ci
+          set +e
+          gradle --no-daemon --console=plain wrapper --gradle-version 9.6.0 > ci/wrapper.log 2>&1
+          echo "WRAPPER_RC=$?" >> $GITHUB_ENV
+          gradle --no-daemon --console=plain :app:compileDebugKotlin --continue > ci/compile.log 2>&1
+          echo "COMPILE_RC=$?" >> $GITHUB_ENV
+          tail -80 ci/compile.log
+          gradle --no-daemon --console=plain :app:testDebugUnitTest > ci/test.log 2>&1
+          echo "TEST_RC=$?" >> $GITHUB_ENV
+          tail -60 ci/test.log
+          gradle --no-daemon --console=plain :app:assembleDebug > ci/build-debug.log 2>&1
+          echo "DEBUG_RC=$?" >> $GITHUB_ENV
+          tail -40 ci/build-debug.log
+          gradle --no-daemon --console=plain :app:assembleRelease > ci/build-release.log 2>&1
+          echo "RELEASE_RC=$?" >> $GITHUB_ENV
+          tail -40 ci/build-release.log
+          gradle --no-daemon --console=plain :app:lintRelease > ci/lint.log 2>&1
+          tail -20 ci/lint.log
+          exit 0
+
+      - name: Align, sign and verify
+        run: |
+          mkdir -p dist ci dist/unsigned
+          set +e
+          BT=$ANDROID_HOME/build-tools/36.0.0
+          UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          echo "unsigned apk: $UNSIGNED"
+          if [ -z "$UNSIGNED" ]; then echo "no release apk produced" > dist/SIGNING-REPORT.txt; exit 0; fi
+          ALIGNED=dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+          $BT/zipalign -p -f 4 "$UNSIGNED" "$ALIGNED" || cp "$UNSIGNED" "$ALIGNED"
+          sha256sum "$ALIGNED" > dist/unsigned/SHA256.txt
+          # The source APK for the page served by Invite must be byte-identical to what we ship.
+          echo "aligned payload: $(stat -c%s "$ALIGNED") bytes"
+
+          REPORT=dist/SIGNING-REPORT.txt
+          : > $REPORT
+          if [ "$LJ_SIGNING" = "1" ] && [ -n "$LJ_KEYSTORE" ]; then
+            FINAL=dist/LoopJet-1.0.0-release.apk
+            $BT/apksigner sign --ks "$LJ_KEYSTORE" --ks-key-alias "$LJ_KEY_ALIAS" \
+              --ks-pass "pass:$LJ_STORE_PASS" --key-pass "pass:$LJ_KEY_PASS" \
+              --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true \
+              --out "$FINAL" "$ALIGNED"
+          fi
+
+          if [ -f dist/LoopJet-1.0.0-release.apk ]; then
+            {
+              echo "== apk =="
+              ls -l dist/LoopJet-1.0.0-release.apk
+              echo
+              echo "== sha256 =="
+              sha256sum dist/LoopJet-1.0.0-release.apk
+              echo
+              echo "== apksigner verify --verbose --print-certs =="
+              $BT/apksigner verify --verbose --print-certs dist/LoopJet-1.0.0-release.apk
+              echo "EXIT=$?"
+              echo
+              echo "== apksigner verify --min-sdk-version 26 --max-sdk-version 37 =="
+              $BT/apksigner verify --min-sdk-version 26 --max-sdk-version 37 dist/LoopJet-1.0.0-release.apk
+              echo "EXIT=$?"
+              echo
+              echo "== zipalign -c -p -v 4 =="
+              $BT/zipalign -c -p -v 4 dist/LoopJet-1.0.0-release.apk | tail -3
+              echo "EXIT=$?"
+              echo
+              echo "== badging =="
+              $BT/aapt2 dump badging dist/LoopJet-1.0.0-release.apk 2>/dev/null | head -12
+              echo
+              echo "== embedded file count and size =="
+              unzip -l dist/LoopJet-1.0.0-release.apk | tail -2
+            } > $REPORT 2>&1
+          else
+            echo "No signed APK in dist/ yet: dist/unsigned/LoopJet-1.0.0-release-aligned.apk is the aligned payload." > $REPORT
+            sha256sum "$ALIGNED" >> $REPORT
+          fi
+          cat $REPORT
+          cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null
+          cp app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
+          exit 0
+
+      - name: Publish results to the branch
+        if: always()
+        run: |
+          mkdir -p ci dist
+          set +e
+          grep -h "MB/s" ci/test.log > ci/benchmark-lines.txt 2>/dev/null
+          {
+            echo "compile=$COMPILE_RC tests=$TEST_RC debug=$DEBUG_RC release=$RELEASE_RC wrapper=$WRAPPER_RC"
+            echo
+            echo "== first compile errors =="
+            grep -E "^e: |error:|FAILURE:" ci/compile.log | head -60
+            echo
+            echo "== test failures =="
+            grep -E "FAILED|Exception|assert" ci/test.log | head -60
+            echo
+            echo "== benchmark lines =="
+            grep "MB/s" ci/test.log | head -40
+            echo
+            echo "== last compile log lines =="
+            tail -120 ci/compile.log
+          } > ci/summary.txt
+          cat ci/summary.txt
+          ls -la ci dist
+          for d in ci dist gradle/wrapper; do git add -f "$d" 2>/dev/null; done
+          git -c user.name=loopjet-ci -c user.email=ci@loopjet.local commit -m "ci: results [skip ci]" 2>/dev/null || echo "nothing to commit"
+          git push origin HEAD:refs/heads/${GITHUB_REF_NAME} 2>/dev/null || {
+            git fetch origin ${GITHUB_REF_NAME} 2>/dev/null
+            git rebase FETCH_HEAD 2>/dev/null || true
+            git push origin HEAD:refs/heads/${GITHUB_REF_NAME}
+          }
+          exit 0
+
+      - name: Report failures
+        if: always()
+        run: |
+          echo "compile=$COMPILE_RC tests=$TEST_RC debug=$DEBUG_RC release=$RELEASE_RC"
+          if [ "$COMPILE_RC" != "0" ] || [ "$TEST_RC" != "0" ] || [ "$DEBUG_RC" != "0" ] || [ "$RELEASE_RC" != "0" ]; then
+            echo "::error::build or tests failed (see ci/*.log pushed to the branch)"
+            exit 1
+          fi
