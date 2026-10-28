@@ -268,10 +268,12 @@ friendly (no per-frame allocations in `SpeedGraph`, no recomposition from the da
 | Layer | What runs | Where |
 | --- | --- | --- |
 | Engine | real-socket loopback: mutual authentication, 192 MiB single file through 4 sealed streams, 2 000 bundled small files, Unicode + nested paths, resume after a dropped link, pause/resume, declined offer | JVM (`TransferLoopbackTest`, 6 tests) in CI |
+| Web server | real HTTP over loopback: ZIP length equals bytes sent, zip-slip refusal, `Range`/206 with the right `Content-Range`, upload traversal refusal, PIN on every endpoint, share page with no external resources | JVM (`WebServerTest`, 6 tests) in CI |
 | Packaging | R8 release build, lint, `zipalign -c`, `aapt2 badging`, `apksigner verify --verbose --print-certs` v2+v3 | CI (`dist/SIGNING-REPORT.txt`) |
 | Device | none — no phone or emulator is reachable from this environment | **not tested** |
 
-Not yet covered by automated tests, and listed as such in `TEST_REPORT.md`: the HTTP server routes,
+Not yet covered by automated tests, and listed as such in `TEST_REPORT.md`: the browser pages in a
+real browser (the HTTP layer and the generated HTML are tested, layout and JS execution are not),
 crypto known-answer vectors, a >4 GiB transfer (offset math is 64-bit throughout but no 5 GiB run was
 performed — disk bound), APK installs, and every radio path.
 
@@ -362,9 +364,15 @@ Huawei/Honor (summarised in `Perms.batteryGuide`, shown in-app).
 * One pipeline flaw was found by measurement rather than review: the receiver persisted chunk maps only
   for *completed* files, so "resume" re-sent everything. Fixed; a regression assertion now fails if a
   resumed session re-sends the whole file.
-* Loopback throughput (192 MiB, 4 streams): 155–371 MB/s depending on CI CPU. The small-file path
-  (2 000 files, 5.8 MB) runs at ~4.9–5.3 MB/s, i.e. ~2 100 files/s including per-file digest and rename.
-  Both numbers come from the pipeline, not from any radio; see the honesty table in `TEST_REPORT.md`.
+* Loopback throughput (192 MiB, 4 streams): 155–384 MB/s depending on CI CPU (384.0 MB/s in the
+  latest run). The small-file path (2 000 files, 5.8 MB) runs at ~4.8–7.6 MB/s, i.e. ~1 650–2 100
+  files/s including per-file digest and rename. Both numbers come from the pipeline, not from any
+  radio; see the honesty table in `TEST_REPORT.md`.
+* A second review pass over the whole transfer path (roles, Wi-Fi Direct, retries, gallery writes,
+  browser approval, installs) found seven defects that the tests could not see because they need
+  Android or a browser. All are listed with their fixes in `TEST_REPORT.md` §6; the two that mattered
+  most were the receiving phone advertising itself as a sender, and a failed data stream silently
+  losing its chunk.
 * The APK signing step needed three fixes against AOSP's `apksig` sources before `apksigner` accepted
   the output (record framing, then attribute framing). They are documented in `tools/sign_apk.py`.
 

@@ -27,11 +27,11 @@ signer               CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK 
 | **Onboarding** | Guided, one-question-at-a-time permission setup. Each permission is explained with what happens if you refuse, and the app keeps working with the paths that remain. |
 | **Home** | Big Send / Receive targets, Invite and Web Share, recent history, settings. Radar pulse and avatar bubbles while it is looking for the other phone. |
 | **Send** | In-app picker, not a SAF detour: Apps, Photos, Videos, Music, Documents, Archives, Downloads, APKs, plus the whole storage tree. Search, sort, lazy thumbnails, multi-select tray with count and size, thousands of items. Shared files from other apps arrive here pre-filled. Text and links can be sent as a snippet. |
-| **Apps** (inside Send) | Installed apps as one item each: icon, name, version, size, and *base APK plus every split* (`splitSourceDirs`). Received apps install through a single `PackageInstaller` session, so the splits land together instead of one at a time. |
-| **Receive** | One tap to be discoverable (name, avatar, QR, 6-digit code). An incoming offer shows sender, file count and total size; you accept once, optionally trusting that device. Files land in a dated folder, appear in the gallery immediately and never overwrite anything. |
+| **Apps** (inside Send) | Installed apps as one item each: icon, name, version, size, and *base APK plus every split* (`splitSourceDirs`). Received apps appear on the Transfer screen with one Install button that opens a single `PackageInstaller` session holding the base and all splits, with copy progress, the unknown-sources detour when it is needed, and explicit signature-conflict / downgrade / min-SDK messages. App data and accounts are never transferred. |
+| **Receive** | One tap to be discoverable: this side advertises over mDNS, multicast and BLE (it is the phone the sender has to find), shows its name, avatar, QR and a six-digit pairing code, and hosts a Wi-Fi Direct group when the hardware supports it. An incoming offer shows sender, file count and total size; you accept once, optionally trusting that device. Photos, videos and audio are written straight into the gallery through a pending MediaStore item, everything else into a dated folder; nothing is ever overwritten. |
 | **Transfer** | Live speed, live graph tied to real throughput, per-file progress, pause / resume / cancel, queued transfers, automatic resume after a drop, and it keeps going with the screen off. |
 | **Invite** | Shares *this* APK, unmodified, through a local web page at `http://<lan-ip>:<port>` plus a QR code. Works over the shared Wi-Fi or a hotspot you create; the page shows the version, size, a download button and install steps. |
-| **Web Share** | The phone runs a tiny HTTP server so a browser on the same subnet can pull files (single file with Range/resume, many files as a streamed ZIP) or drop files onto the phone (streamed to disk, nothing buffered in RAM). Each browser needs approval, optionally a PIN, and sessions expire. |
+| **Web Share** | The phone runs a tiny HTTP server so a browser on the same subnet can pull files (single file with Range/resume, many files as a streamed ZIP that declares its exact length so the browser shows real progress) or drop files onto the phone (streamed to disk, nothing buffered in RAM). The first request from each browser blocks until you tap Allow or Deny on the phone; an optional PIN and a 30-minute expiry sit on top, and the link carries a session token. |
 | **History** | Every session with peer, direction, size, duration and achieved speed; tap to send the same selection again. |
 | **Settings** | Device name and avatar, save location, theme (System/Light/Dark, true black in dark), speed mode, trusted devices, auto-accept, verify-after-transfer, built-in benchmark, battery-optimisation help. |
 | **About** | Version, build, what leaves the device (nothing), and the honest list of what is verified on hardware and what is not. |
@@ -105,7 +105,12 @@ MB/s with the topology label.
 * **Human confirmation**: a 6-digit code derived from both fingerprints is shown on both phones, so a
   man-in-the-middle would have to break ECDH *and* the code.
 * **Explicit approval**: the receiver sees sender, count and size before anything is written, and can
-  remember the device. Auto-accept only ever applies to trusted fingerprints.
+  remember the device. Auto-accept only ever applies to trusted fingerprints. Trust is granted by the
+  *receiver* only — sending to a phone never stores a trust decision on the sender.
+* **Pairing without discovery**: the receiving phone shows six digits. A sender can probe the /24 with
+  those digits and only the phone displaying them answers, or paste the `loopjet://` link from the QR
+  when a firewall blocks scans. Both paths still go through the full key exchange and accept prompt;
+  the code is a convenience channel, not a secret.
 * **Storage safety**: path traversal, absolute paths, control characters, Windows-reserved names,
   over-long components and duplicate names are all handled; free space is checked before accepting.
 * **No reachable telemetry**: no internet permission use beyond local sockets, no analytics SDK, no
@@ -160,13 +165,21 @@ under `com.loopjet.app`, so back it up twice and keep it away from the password.
 
 `app/src/test/java/com/loopjet/app/TransferLoopbackTest.kt` runs the real engine over TCP loopback:
 mutual authentication, a 192 MiB file through four sealed streams, 2 000 bundled small files, Unicode
-and nested paths, resume after a dropped link, pause/resume, and a declined offer. Green in run
-`40648734612`; numbers in `TEST_REPORT.md`.
+and nested paths, resume after a dropped link, pause/resume, and a declined offer.
+
+`app/src/test/java/com/loopjet/app/WebServerTest.kt` runs the real HTTP server against real sockets:
+the streamed ZIP declares a length equal to the bytes it sends and extracts cleanly (Unicode entry
+names included), entry names cannot escape the extraction folder, `Range` returns 206 with the right
+`Content-Range` and bytes, an upload lands inside its folder even when the browser sends
+`../../escape.bin`, the PIN is demanded on every endpoint, and the share page references nothing
+outside the phone.
+
+Twelve tests, all green in run `40656202018`; numbers in `TEST_REPORT.md`.
 
 What is **not** tested, because no phone or emulator was available in this environment: Wi-Fi Direct,
-hotspot, BLE, mDNS, the install flow, MediaStore publishing, notifications and the browser pages. The
-code for all of it is present, guarded per API level and reviewed against the platform documentation;
-`TEST_REPORT.md` lists each item so nobody has to guess.
+hotspot, BLE, mDNS, the install flow, MediaStore publishing and notifications. The code for all of it
+is present, guarded per API level and reviewed against the platform documentation; `TEST_REPORT.md`
+lists each item so nobody has to guess.
 
 ---
 
