@@ -103,9 +103,13 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
     ) { ok ->
         granted = ok
         // Once the dialog has been refused twice Android stops showing it: the only way back is the
-        // app's settings page, so stop offering a button that does nothing.
-        if (!ok) blockedForever = !(context as? android.app.Activity)
-            ?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) ?: false
+        // app's settings page, so stop offering a button that does nothing. `?: true` keeps us
+        // optimistic when the host is not an Activity and the question cannot be asked.
+        if (!ok) {
+            val canAskAgain = (context as? android.app.Activity)
+                ?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) ?: true
+            blockedForever = !canAskAgain
+        }
     }
 
     // Asked only here, never during onboarding: scanning is optional.

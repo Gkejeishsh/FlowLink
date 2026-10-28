@@ -243,7 +243,8 @@ class HotspotController(private val context: Context) {
             }
         }
         networkCallback = callback
-        runCatching { connectivity.requestNetwork(request, callback, JOIN_TIMEOUT_MS) }
+        // The timeout overload takes an Int (ms); passing a Long matches no overload.
+        runCatching { connectivity.requestNetwork(request, callback, JOIN_TIMEOUT_MS.toInt()) }
             .onFailure {
                 if (!answered) {
                     answered = true
