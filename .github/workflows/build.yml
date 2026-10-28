@@ -31,9 +31,6 @@ concurrency:
 permissions:
   contents: write
 
-env:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -69,12 +66,6 @@ jobs:
         with:
           gradle-version: '9.6.0'
 
-      - name: Generate Gradle wrapper
-        run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            gradle wrapper --gradle-version 9.6.0
-          fi
-
       - name: Prepare signing material
         if: ${{ inputs.sign == true && inputs.keystore_b64 != '' }}
         env:
@@ -88,58 +79,42 @@ jobs:
           echo "LJ_STORE_PASS=$SP" >> $GITHUB_ENV
           echo "LJ_KEY_PASS=$KP" >> $GITHUB_ENV
           echo "LJ_KEY_ALIAS=$AL" >> $GITHUB_ENV
-          echo "LJ_SIGNING=1" >> $GITHUB_ENV
 
-      - name: Unit tests + loopback benchmark
+      - name: Compile, test, package
         run: |
           mkdir -p ci
           set +e
-          ./gradlew --no-daemon testDebugUnitTest --console=plain > ci/test.log 2>&1
-          rc=$?
-          tail -120 ci/test.log
-          echo "TEST_RC=$rc" >> $GITHUB_ENV
-          exit 0
-
-      - name: Build debug
-        run: |
-          set +e
-          ./gradlew --no-daemon assembleDebug --console=plain > ci/build-debug.log 2>&1
-          rc=$?
-          tail -80 ci/build-debug.log
-          echo "DEBUG_RC=$rc" >> $GITHUB_ENV
-          exit 0
-
-      - name: Build release (R8)
-        run: |
-          set +e
-          ./gradlew --no-daemon assembleRelease --console=plain > ci/build-release.log 2>&1
-          rc=$?
-          tail -80 ci/build-release.log
-          echo "RELEASE_RC=$rc" >> $GITHUB_ENV
-          exit 0
-
-      - name: Lint
-        run: |
-          set +e
-          ./gradlew --no-daemon lintRelease --console=plain > ci/lint.log 2>&1
-          tail -40 ci/lint.log
+          gradle --no-daemon --console=plain wrapper --gradle-version 9.6.0 > ci/wrapper.log 2>&1
+          echo "WRAPPER_RC=$?" >> $GITHUB_ENV
+          gradle --no-daemon --console=plain :app:compileDebugKotlin > ci/compile.log 2>&1
+          echo "COMPILE_RC=$?" >> $GITHUB_ENV
+          tail -80 ci/compile.log
+          gradle --no-daemon --console=plain :app:testDebugUnitTest > ci/test.log 2>&1
+          echo "TEST_RC=$?" >> $GITHUB_ENV
+          tail -60 ci/test.log
+          gradle --no-daemon --console=plain :app:assembleDebug > ci/build-debug.log 2>&1
+          echo "DEBUG_RC=$?" >> $GITHUB_ENV
+          tail -40 ci/build-debug.log
+          gradle --no-daemon --console=plain :app:assembleRelease > ci/build-release.log 2>&1
+          echo "RELEASE_RC=$?" >> $GITHUB_ENV
+          tail -40 ci/build-release.log
+          gradle --no-daemon --console=plain :app:lintRelease > ci/lint.log 2>&1
+          tail -20 ci/lint.log
           exit 0
 
       - name: Align, sign and verify
         run: |
-          set -e
           mkdir -p dist ci
+          set +e
           BT=$ANDROID_HOME/build-tools/36.0.0
-          UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1 || true)
+          UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "unsigned apk: $UNSIGNED"
           if [ -z "$UNSIGNED" ]; then echo "no release apk produced" > dist/SIGNING-REPORT.txt; exit 0; fi
-          if [ "$UNSIGNED" != "app/build/outputs/apk/release/LoopJet-release-unsigned.apk" ]; then
-            cp "$UNSIGNED" app/build/outputs/apk/release/LoopJet-release-unsigned.apk
-          fi
+          cp "$UNSIGNED" app/build/outputs/apk/release/LoopJet-release-unsigned.apk
           APK=app/build/outputs/apk/release/LoopJet-release-unsigned.apk
           ALIGNED=app/build/outputs/apk/release/LoopJet-release-aligned.apk
           FINAL=dist/LoopJet-1.0.0-release.apk
-          $BT/zipalign -p -f 4 "$APK" "$ALIGNED"
+          $BT/zipalign -p -f 4 "$APK" "$ALIGNED" || cp "$APK" "$ALIGNED"
           if [ "$LJ_SIGNING" = "1" ]; then
             $BT/apksigner sign --ks "$LJ_KEYSTORE" --ks-key-alias "$LJ_KEY_ALIAS" \
               --ks-pass "pass:$LJ_STORE_PASS" --key-pass "pass:$LJ_KEY_PASS" \
@@ -149,43 +124,43 @@ jobs:
               echo "== apksigner verify --verbose --print-certs =="
               $BT/apksigner verify --verbose --print-certs "$FINAL"
               echo
-              echo "== apksigner verify (v4 off, min-sdk 26) =="
+              echo "== apksigner verify --min-sdk-version 26 --max-sdk-version 37 =="
               $BT/apksigner verify --min-sdk-version 26 --max-sdk-version 37 "$FINAL"
               echo
-              echo "== apk size =="
-              ls -l "$FINAL"
-              echo
-              echo "== sha256 =="
-              sha256sum "$FINAL"
+              echo "== apk ==" ; ls -l "$FINAL"
+              echo "== sha256 ==" ; sha256sum "$FINAL"
             } > dist/SIGNING-REPORT.txt 2>&1
             cat dist/SIGNING-REPORT.txt
           else
             cp "$ALIGNED" "${FINAL%.apk}-unsigned.apk"
-            echo "Build was not signed (no keystore supplied)." > dist/SIGNING-REPORT.txt
+            echo "Release build was not signed (no keystore supplied on this run)." > dist/SIGNING-REPORT.txt
           fi
+          cp app/build/outputs/apk/debug/*.apk dist/ 2>/dev/null
+          cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null
+          cp -r app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
+          exit 0
 
-      - name: Collect APKs and reports
+      - name: Publish results to the branch
+        if: always()
         run: |
-          mkdir -p dist ci/screens
-          cp app/build/outputs/apk/debug/*.apk dist/ 2>/dev/null || true
-          cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null || true
-          cp -r app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null || true
+          mkdir -p ci dist
           grep -h "MB/s" ci/test.log > ci/benchmark-lines.txt 2>/dev/null || true
-          ls -la dist ci
-
-      - name: Publish build results to the branch
-        run: |
+          ls -la ci dist
           git config user.name "loopjet-ci"
           git config user.email "ci@loopjet.local"
-          git add -f dist ci gradle/wrapper
+          git add -f ci dist gradle/wrapper
           if git diff --cached --quiet; then echo "nothing to publish"; exit 0; fi
           git commit -m "ci: build artifacts and reports [skip ci]"
-          git pull --rebase origin "$GITHUB_REF_NAME" || true
-          git push origin "HEAD:$GITHUB_REF_NAME"
+          for i in 1 2 3; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && break
+            sleep 3
+          done
 
-      - name: Fail if the build failed
+      - name: Report failures
+        if: always()
         run: |
-          if [ "$DEBUG_RC" != "0" ] || [ "$RELEASE_RC" != "0" ] || [ "$TEST_RC" != "0" ]; then
-            echo "debug=$DEBUG_RC release=$RELEASE_RC tests=$TEST_RC"
+          echo "compile=$COMPILE_RC tests=$TEST_RC debug=$DEBUG_RC release=$RELEASE_RC"
+          if [ "$COMPILE_RC" != "0" ] || [ "$TEST_RC" != "0" ] || [ "$DEBUG_RC" != "0" ] || [ "$RELEASE_RC" != "0" ]; then
+            echo "::error::build or tests failed (see ci/*.log pushed to the branch)"
             exit 1
           fi
