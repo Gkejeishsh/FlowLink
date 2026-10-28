@@ -249,7 +249,12 @@ def verify(apk_path: Path, key=None, cert_der=None) -> int:
               f"block={start}..{end} apk_size={len(apk)}")
         ok = ok and alg_ok and sig_ok and digest_ok
     if key is not None:
-        same = key.public_key().public_bytes_raw() == load_der_public_key(pub).public_bytes_raw()
+        from cryptography.hazmat.primitives import serialization
+
+        expected = key.public_key().public_bytes(
+            serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        same = expected == pub
         print(f"certificate key matches keystore: {same}")
         ok = ok and same
     print("SELF-CHECK:", "OK" if ok else "FAILED")
