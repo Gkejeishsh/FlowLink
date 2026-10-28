@@ -95,6 +95,13 @@ class TransferLoopbackTest {
         val receiverResult = AtomicReference<TransferResult?>(null)
         private val receiverThread = AtomicReference<Thread?>(null)
 
+        val logs: MutableList<String> = java.util.Collections.synchronizedList(ArrayList())
+
+        fun dump(prefix: String) {
+            println("[$prefix] --- engine log (${logs.size} lines) ---")
+            synchronized(logs) { logs.forEach { println("[$prefix] $it") } }
+        }
+
         fun startReceiver(): Int {
             receiver = ReceiverEngine(
                 identity = SoftwareIdentity.generate(),
@@ -103,7 +110,7 @@ class TransferLoopbackTest {
                 resumeStore = resumeStore,
                 requestedPort = 43210,
                 stallTimeoutMs = stallTimeoutMs,
-                sessionLog = { }
+                sessionLog = { logs.add("R: $it") }
             )
             receiver.bind()
             controlPort = receiver.controlPort
@@ -138,9 +145,13 @@ class TransferLoopbackTest {
                 connector = connector,
                 controlPort = controlPort,
                 listener = senderListener,
-                maxStreams = 4
+                maxStreams = 4,
+                sessionLog = { logs.add("S: $it") }
             )
-            return sender.run()
+            val result = sender.run()
+            println("[sender] ok=${result.ok} msg=${result.message} bytes=${result.bytesTransferred} files=${result.files.size} chunks=${result.chunksDone}/${result.chunksTotal}")
+            if (!result.ok) dump("sender-failed")
+            return result
         }
 
         fun awaitReceiver(timeoutMs: Long = 120_000): TransferResult {
