@@ -51,14 +51,14 @@ All six pass in the final run (`ci/test.log`, run 40656202018).
 
 | Test | What it proves | Measured |
 | --- | --- | --- |
-| `single large file transfers and verifies` | handshake, 4 parallel sealed streams, positional writes, per-chunk SHA-256, `.part` → rename, byte-identical result | 192 MiB in **500 ms = 384.0 MB/s** (sender side; 518 ms / 370.7 MB/s and 1 119 ms / 171.6 MB/s on two other CI runs — shared-runner noise) |
-| `many small files are bundled and verified` | bundle path for 2 000 files, directory creation, per-file digests | 2 000 files / 5.8 MB in **1 209 ms = 4.8 MB/s**, 1.65k files/s (769 ms / 7.6 MB/s in an earlier run) |
+| `single large file transfers and verifies` | handshake, 4 parallel sealed streams, positional writes, per-chunk SHA-256, `.part` → rename, byte-identical result | 192 MiB, **169.9 – 405.1 MB/s** across CI runs (best: 474 ms = 405.1 MB/s; median of five runs ≈ 371 MB/s) |
+| `many small files are bundled and verified` | bundle path for 2 000 files, directory creation, per-file digests | 2 000 files / 5.8 MB, **4.2 – 7.6 MB/s** across runs (best: 769 ms = 7.6 MB/s, ≈2 100 files/s; latest: 1 383 ms = 4.2 MB/s) |
 | `unicode names and nested folders survive` | Persian, Cyrillic, Japanese and emoji names with nested paths | pass, content identical |
 | `resume after a dropped link only re-sends missing chunks` | chunk map persistence, resume negotiation, skip of completed ranges | first attempt cut at 5 chunks; second attempt re-sent **23 068 672 of 25 165 824 bytes (−2.03 MB)**, file completed and verified |
 | `pause and resume keeps the transfer alive` | pause/resume signalling mid-transfer | 64 MiB, receiver completed, content identical |
 | `receiver may decline an offer` | explicit approval path, no partial files left behind | pass, destination empty |
 
-What the throughput numbers mean: 384 MB/s is a **loopback** number. It measures the whole pipeline
+What the throughput numbers mean: these are **loopback** numbers, and the spread between runs on a shared two-core CI runner is larger than any tuning difference, so the range is quoted instead of one flattering sample. It measures the whole pipeline
 (read, AES-256-GCM seal, framing, sockets, write, SHA-256 check) on the CI CPU with the loopback
 interface as the "radio". It is the right way to find pipeline overhead, and it is **not** a Wi-Fi
 number. A 5 GHz Wi-Fi 5/6 link peaks around 40–110 MB/s of real payload, so the pipeline is not the

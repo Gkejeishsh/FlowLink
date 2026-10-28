@@ -366,10 +366,10 @@ Huawei/Honor (summarised in `Perms.batteryGuide`, shown in-app).
 * One pipeline flaw was found by measurement rather than review: the receiver persisted chunk maps only
   for *completed* files, so "resume" re-sent everything. Fixed; a regression assertion now fails if a
   resumed session re-sends the whole file.
-* Loopback throughput (192 MiB, 4 streams): 155–384 MB/s depending on CI CPU (384.0 MB/s in the
-  latest run). The small-file path (2 000 files, 5.8 MB) runs at ~4.8–7.6 MB/s, i.e. ~1 650–2 100
-  files/s including per-file digest and rename. Both numbers come from the pipeline, not from any
-  radio; see the honesty table in `TEST_REPORT.md`.
+* Loopback throughput (192 MiB, 4 streams): 155–405 MB/s depending on the CI runner's mood (405.1 MB/s
+  best, ≈371 MB/s median of five runs). The small-file path (2 000 files, 5.8 MB) runs at 4.2–7.6 MB/s,
+  i.e. ~1 450–2 100 files/s including per-file digest and rename. Both numbers come from the pipeline,
+  not from any radio; see the honesty table in `TEST_REPORT.md`.
 * A second review pass over the whole transfer path (roles, Wi-Fi Direct, retries, gallery writes,
   browser approval, installs) found seven defects that the tests could not see because they need
   Android or a browser. All are listed with their fixes in `TEST_REPORT.md` §6; the two that mattered
