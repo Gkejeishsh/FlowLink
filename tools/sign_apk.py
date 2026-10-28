@@ -103,7 +103,8 @@ def chunked_sha256(sections: list[bytes]) -> bytes:
 
 def build_signer_block(signed_data: bytes, signature: bytes, public_key_der: bytes, v3: bool,
                        min_sdk: int, max_sdk: int) -> bytes:
-    signatures = u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(signature)
+    # Each signature record is itself length-prefixed: lp(u32 algorithm id + lp(signature)).
+    signatures = lp(u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(signature))
     if v3:
         return (
             lp(signed_data)
@@ -116,7 +117,7 @@ def build_signer_block(signed_data: bytes, signature: bytes, public_key_der: byt
 
 
 def signed_data_v2(digest: bytes, cert_der: bytes) -> bytes:
-    digests = u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(digest)
+    digests = lp(u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(digest))
     certificates = lp(cert_der)
     # Stripping protection: this APK also carries a v3 signature (id 3).
     attributes = lp(u32(V2_STRIPPING_PROTECTION_ID) + u32(3))
@@ -124,7 +125,7 @@ def signed_data_v2(digest: bytes, cert_der: bytes) -> bytes:
 
 
 def signed_data_v3(digest: bytes, cert_der: bytes, min_sdk: int, max_sdk: int) -> bytes:
-    digests = u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(digest)
+    digests = lp(u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(digest))
     certificates = lp(cert_der)
     attributes = lp(b"")
     return lp(digests) + lp(certificates) + u32(min_sdk) + u32(max_sdk) + lp(attributes)
@@ -233,17 +234,21 @@ def verify(apk_path: Path, key=None, cert_der=None) -> int:
         pos += 4 + sigs_len
         pub_len = read_u32(signer, pos)
         pub = signer[pos + 4:pos + 4 + pub_len]
-        alg = read_u32(sigs, 0)
-        sig_len = read_u32(sigs, 4)
-        sig = sigs[8:8 + sig_len]
+        # first signature record: lp(u32 algorithm id + lp(signature))
+        record_len = read_u32(sigs, 0)
+        record = sigs[4:4 + record_len]
+        alg = read_u32(record, 0)
+        sig_len = read_u32(record, 4)
+        sig = record[8:8 + sig_len]
         alg_ok = alg == SIG_ALG_RSA_PKCS1_SHA256
         try:
             load_der_public_key(pub).verify(sig, signed, padding.PKCS1v15(), hashes.SHA256())
             sig_ok = True
         except InvalidSignature:
             sig_ok = False
-        embedded = signed[4:4 + read_u32(signed, 0)]
-        embedded_digest = embedded[8:8 + read_u32(embedded, 4)]
+        digests_seq = signed[4:4 + read_u32(signed, 0)]
+        first_pair = digests_seq[4:4 + read_u32(digests_seq, 0)]
+        embedded_digest = first_pair[8:8 + read_u32(first_pair, 4)]
         digest_ok = embedded_digest == digest
         print(f"{name}: algorithm_ok={alg_ok} signature_ok={sig_ok} content_digest_ok={digest_ok} "
               f"block={start}..{end} apk_size={len(apk)}")
