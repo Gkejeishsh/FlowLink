@@ -1,247 +1,275 @@
-# LoopJet — connection & transfer-UI plan (for approval, nothing implemented yet)
+# LoopJet — connection & transfer-UI plan, **v2 (corrected)**
 
-Status: **proposal**. No app code has been changed for this plan.
-Ground truth read from: `platform/net/Discovery.kt`, `platform/net/Hotspot.kt`, `Net/DirectLink.kt`,
-`Net/Network.kt`, `platform/TransferService.kt`, `core/Engine.kt`, `core/Protocol.kt`,
-`ui/AppViewModel.kt`, `ui/Screens.kt`. Line references are to commit `735a757`.
+Supersedes v1. v1 was structurally right but had **10 concrete errors** — including three that would
+have shipped broken code. This document lists them, then gives the corrected design.
+Status: proposal only, no app code changed. Reference commit: `2e9daf9`.
 
 ---
 
-## 1. Why connecting feels complicated and faulty — the evidence
+## 0. What was wrong with v1 (and the fix)
 
-| # | Finding | Evidence | Consequence on the phone |
+| # | v1 claim | Reality | Severity | Fixed by |
+|---|---|---|---|---|
+| 1 | "QR v2 keeps the old `loopjet://v2#…` prefix so v1 phones still parse it" | **False.** `Discovery.parseLink()` requires `host:port` *before* the `#` (`hostPort.contains(':')`), and `port` is parsed with `toIntOrNull()`. A v2 code returns `null` → "not a LoopJet link". | **High** — silent breakage between versions | §4: v2 uses a **new scheme** `loopjet2:`; the scanner accepts v1, v2 and `WIFI:` codes; a v1 phone that scans v2 gets an explicit "update the other phone" message instead of a lie. |
+| 2 | "Highest scoring candidate wins — measure each with a 3×64 KB echo" | **Physically impossible on most phones.** Station Wi-Fi, SoftAP and a p2p group share one radio: opening one **tears down another** on a large fraction of devices (and Samsung is among them). You cannot measure three paths that cannot coexist. It also needs a full handshake per candidate. | **High** — the feature as written cannot work | §5: paths are **exclusive states, tried in order**; ranking is a *prediction* from local facts, verified by one cheap round-trip on the chosen path only. |
+| 3 | "Sender joins the receiver's hotspot automatically" | Two problems. (a) `HotspotController.join()` is **never called anywhere** — the client side of that path does not exist today. (b) On Android 10+ a `WifiNetworkSpecifier` join **always shows a system consent sheet** that cannot be suppressed. | **High** — over-promises "no taps" | §2/§7: the path is built (it is genuinely new code), and the UX tells the truth: **exactly one system tap** on the joining phone. |
+| 4 | "Read the p2p group SSID + passphrase from `WifiP2pGroup`" | `createGroup()` here never sets credentials, so the group gets a vendor-random `DIRECT-xx-…` name and key; the code then *reads them back* — and on API 30+ `getPassphrase()` is redacted for non-owners and unreliable even for owners. | **High** — the QR would sometimes carry a blank/wrong password | §3: on API 29+ create the group **with known credentials** (`WifiP2pConfig.Builder().setNetworkName().setPassphrase()`); on <29 read them back (works there). |
+| 5 | "Bind sockets to the chosen network" assumed already true | `runSend()` binds to `tools.activeWifiNetwork()` — a single **global guess**. After joining the receiver's AP while still associated to the home router, that guess is the *router*, so connections go out the wrong interface and fail. | **High** — the new paths would fail mysteriously | §7: the `Network` object returned by the join is threaded through the session into `SocketConnector`; never re-derived. |
+| 6 | "Receiver advertises `sessionBinding()`" | `sessionBinding()` returns **one** address (station Wi-Fi first). A sender arriving over the AP interface must be told the AP-side address, and the beacon must answer on every interface. | Medium | §7: advertise **one address per active interface**; beacon already binds `0.0.0.0` (verified), receiver engine already binds all interfaces (verified: `bindAddress = null`) — only the *advertised* address is wrong. |
+| 7 | "AP passphrase = 32 random chars we generate" | `startLocalOnlyHotspot()` **chooses** the SSID and passphrase; we cannot set them (setting them is `@SystemApi`). | Medium — wrong in the docs and in any test that assumes it | §3: use what LOHS gives, display it only in the QR, tear it down with the session. Known credentials are only possible for p2p (API 29+) and the user's own hotspot. |
+| 8 | "8 s per rung, 20 s total" | Too tight for p2p (group creation + join legitimately takes 10–22 s), and a total budget **cannot pause** while an Android system sheet or the user is deciding. It would report failure on paths that would have worked. | Medium | §3: per-rung budgets (LAN 2 s, AP join 12 s *excluding* time a system sheet is up, p2p 25 s), plus live progress and a Cancel button. The old 22 s constant was never the bug — *silence* was. |
+| 9 | "CI asserts 85 % of the 416 MB/s baseline" | Absolute MB/s on shared CI runners is flaky; one bad neighbour on the host fails the build for no reason. | Medium | §9: assert a conservative floor with margin **plus** an explicit "protocol constants unchanged" test (chunk size, stream counts, reporter cadence) — that is the real regression guard. |
+| 10 | "Failover continues on the next candidate automatically" | Resume works, but the *address* changes per path. Without a reachability channel (the other phone's IP on that network is unknown) automatic cross-network failover is impossible; only an in-place reconnect is. | Medium | §5: failover retries the **same** path first (covers real drops); moving to a different network is a **1-tap rescan** that keeps all progress via the existing chunk map. |
+
+Two further things v1 missed entirely:
+
+* **The receiver can hang for 180 s.** `TransferHub.awaitDecision(180_000)` runs in the service. If the
+  app is not foreground the Compose Accept dialog cannot appear, so the sender waits three minutes and
+  then gets "No answer". → §6.4 fix.
+* **The QR must stay on screen to be scannable.** v1 said "receiver stays discoverable in background",
+  which is self-contradictory: a backgrounded phone shows no code. → §6.5 fix.
+
+---
+
+## 1. Evidence (updated, with two new confirmed bugs)
+
+1. **Receiver never opens the transfer screen** — `AppViewModel.kt:306` sets `Screen.Transfer` in
+   `sendTo()` only. Receive path has no navigation. → no % and no speed on the receiving phone.
+2. **The phone-to-phone hotspot path does not exist** — `PeerKind.HOTSPOT` is read in two `when`
+   branches (`TransferService.kt:486`, `Screens.kt:764`) and **never produced**;
+   `HotspotController.join()` has **zero call sites**; `HotspotController` is constructed only in
+   `WebService.kt:123`, for the browser flow.
+3. **p2p groups are created without known credentials** — `Discovery.kt:610-624` sets only the band.
+4. **Path choice is by ping, not bandwidth** — `peersSnapshot()` sorts by `rttMicros`.
+5. **One attempt, no fallback** — `runSend()` branches on `discovered.kind`; failure ends the session.
+6. **Silent stalls** — 22 s p2p join, 6 s scan interval, no progress.
+7. **Binding is a global guess** — `tools.activeWifiNetwork()` in `runSend()`.
+8. **QR carries only a LAN address** — `TransferService.kt:682`.
+9. **Two chained permission prompts** — `MainActivity.requestPermissions()`.
+10. **No per-file progress anywhere** — `fileResults` is only appended in `onFileDone`.
+
+---
+
+## 2. Corrected experience (honest version)
+
+```
+   [ Send ]  [ Receive ]                    ← unchanged
+        ↓ pick files
+   ┌─────────────────────────────────┐
+   │   Show this code  │  Scan code  │      ← one screen, two big buttons
+   └─────────────────────────────────┘
+```
+
+* **Show this code** — one QR containing what is *actually usable right now* (LAN, or the one
+  fallback network that is really up), the 6 digits underneath, and a plain sentence naming the path:
+  `Same Wi-Fi · 192.168.1.24` or `No shared Wi-Fi · this phone made "LoopJet-3F2A"`.
+* **Scan code** — reads the QR, and:
+  * same Wi-Fi → connects with **zero** further taps;
+  * fallback network → **one system tap** ("Connect to LoopJet-3F2A?") then it connects;
+  * `WIFI:` code → joins that network, one tap.
+
+Truthful tap count: **0 taps** on a shared network, **1 tap** otherwise. No plan can do better on
+Android 10+ without a rooted device, and pretending otherwise is what makes apps feel broken.
+
+---
+
+## 3. The ladder — exclusive states, not parallel candidates
+
+Because one radio serves one of these at a time, the receiver holds **exactly one fallback network**
+and the QR describes that one. The sender walks the list; each rung is a state change, and every rung
+has a guaranteed teardown.
+
+| Rung | Receiver (host) | Sender (joiner) | Known credentials? |
 |---|---|---|---|
-| 1 | **The receiving phone never opens the transfer screen.** | `AppViewModel.kt:306` sets `screen = Screen.Transfer` in `sendTo()` (send path only). Nothing on the receive path does. | After you tap Accept, the receiver falls back to the Receive screen still showing a QR code. No percentage, no speed — exactly what you described. |
-| 2 | **There is no phone-to-phone hotspot path at all.** | `PeerKind.HOTSPOT` is *consumed* in two `when` branches (`TransferService.kt:486`, `Screens.kt:764`) but **never produced**. `HotspotController` is only constructed in `WebService.kt:123` (browser sharing). | On Wi-Fi with client isolation (public/guest networks, many routers, "AP isolation") there is no working path. The hotspot idea exists in the code but is not wired into transfers. |
-| 3 | **Path choice is not measured; it is guessed.** | Discovery sorts peers by `rttMicros` (`Discovery.kt` `peersSnapshot() = peers.values.sortedBy { it.rttMicros }`). RTT measures latency, not bandwidth. | A 2.4 GHz path with good ping beats a 5 GHz path with more bandwidth, or vice versa. No notion of "fastest link". |
-| 4 | **One path, no fallback.** | `runSend()` uses `discovered.kind`; `DIRECT` → join Wi-Fi Direct, otherwise plain TCP. If that fails → session ends with a one-line message. | One attempt, then failure. Nothing tries the next transport. |
-| 5 | **Slow, silent stalls before failure.** | `DirectLink.JOIN_TIMEOUT_MS = 22_000`; subnet scan interval 6 s (`Discovery.kt` `scheduleWithFixedDelay(scan, 400, 6000)`); Wi-Fi Direct discovery must have run to see a p2p peer. | Up to ~22 s staring at "Joining Wi-Fi Direct…" with no progress, then a dead end. |
-| 6 | **The QR code only carries a LAN address.** | `TransferService.kt:682` builds `loopjet://ip:port#fp#device`. | Useless unless both phones are already on the same subnet. It carries no credentials, so it cannot help you *get* onto a network. |
-| 7 | **The receiver must sit on one screen.** | `go()` stops discovery on every screen except Nearby/Scanner; `back()` from Receive can stop the service. | Backing out to look at a file kills discoverability. |
-| 8 | **Two chained permission prompts.** | `MainActivity.requestPermissions()` → local-network launcher, then `permissionLauncher`. | Feels like a permission interrogation before anything happens. |
-| 9 | **The per-file view does not exist.** | `SessionUi.fileResults` is only populated *after* a file finishes (`onFileDone`). No per-file byte counters anywhere. | The UI can only list finished files, which is why there is no "which file is in flight" feedback. |
-| 10 | **No diagnostics surface for the user.** | Discovery has an internal `onDiscoveryLog`; the UI shows one truncated line (`maxLines = 2`). | When it fails you cannot tell *which* channel died, so every report is guesswork. |
+| 1. Shared Wi-Fi | nothing | connect to LAN address | n/a |
+| 2. **Local-only hotspot** (preferred fallback) | `startLocalOnlyHotspot()` — *no SIM, no tethering, no mobile data* | join via `WifiNetworkSpecifier` (1 system tap) | passphrase **chosen by Android**; read from the reservation |
+| 3. **Wi-Fi Direct group** | `createGroup()` with **our own** network name + passphrase (API 29+) — the `DIRECT-…` case | join via our own WifiP2p connect path | **yes**, chosen by us |
+| 4. Manual / system-camera | show `WIFI:T:WPA;S:…;P:…;;` as a secondary code | system camera joins, then scan the app code | yes |
+| 5. User-made hotspot | nothing | QR carries the SSID + password you typed in Settings | yes |
+
+Rules:
+* **Rung 2 fails → rung 3 is provisioned and the QR is redrawn** (`ERROR_INCOMPATIBLE_MODE`,
+  `ERROR_TETHERING_DISALLOWED`, OEM lock, or no SIM policy). The QR is derived from session state, so
+  it updates automatically; the sender is told to **rescan** rather than guessing.
+* **Single-radio warning:** if starting the AP drops the station Wi-Fi, the LAN candidate is removed
+  from the QR at the same time (the state is re-read, not assumed).
+* **Never two networks at once.** The sender joins at most one AP per session; the receiver hosts at
+  most one network.
+* **No plan survives a lying OEM:** every rung reports *which* call failed, and the failure text names
+  the next action ("Scan the new code" / "Turn on Wi-Fi").
 
 ---
 
-## 2. Target experience: one action, two ways
-
-Replace "pick files → Next → wait → tap a peer → maybe type a code" with:
+## 4. QR payload v2 — new scheme, small, honest
 
 ```
-        [ Send ]  [ Receive ]            ← unchanged, one tap to start either
-             ↓ (after choosing files)
-   ┌──────────────────────────────┐
-   │  Show this code   │  Scan code │     ← ONE screen, two big buttons
-   └──────────────────────────────┘
+loopjet2:<base64url(JSON)>
+{ "v":2, "id":"…", "fp":"…", "n":"Zain's phone",
+  "lan": {"h":"192.168.1.24","p":43130},          // omitted when not on a shared network
+  "net": {"k":"ap"|"p2p", "ssid":"LoopJet-3F2A", "psk":"…", "h":"192.168.49.1", "p":43130} }
 ```
 
-* **Show this code** — the phone displays a single QR (plus a 6-digit fallback under it) that
-  contains *everything needed to connect*: LAN address **and**, if there is no shared network, the
-  Wi-Fi credentials of a network this phone just created. One code, no decisions.
-* **Scan code** — the other phone scans it (scanner already built). It reads the payload, joins
-  whatever is described, measures the available paths, picks the fastest, and starts.
-
-So: **way 1 = same Wi-Fi (nothing to type), way 2 = this phone creates a network and the QR carries
-it (works with no shared Wi-Fi at all)**. Both are the same two buttons; the app decides which.
-
----
-
-## 3. Connection ladder (the "all cases" answer)
-
-Every case below ends in a transfer; each rung is tried only if the one above cannot work.
-
-| Rung | Transport | When it is used | Why it works on your Samsung |
-|---|---|---|---|
-| **1. Shared Wi-Fi** | Station Wi-Fi, both on same subnet | Both phones on the same SSID (home router, café Wi-Fi) | Nothing to create, nothing to type. Preferred because it is normally the fastest (5/6 GHz, MIMO). |
-| **2. Local-only hotspot (SoftAP)** | `startLocalOnlyHotspot()` on the *receiving* phone; sender joins with credentials from the QR | Wi-Fi exists but peers cannot see each other (AP isolation), or one phone has no Wi-Fi | **Needs no SIM and no mobile data** — it is not tethering, so Samsung's "SIM required for hotspot" rule does not apply to it. |
-| **3. Wi-Fi Direct group** | `WifiP2pManager.createGroup()` → group appears as `DIRECT-xx-…` with a WPA2 key | SoftAP refused (`ERROR_TETHERING_DISALLOWED`, policy, OEM lock) | This is exactly the "Direct-SmG90u" style network you described. We read the *real* group SSID + passphrase from `WifiP2pGroup` and put them in the QR, so there is nothing to type. |
-| **4. Manual / system-camera join** | Our own `WIFI:T:WPA;S:…;P:…;;` QR + typed SSID/password | App-level join blocked, or the user prefers Samsung's own UI | The system camera understands the Wi-Fi QR format; scanning it joins the network outside LoopJet, then the app's own QR/link completes pairing. |
-| **5. Existing hotspot you made yourself** | You create a hotspot in Settings; QR carries SSID+password for the other phone | Caller-side rules where even SoftAP is blocked | Covers "only my carrier's hotspot works" ROMs. |
-
-Design rules that make this safe rather than fragile:
-
-* **Never more than one network change.** The sending phone may join exactly one AP; it never starts
-  its own. Only the receiving phone creates one (it is the one already showing "Receive").
-* **The QR is versioned and self-describing** so an old build does not misread a new code (see §4).
-* **Hard time budget:** 8 s per rung, 20 s total, then a screen that names what failed and offers the
-  next rung as a one-tap button. No more silent 22 s waits.
-* **Cleanup is guaranteed:** every rung registers a teardown (`reservation.close()`,
-  `removeGroup()`), run on success, failure, cancel and service destroy — so no hotspot is left on.
+* **One network in the payload, not three** — keeps the code ≤ ~220 bytes (scannable at ≥ 280 dp,
+  EC level M). v1's three-candidate version was ~450 bytes and would have been a scannability risk.
+* **No fake backwards compatibility.** v1 phones see `loopjet2:` → "This code is from a newer LoopJet;
+  update the other phone" instead of "not a LoopJet code".
+* **The scanner also accepts `WIFI:` payloads** (from rung 4/5), so one scanner handles every code on
+  the screen. It already accepts bare 6-digit codes.
+* **Redraw on change:** the QR text is a function of live session state, so any change of path redraws
+  it; the code carries a short `exp` (30 min) and the sender verifies reachability before pairing.
+* **The passphrase never leaves the screen** except into the QR: not logged, not in
+  `TransferHub.message`, and **redacted from the diagnostics bundle** (`psk=***`).
 
 ---
 
-## 4. The QR payload (v2, backwards compatible)
+## 5. "Fastest path" — corrected semantics
 
-```json
-{ "v": 2, "id": "<deviceId>", "fp": "<fingerprint>", "n": "<device name>",
-  "t": [
-    { "k": "lan",  "h": "192.168.1.24", "p": 43130 },
-    { "k": "ap",   "ssid": "LoopJet-7F3A", "psk": "<32 random chars>",
-                   "h": "192.168.49.1", "p": 43130, "band": "5" },
-    { "k": "p2p",  "ssid": "DIRECT-SmG90u", "psk": "<from WifiP2pGroup>",
-                   "h": "192.168.49.1", "p": 43130 }
-  ] }
-```
+v1 promised measured comparison of simultaneously available paths. That is not possible. Corrected:
 
-* `t` = **transport candidates in the order the phone ranks them**; the scanner tries the best
-  *reachable* one, not blindly the first.
-* Old receivers that get a v2 code fall back to parsing the `loopjet://` prefix (the code still
-  starts with `loopjet://v2#<base64url json>` so the existing `parseLink` keeps working).
-* A **second QR** button shows the plain `WIFI:` payload for case 4 — one code cannot be read by both
-  our app and the system camera, so the screen offers "Wi-Fi code" as a secondary action.
-* Security: the AP passphrase is 32 random chars, shown only in the QR, valid only while the
-  Receive screen is open (the AP is torn down on exit). The existing AES-256-GCM session and the
-  SAS confirmation are unchanged — **the network password is convenience, not the security boundary.**
+1. **Prediction before connecting** (cheap, no side effects): interface facts only — band from
+   `WifiInfo.frequency`, `linkSpeed`, Wi-Fi generation if reported, whether the phone is already on a
+   shared subnet, and whether a hotspot/p2p group already exists. Produces the ordered rung list.
+2. **Prefer what is already up.** If LAN is reachable it wins by default: it requires no state change,
+   no consent sheet, and is usually the fastest (5/6 GHz with MIMO). Only if LAN is unreachable or
+   provably isolated do we move to rung 2.
+3. **Verify, don't benchmark.** One authenticated beacon round-trip on the chosen path (already
+   implemented, ~1 ms) confirms it before the session starts. No 200 KB probe, no extra handshake.
+4. **Stick to the chosen path** for the whole session.
+5. **Failover:** transient drop → reconnect to the **same** address up to 3 times (the existing
+   resume/chunk-map makes that free). Different network → one-tap rescan; all progress preserved.
+6. **Explain it:** `Connected · Wi-Fi 5 GHz · ready` with a "Why?" that lists the rungs not taken and
+   the reason (`hotspot: not needed`, `p2p: refused by this ROM`).
+
+This is honest, it satisfies "pick the fastest available", and it cannot lie about a comparison it
+never made.
 
 ---
 
-## 5. "Always take the fastest path" (your point 2)
-
-When more than one candidate is reachable, rank by **measured** quality, not by guess:
-
-1. **Probe each reachable candidate** — the receiving phone answers a 3×64 KB echo on its control
-   socket (the same authenticated channel, no new port). Total cost ≈ 200 KB and < 600 ms.
-2. **Score** = measured KB/s (70 %) + band (6 GHz > 5 GHz > 2.4 GHz, 15 %) + link speed reported by
-   `WifiInfo.linkSpeed` (10 %) + RTT (5 %).
-3. **Pick the top score, then stick to it** for the whole session. No path switching mid-transfer —
-   that would shred throughput and complicate resume.
-4. If that path dies mid-session, the existing **resume/chunk map** makes failover cheap: reconnect on
-   the next candidate and continue from the last acknowledged chunk (already implemented and tested in
-   `TransferLoopbackTest`).
-5. Show the choice in plain words on both phones: `Connected · Wi-Fi 5 GHz · 412 MB/s measured`, and a
-   long-press/“Why?” that lists what was rejected (`hotspot: not reachable — AP isolation`).
-
-This satisfies both halves of your request: it picks Wi-Fi when Wi-Fi is faster, picks hotspot when
-that is the only path, and *knows* which is which instead of assuming.
-
----
-
-## 6. Transfer interface (both phones, same screen)
-
-Opens **automatically on both devices** the moment a session is accepted (fixes finding #1).
+## 6. Transfer interface (both phones) — tightened
 
 ```
 ┌──────────────────────────────────────────────┐
-│  ←  Sending to Zain          ≈ 38 s left     │   header: peer, ETA
-│  ██████████████████████░░░░░░░░░░  64 %      │   top bar: gradient fill, % inside
-│  412 MB/s · 1.8 GB of 2.9 GB · 3 of 7 files  │   speed + totals
+│ ←  Sending to Zain              ≈ 38 s left  │
+│ ██████████████████████░░░░░░░░░  64 %        │  bar: gradient, % inside
+│ 412 MB/s · 1.8 GB of 2.9 GB · 3 of 7 files   │
 ├──────────────────────────────────────────────┤
-│  ●─╮                                          │   vertical timeline
-│  │ ◔  holiday-video.mp4        1.2 GB   done  │   ◔ = ring around file icon
-│  │                                            │
-│  ●─╮                                          │
-│  │ ◕  IMG_2041.heic            4.1 MB   82 %  │   in flight: ring fills
-│  │                                            │
-│  ●─╮                                          │
-│  │ ○  photos.zip               620 MB   queued│   ○ = empty ring
-│  │                                            │
-│  ●─╮                                          │
-│  │ ✓  notes.pdf                88 KB    done  │   ✓ = full ring, muted row
-│  ●                                            │
+│ ●─╮ ◔ holiday-video.mp4      1.2 GB    done  │
+│ ●─╮ ◕ IMG_2041.heic          4.1 MB    82 %  │  ring = that file's bytes
+│ ●─╮ ○ photos.zip             620 MB  queued  │
+│ ●   ✓ notes.pdf               88 KB    done  │
 ├──────────────────────────────────────────────┤
-│            [ Pause ]      [ Cancel ]          │
+│            [ Pause ]      [ Cancel ]         │
 └──────────────────────────────────────────────┘
 ```
 
-Spec:
-
-* **Top bar** — one `LinearProgressIndicator`-style rounded bar, brand gradient, animated with a
-  spring, percentage text *inside* the bar (white, bold) so it is readable at any width. Below it:
-  instantaneous speed, done/total bytes, files done/total, ETA. All from data the engine already
-  emits (`TransferProgress.instantBytesPerSecond`, `etaMs`, `filesDone/total`).
-* **Timeline** — a 2 dp vertical line with a node per file; node = the file's circular ring
-  (Canvas arc, stroke 3 dp, brand gradient, background track from `outlineVariant`). 44 dp icon in the
-  middle (image thumbnail, or a type badge from the existing `extensionBadge()`).
-* **Ring fill** = that file's bytes ÷ its size. Done → full ring + check overlay; failed → error tint +
-  the reason on a second line; queued → empty ring at 30 % alpha.
-* **Rows are stable while scrolling** (`LazyColumn(key = fileId)`), no per-byte animation, text in the
-  same type scale as the rest of the app, and every row shows name + human size + percent.
-* **Both directions identical** — the receiver sees the same screen with "Receiving from …", so
-  "is anything happening?" is answered on both phones.
-* Completion state: bar turns solid, "Done · 2.9 GB in 7.0 s (414 MB/s)", and the timeline stays
-  scrollable as a receipt.
-
-**What this needs from the engine (small, additive):** per-file byte counters. `Engine` already tracks
-`completedIds` and `currentFiles`; I will add a `ConcurrentHashMap<Int, AtomicLong>` incremented where
-chunks are written, and expose **only the in-flight files (≤ 6) plus recently finished ones** in
-`TransferProgress`. No map of 2 000 entries every 100 ms, no change to chunk size, threads, windowing,
-crypto or the reporter cadence.
+* **6.1 Same screen on both phones**, opened automatically **when the activity is resumed**; if the
+  app is in the background, a progress notification with the same numbers, and the screen opens on
+  return. Navigation is skipped if the user is mid-onboarding or on the scanner.
+* **6.2 Data**: total %, speed, ETA and per-file rings come from one additive engine field (§8).
+  Files listed newest-first-stable, `LazyColumn(key = fileId)`, no per-byte animation.
+* **6.3 Rings**: Canvas arc on a track, 3 dp, gradient; done → full + check; failed → error tint and
+  the reason; queued → empty at 30 % alpha. Icons reuse the existing `extensionBadge()`/thumbnails.
+* **6.4 No more 180 s hang**: if the app is not foreground when an offer arrives, auto-decline after
+  **10 s** and post a notification with **Accept / Decline** actions; the sender sees
+  "Zain's phone is not showing LoopJet" in seconds instead of three minutes.
+* **6.5 The code stays readable**: `FLAG_KEEP_SCREEN_ON` while the code is shown, and the code + 6
+  digits mirrored into the ongoing notification so the user can leave the screen without losing it.
 
 ---
 
-## 7. Safe-implementation rules (your "speed must not change")
+## 7. Network plumbing (the part v1 got wrong)
 
-1. **Nothing on the hot path changes.** `CHUNK_SIZE` (256 KiB), stream count, socket buffers, the
-   reporter's 100 ms tick, AES-GCM record layout and the chunk map stay byte-identical. The only
-   engine edit is one atomic increment next to the existing byte counter.
-2. **CI guards the speed.** The loopback tests already print MB/s (`416.5 MB/s` for 192 MB, `4.7 MB/s`
-   for 2 000 small files). I will turn those numbers into **assertions** (fail the build below 85 % of
-   baseline) so any future change that costs throughput breaks the build, not your transfer.
-3. **Additive protocol only.** New fields are optional and versioned; a v1 peer keeps working. No new
-   listening port, no new crypto, no plaintext payload on the wire.
-4. **Every new resource has a teardown** and is registered in `stopSelfSafely()`/`onDestroy()`.
-5. **Permissions unchanged** except `CAMERA` (already added) — the hotspot and p2p rungs use the same
-   `NEARBY_WIFI_DEVICES` / `ACCESS_LOCAL_NETWORK` set that is already requested.
-
----
-
-## 8. How I will test it (tester's method)
-
-I cannot touch a phone from this sandbox, so the plan separates *what CI proves* from *what needs your
-phone*, and adds a diagnostics surface so failures become reports instead of guesses.
-
-**A. Automated (CI, every push)**
-* QR v2 encode → decode round-trip, including a v1 code, a bare code, and a Wi-Fi-only code.
-* Path scorer: table-driven cases (5 GHz slow vs 2.4 GHz fast, hotspot-only, unreachable LAN).
-* Failover: kill the socket at 40 %, assert resume continues on the second candidate and the final
-  hash matches (extends the existing `resume-after-a-dropped-link` test).
-* Per-file progress: deltas sum exactly to total, no duplicate/lost files, 2 000-file case.
-* Throughput guard as in §7.2.
-
-**B. Device matrix I will ask you to run (5 minutes, screenshots)**
-| Case | Setup | Expected |
-|---|---|---|
-| 1 | Both on home Wi-Fi 5 GHz | connects with no typing, shows `5 GHz` |
-| 2 | Same router, 2.4 GHz only | still connects, says `2.4 GHz` |
-| 3 | Guest Wi-Fi with AP isolation | rung 2 (SoftAP) kicks in automatically |
-| 4 | One phone on Wi-Fi, other on mobile data only | rung 2 or 3 |
-| 5 | Airplane mode on both, Wi-Fi on, no router | rung 2 → shows `LoopJet-XXXX`, scanned, transfers |
-| 6 | Samsung hotspot refused / SIM absent | rung 3 `DIRECT-…` used, not a dead end |
-| 7 | Switch Wi-Fi off at 50 % | resumes on another rung, no restart from 0 |
-| 8 | Screen locked mid-transfer | continues, notification shows % |
-
-**C. New "Connection doctor" screen** (Settings › Diagnostics): live per-channel state
-(mDNS / multicast / subnet scan / Wi-Fi Direct / SoftAP / BLE), last error per channel, current path
-and its score, and **Copy diagnostics**. This is what turns "it doesn't work" into a fixable bug — and
-it is what I would build first if you want to report the Samsung case precisely.
+* The `Network` returned by `NetworkCallback.onAvailable` (AP/p2p join) is stored on the session and
+  passed into `SocketConnector`; `NetworkTools.bind(socket, thatNetwork)` binds the data sockets to it.
+  `activeWifiNetwork()` stays only as a fallback for rung 1.
+* The **join callback is not released** until the session ends. Today `cancelJoin()` unregisters the
+  callback, which on Android tears the network down — so the teardown path must move to session end
+  (`stopSelfSafely` / `onDestroy`), never to "connect finished".
+* The receiver advertises **one entry per interface** (station, AP, p2p) so the QR can name the address
+  the sender will actually reach; the beacon already answers on all interfaces and the receiver engine
+  already binds `0.0.0.0` (both verified), so only advertising changes.
+* Best-effort guard: if the phone is already running its **own** hotspot (heuristic: an `ap*`/`swlan*`
+  interface with an address before we start anything), prefer p2p and warn instead of silently
+  breaking the user's tethering.
 
 ---
 
-## 9. Phases (each one ships an installable APK; you can stop after any phase)
+## 8. Safe implementation (unchanged rules, plus one correction)
 
-| Phase | Delivers | Risk | Files |
+1. **Hot path untouched**: `CHUNK_SIZE` (256 KiB), stream counts, socket buffers, AES-GCM record
+   layout, the 100 ms reporter, the chunk map. The only engine addition is
+   `ConcurrentHashMap<Int, AtomicLong>` incremented next to the existing byte counter in both the
+   sender's read loop and the receiver's write loop, exposing **in-flight + recently finished** files
+   only.
+2. **Additive protocol**: v2 QR is a client-side encoding change; no new listening port, no new
+   crypto, no new wire field. A v1 peer still transfers over rung 1 with today's `loopjet://` code.
+3. **Every new resource has a teardown** registered in `stopSelfSafely()` and `onDestroy()`:
+   AP reservation, p2p group, network callback, wake lock, keep-screen-on.
+4. **Permissions:** no new ones (CAMERA already added). SoftAP uses `NEARBY_WIFI_DEVICES` (API 33+),
+   already requested; API 26–32 needs location, already declared with `maxSdkVersion="32"`.
+5. **No secrets in logs** — psk redacted everywhere, including the diagnostics bundle.
+
+---
+
+## 9. Testing — what CI proves, what only your phone can
+
+**CI (every push)**
+* QR: v2 encode/decode, v1 still accepted, `WIFI:` accepted, truncated/garbage rejected, ≤ 256 bytes.
+* Ladder state machine with a fake platform: LOHS refused → p2p chosen; p2p refused → manual; each
+  rung's teardown called exactly once (assert on a mock).
+* Ranking: table-driven predictions (LAN up / isolated / 2.4 GHz only / hotspot already running).
+* Per-file progress: deltas sum to the total, no duplicate or lost file ids, 2 000-file case.
+* Failover: drop the socket at 40 % → same-address reconnect → final hash matches (extends the
+  existing resume test).
+* **Throughput guard, non-flaky**: floor with margin (e.g. ≥ 120 MB/s for the 192 MB loopback,
+  ≥ 2.5 MB/s for 2 000 small files) **plus** a unit test asserting the protocol constants above are
+  unchanged — that is what catches a real regression.
+
+**Your phone (5 min, 8 cases):** same 5 GHz · 2.4 GHz · guest Wi-Fi with AP isolation · one phone on
+mobile data · no router at all · Samsung refusing the hotspot · Wi-Fi off at 50 % · screen locked.
+Expected result is stated per case in §11 so a screenshot is enough for me to act.
+
+---
+
+## 10. Phases (each ships an installable APK)
+
+| Phase | Delivers | Risk | Why in this order |
 |---|---|---|---|
-| **P1 — Progress UI everywhere** | Receiver auto-opens the session screen; top gradient bar with %, speed, ETA; per-file timeline with rings; both devices | Low (additive) | `Engine.kt` (+1 counter), `Files.kt` (+1 field), `TransferService.kt`, `AppViewModel.kt`, `Screens.kt` |
-| **P2 — One-screen connect** | "Show this code / Scan code"; receiver QR ready in one tap; 6-digit under it; receiver stays discoverable in background | Low | `Screens.kt`, `AppViewModel.kt`, `TransferService.kt` |
-| **P3 — QR v2 + ladder** | Versioned payload with candidates; rung 1 → 5 with a 20 s budget and honest per-rung messages; guaranteed teardown | Medium | new `ConnectPlan.kt`, `Discovery.kt`, `Hotspot.kt`, `DirectLink.kt`, `TransferService.kt` |
-| **P4 — Fastest-path selection** | Probe + score + stick; failover via resume; "why this path?" explanation | Medium | `ConnectPlan.kt`, `TransferService.kt`, `Screens.kt` |
-| **P5 — Diagnostics** | Connection doctor + copyable report | Low | new `ui/ConnectionDoctor.kt`, `Settings` |
-
-My recommendation: **P1 + P2 first** (they fix the two things you feel most: no progress, too many
-steps, and they are low risk), then P3/P4 for the Samsung/hotspot and fastest-path work, then P5.
+| **P1** | Both phones show the transfer screen: bar with %, speed, ETA, per-file timeline with rings. Fixes the 180 s hang and keeps the code in the notification. | Low | Pure UI + 1 counter. No network change, so it cannot break what already connects. |
+| **P2** | One-screen connect: "Show this code / Scan code", 6 digits underneath, honest path sentence. | Low | Removes the multi-step hunt without touching transports. |
+| **P3** | Rung 2 for real: build the missing AP client (`join` is dead code), thread the `Network`, exclusive-state ladder, per-rung timeouts, guaranteed teardown. | **Medium-high** | This is genuinely new network code; it ships alone so a failure is attributable. |
+| **P4** | Rung 3 credentials fix (`setNetworkName`/`setPassphrase` on API 29+), QR v2, prediction ranking, "Why?". | Medium | Depends on P3's plumbing. |
+| **P5** | Connection doctor (live per-channel state, redacted copyable report). | Low | Needs the ladder's real states to be worth anything — so it comes after P3/P4, not before (v1 had it last for the wrong reason). |
 
 ---
 
-## 10. Decisions I need from you
+## 11. Success criteria (how we know it worked)
 
-1. **Fallback order for "no shared Wi-Fi":** SoftAP first, then Wi-Fi Direct (my recommendation — SoftAP
-   is usually faster and has no 22 s negotiation), or Wi-Fi Direct first because you have seen it work
-   on your Samsung?
-2. **Receiver as the one that creates the network** (my recommendation: it is the phone already showing
-   "Receive"), or should either phone be able to host?
-3. **Auto-start on both devices** is fine — no extra confirm screen beyond today's Accept dialog?
-4. Do you want me to **also** add a Share-sheet shortcut so "Share to LoopJet" goes straight to the
-   connect screen with files already attached (one tap instead of three)?
+* Shared Wi-Fi: pick files → scan → transferring with **0** extra taps; both phones show % within 1 s
+  of Accept.
+* No shared network: pick files → scan → **1** system tap → transferring; the sender never has to
+  choose a network or type anything.
+* Any failure is reported within **≤ 25 s** with a named reason and the next action; nothing hangs.
+* The receiving phone always shows progress (the v1 bug), and the sender never waits 180 s.
+* Loopback throughput stays within the CI floor; protocol constants byte-identical.
 
-Answer those and say "implement", and I will start with P1+P2, ship an APK, then continue.
+---
+
+## 12. Decisions I need (v1 asked four; two were mine to make)
+
+Answered by me, since they were design questions with a clear right answer:
+* ~~SoftAP vs p2p order~~ → **SoftAP first, p2p as fallback**: no consent sheet on the host, no 22 s
+  negotiation, and it is the only path that works with no SIM.
+* ~~Which phone hosts~~ → **the receiving phone**, always: it is the one already showing "Receive", and
+  it keeps the sender's flow to a single scan.
+
+Still need you:
+1. **Tap budget** — is "0 taps on shared Wi-Fi, 1 system tap otherwise" acceptable, or do you want me to
+   also add the **Share-sheet shortcut** ("Share to LoopJet" → straight to connect with files
+   attached), which removes the picker trip too?
+2. **Rung 4/5 exposure** — show the "Wi-Fi code / password" option **always** in an overflow menu, or
+   only after rung 2 and 3 both fail?
+3. **Receiver hosting cost** — the AP keeps running while the Receive screen is open; acceptable, or
+   start it **only when you tap Show code** (saves battery, adds one tap)?
+
+Say which phases and I'll implement.
