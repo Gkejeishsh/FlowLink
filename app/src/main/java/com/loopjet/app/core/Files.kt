@@ -329,9 +329,21 @@ class LocalFileSink(
 
 class LocalFileSinkFactory(
     private val root: File,
-    private val freeSpaceProbe: () -> Long = { root.usableSpace }
+    private val freeSpaceProbe: (() -> Long)? = null
 ) : FileSinkFactory {
     private val lock = Any()
+
+    init {
+        // A missing root reports usableSpace == 0, which used to look like a full disk.
+        if (!root.exists()) root.mkdirs()
+    }
+
+    private fun probeFree(): Long {
+        freeSpaceProbe?.let { return it() }
+        var probe: File? = root
+        while (probe != null && !probe.exists()) probe = probe.parentFile
+        return probe?.usableSpace ?: 0L
+    }
 
     override fun prepare(relativePath: String, size: Long, modified: Long, mime: String): FileSink {
         val safe = SafePath.sanitize(relativePath) ?: throw java.io.IOException("unsafe file name")
@@ -353,7 +365,7 @@ class LocalFileSinkFactory(
         File(root, safe).mkdirs()
     }
 
-    override fun freeBytes(): Long = freeSpaceProbe()
+    override fun freeBytes(): Long = probeFree()
 
     override fun rootLabel(): String = root.absolutePath
 
