@@ -9,9 +9,10 @@ Environment
              Android SDK platform 37, build-tools 36.0.0, Gradle 9.6.0, AGP 9.4.1
   app        com.loopjet.app 1.0.0, minSdk 26, targetSdk 37
   hardware   no phone, no emulator (see "Not tested")
-  run ids    40656202018 and the run after c8859b8 (12 tests green, R8 release built),
+  run ids    40657791564 (12 tests green, R8 release built from c8859b8),
+             40656202018 (12 tests green, first run of the web suite),
              40655284844 (one failing web test, fixed in 6c713f8),
-             40651955288 (previous APK signature verified)
+             40658991426 (shipped APK verified by apksigner), 40651955288 (previous APK, same)
 ```
 
 ## 1. Build and packaging
@@ -31,7 +32,18 @@ Environment
 | APK SHA-256 | `4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911` (aligned payload `0ca4c578269b7f222ff495ef3f3f8f27a921ce1634b64c40b990664c588ab60c`, built from c8859b8) |
 
 `dist/SIGNING-REPORT.txt` is produced by the official `apksigner` inside CI over the committed APK, not
-by the local signing tool.
+by the local signing tool. For the shipped file it contains:
+
+```
+4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911  dist/LoopJet-1.0.0-release.apk
+Verifies
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Signer #1 certificate SHA-256 digest: fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d
+```
+
+and both `apksigner verify` invocations (default, and `--min-sdk-version 26 --max-sdk-version 37`)
+exited 0 in run 40658991426.
 
 ## 2. Engine tests (`TransferLoopbackTest`, real TCP sockets on loopback)
 
