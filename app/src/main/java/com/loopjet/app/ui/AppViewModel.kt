@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-enum class Screen { Home, Picker, Nearby, Scanner, Receive, Transfer, Invite, WebShare, History, Settings, About, Onboarding }
+enum class Screen { Home, Picker, Nearby, Scanner, Receive, Transfer, Invite, WebShare, History, Settings, Doctor, About, Onboarding }
 
 enum class PickCategory(val label: String) {
     Apps("Apps"),
@@ -165,6 +165,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val current = _state.value.screen
         val next = when (current) {
             Screen.Scanner -> Screen.Nearby
+            Screen.Doctor -> Screen.Settings
             Screen.Picker, Screen.Settings, Screen.History, Screen.Invite, Screen.WebShare, Screen.Nearby,
             Screen.Receive, Screen.About -> Screen.Home
             else -> Screen.Home
@@ -302,6 +303,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         _state.value = _state.value.copy(selectedPeerName = peer.name)
+        // A peer found by discovery is dialed on the normal interface; a leftover join from an earlier
+        // hotspot session would send the sockets out of the wrong network.
+        com.loopjet.app.platform.PendingPeer.network = null
         TransferService.startSend(getApplication(), peer)
         _state.value = _state.value.copy(screen = Screen.Transfer)
     }
@@ -335,6 +339,75 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * "Show my code": switch this phone into Receive so the other phone can scan it. Discovery stays
      * up on both sides, which is what keeps a scanned link connectable.
      */
+    /**
+     * Handles anything the scanner can produce.
+     *
+     * A v2 code that carries a network is joined first (Android shows its own consent sheet — one
+     * tap, and no app can suppress it), then the peer is dialed on **that** network. A v1/v2 code with
+     * only a LAN address connects directly.
+     */
+    fun acceptScanned(text: String) {
+        when (val parsed = com.loopjet.app.platform.net.ConnectCodes.parse(text)) {
+            is com.loopjet.app.platform.net.ScannedCode.JoinThenConnect -> {
+                if (sendItems.value.isEmpty()) {
+                    // Joining a network costs a system prompt: ask for the files first.
+                    notice("Pick the files to send first, then scan again")
+                    return
+                }
+                val net = parsed.network
+                val app = getApplication<android.app.Application>()
+                notice("Joining \"${net.ssid}\" — confirm the Android prompt")
+                com.loopjet.app.platform.net.HotspotController.of(app)
+                    .joinAp(net.ssid, net.psk.ifBlank { null }) { joined, message ->
+                        if (joined == null) {
+                            notice(message)
+                            return@joinAp
+                        }
+                        // The service binds its sockets to this network; without it the session would
+                        // go out of whichever Wi-Fi the phone still thinks is active.
+                        com.loopjet.app.platform.PendingPeer.network = joined
+                        pairWithLink(
+                            com.loopjet.app.platform.net.ConnectCode(
+                                deviceId = parsed.code.deviceId,
+                                fingerprint = parsed.code.fingerprint,
+                                name = parsed.code.name,
+                                lanHost = net.host,
+                                lanPort = net.port
+                            ).let { c ->
+                                // Hand the LAN parser a v1-shaped link pointing at the AP address.
+                                "loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}"
+                            }
+                        )
+                    }
+            }
+            is com.loopjet.app.platform.net.ScannedCode.Direct -> {
+                val c = parsed.code
+                pairWithLink("loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}")
+            }
+            is com.loopjet.app.platform.net.ScannedCode.PairingCode -> pairWithCode(parsed.digits)
+            is com.loopjet.app.platform.net.ScannedCode.WifiOnly -> {
+                val app = getApplication<android.app.Application>()
+                notice("Joining \"${parsed.ssid}\" — then scan the LoopJet code again")
+                com.loopjet.app.platform.net.HotspotController.of(app)
+                    .joinAp(parsed.ssid, parsed.passphrase.ifBlank { null }) { joined, message ->
+                        notice(if (joined != null) "Joined ${parsed.ssid} — scan again" else message)
+                    }
+            }
+            is com.loopjet.app.platform.net.ScannedCode.WebLink -> {
+                val clipboard = getApplication<android.app.Application>()
+                    .getSystemService(android.content.ClipboardManager::class.java)
+                clipboard?.setPrimaryClip(
+                    android.content.ClipData.newPlainText("LoopJet link", parsed.url)
+                )
+                notice("Web Share link copied — open it in a browser")
+            }
+            com.loopjet.app.platform.net.ScannedCode.NeedsUpdate ->
+                notice("That code is from a newer LoopJet — update this phone first")
+            com.loopjet.app.platform.net.ScannedCode.Unknown ->
+                notice("That QR is not a LoopJet code")
+        }
+    }
+
     fun receiveHere() {
         go(Screen.Receive)
         TransferService.startReceive(getApplication())

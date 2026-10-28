@@ -1,8 +1,6 @@
 package com.loopjet.app.ui
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Handler
@@ -90,6 +88,7 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var granted by remember { mutableStateOf(hasCamera(context)) }
+    var blockedForever by remember { mutableStateOf(false) }
     var cameraError by remember { mutableStateOf<String?>(null) }
     var torchOn by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
@@ -101,32 +100,24 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { ok -> granted = ok }
+    ) { ok ->
+        granted = ok
+        // Once the dialog has been refused twice Android stops showing it: the only way back is the
+        // app's settings page, so stop offering a button that does nothing.
+        if (!ok) blockedForever = !(context as? android.app.Activity)
+            ?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) ?: false
+    }
 
     // Asked only here, never during onboarding: scanning is optional.
     LaunchedEffect(granted) {
         if (!granted) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
+    // One entry point for every code type (v1, v2 with a network, WIFI:, six digits, web link).
+    // The routing lives in the view model so the scanner stays a camera and nothing else.
     val onPayload: (String) -> Unit = { raw ->
-        val text = raw.trim()
-        when {
-            text.startsWith("loopjet://", ignoreCase = true) -> {
-                onClose()
-                vm.pairWithLink(text)
-            }
-            text.length == 6 && text.all { it.isDigit() } -> {
-                onClose()
-                vm.pairWithCode(text)
-            }
-            text.startsWith("http://", ignoreCase = true) || text.startsWith("https://", ignoreCase = true) -> {
-                val clipboard = context.getSystemService(ClipboardManager::class.java)
-                clipboard?.setPrimaryClip(ClipData.newPlainText("LoopJet link", text))
-                onClose()
-                vm.notice("Web Share link copied — open it in a browser on this Wi-Fi")
-            }
-            else -> vm.notice("That QR is not a LoopJet code")
-        }
+        onClose()
+        vm.acceptScanned(raw)
     }
 
     val deliver: (String) -> Unit = { text ->
@@ -214,8 +205,22 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
                 cameraError != null -> ScannerFallback(onClose, cameraError!!, null)
                 !granted -> ScannerFallback(
                     onClose = onClose,
-                    message = "LoopJet needs the camera to read a QR code. Nothing is recorded or uploaded.",
-                    action = "Allow camera" to { permissionLauncher.launch(Manifest.permission.CAMERA) }
+                    message = if (blockedForever) {
+                        "The camera permission is blocked for LoopJet. Android will not ask again — open the app settings to allow it."
+                    } else {
+                        "LoopJet needs the camera to read a QR code. Nothing is recorded or uploaded."
+                    },
+                    action = if (blockedForever) {
+                        "Open app settings" to {
+                            val intent = android.content.Intent(
+                                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.fromParts("package", context.packageName, null)
+                            )
+                            runCatching { context.startActivity(intent) }
+                        }
+                    } else {
+                        "Allow camera" to { permissionLauncher.launch(Manifest.permission.CAMERA) }
+                    }
                 )
                 else -> {
                     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())

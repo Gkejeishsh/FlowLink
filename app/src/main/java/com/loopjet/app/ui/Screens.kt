@@ -69,6 +69,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -104,6 +105,7 @@ import com.loopjet.app.platform.SessionFileUi
 import com.loopjet.app.platform.SessionMode
 import com.loopjet.app.platform.SessionUi
 import com.loopjet.app.platform.apps.InstalledApp
+import com.loopjet.app.platform.net.ConnectCode
 import com.loopjet.app.platform.net.DiscoveredPeer
 import com.loopjet.app.platform.net.PeerKind
 import kotlinx.coroutines.flow.StateFlow
@@ -111,7 +113,7 @@ import kotlinx.coroutines.flow.StateFlow
 // --- shared scaffolding ---------------------------------------------------------------------------
 
 @Composable
-private fun ScreenFrame(
+internal fun ScreenFrame(
     title: String? = null,
     onBack: (() -> Unit)? = null,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
@@ -884,7 +886,19 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                         )
                     }
                     Spacer(Modifier.height(18.dp))
+                    // Keep the screen awake while a code is on it: a dimmed phone is a phone the other
+                    // user cannot scan.
+                    KeepScreenOn()
                     QrPanel(session.receiveQr.ifBlank { "loopjet://waiting" })
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        ConnectCode.decode(session.receiveQr)?.describe()
+                            ?: "Same Wi-Fi · ${session.linkLabel.ifBlank { "finding this phone" }}",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(Modifier.height(16.dp))
                     Text(
                         "On the other phone: LoopJet › Send › pick this name, type the code, or paste the link from this QR.",
@@ -959,6 +973,16 @@ fun OfferDialog(offer: IncomingOfferUi, onAnswer: (Boolean, Boolean) -> Unit) {
                 }
             }
         }
+    }
+}
+
+/** Holds the display awake for as long as this composable is on screen. */
+@Composable
+private fun KeepScreenOn() {
+    val view = androidx.compose.ui.platform.LocalView.current
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
     }
 }
 
@@ -1769,6 +1793,21 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                     if (save != null && state.benchmark == null) {
                         Text("Last run:\n$save", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+                Spacer(Modifier.height(14.dp))
+            }
+            item {
+                SectionCard {
+                    Text("Connection", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "If a transfer will not start, the doctor lists this phone's addresses, bands and " +
+                            "which paths are available — copyable in one tap.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    PrimaryAction("Open connection doctor") { vm.go(Screen.Doctor) }
                 }
                 Spacer(Modifier.height(14.dp))
             }

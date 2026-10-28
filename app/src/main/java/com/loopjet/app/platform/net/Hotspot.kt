@@ -30,6 +30,24 @@ class HotspotController(private val context: Context) {
 
     data class HotspotInfo(val ssid: String, val passphrase: String?, val address: String?, val band: String)
 
+    companion object {
+        /** requestNetwork's own timeout; the system sheet stays up for this long at most. */
+        const val JOIN_TIMEOUT_MS = 60_000L
+
+        /**
+         * One instance for the process. A joined network is released through the *same* object that
+         * requested it — creating a fresh controller to "release" leaves the callback registered and
+         * the network up (or tears down the wrong one), so join and release share this instance.
+         */
+        @Volatile
+        private var shared: HotspotController? = null
+
+        fun of(context: Context): HotspotController =
+            shared ?: synchronized(this) {
+                shared ?: HotspotController(context.applicationContext).also { shared = it }
+            }
+    }
+
     fun start(onResult: (HotspotInfo?, String) -> Unit) {
         val manager = wifi ?: return onResult(null, "Wi-Fi is not available")
         if (reservation != null) {
@@ -167,7 +185,78 @@ class HotspotController(private val context: Context) {
         val callback = networkCallback ?: return
         runCatching { context.getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(callback) }
         networkCallback = null
+        joinedNetwork = null
     }
+
+    /** The network produced by the last successful [joinAp]; null when not joined. */
+    @Volatile
+    var joinedNetwork: Network? = null
+        private set
+
+    /**
+     * Joins a network and **hands back the [Network] object**, which is the whole point.
+     *
+     * `NetworkTools.bind()` needs that object: after joining the other phone's hotspot this phone is
+     * still associated with its own Wi-Fi or mobile network, and `activeWifiNetwork()` would return the
+     * wrong interface. Sockets bound through this Network go out of the right one.
+     *
+     * The callback stays registered until [releaseJoin] — unregistering it early makes Android drop the
+     * network, which is exactly the kind of "it connected and then died" behaviour this fixes. Android
+     * shows its own consent sheet for this request and no app can suppress it, so callers must say
+     * "one tap" rather than pretending otherwise.
+     */
+    fun joinAp(ssid: String, passphrase: String?, onResult: (Network?, String) -> Unit) {
+        val connectivity = context.getSystemService(ConnectivityManager::class.java)
+        if (connectivity == null) {
+            onResult(null, "Connectivity service unavailable")
+            return
+        }
+        val specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
+            if (!passphrase.isNullOrBlank() && passphrase.length >= 8) setWpa2Passphrase(passphrase)
+        }.build()
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .setNetworkSpecifier(specifier)
+            .build()
+        cancelJoin()
+        var answered = false
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                joinedNetwork = network
+                if (!answered) {
+                    answered = true
+                    onResult(network, "joined $ssid")
+                }
+            }
+
+            override fun onUnavailable() {
+                if (!answered) {
+                    answered = true
+                    joinedNetwork = null
+                    onResult(null, "Could not join \"$ssid\" — the other phone may have stopped sharing")
+                }
+            }
+
+            override fun onLost(network: Network) {
+                if (joinedNetwork == network) joinedNetwork = null
+            }
+        }
+        networkCallback = callback
+        runCatching { connectivity.requestNetwork(request, callback, JOIN_TIMEOUT_MS) }
+            .onFailure {
+                if (!answered) {
+                    answered = true
+                    onResult(null, it.message ?: "join failed")
+                }
+            }
+    }
+
+    /** Releases a joined network. Call at session end, never when "connect" merely finished. */
+    fun releaseJoin() {
+        cancelJoin()
+    }
+
 }
 
 /** Builds the Wi-Fi QR payload the other phone can scan with its system camera. */

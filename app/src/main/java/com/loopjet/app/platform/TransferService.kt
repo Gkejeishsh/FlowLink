@@ -41,7 +41,10 @@ import com.loopjet.app.core.TransferOffer
 import com.loopjet.app.core.TransferProgress
 import com.loopjet.app.core.TransferResult
 import com.loopjet.app.core.TransferState
+import com.loopjet.app.platform.net.ConnectCode
+import com.loopjet.app.platform.net.ConnectNetwork
 import com.loopjet.app.platform.net.DirectLink
+import com.loopjet.app.platform.net.HotspotController
 import com.loopjet.app.platform.net.DiscoveredPeer
 import com.loopjet.app.platform.net.NetworkTools
 import kotlinx.coroutines.CompletableDeferred
@@ -165,7 +168,7 @@ object TransferHub {
         }
         val result = runBlocking { withTimeoutOrNull(timeoutMs) { deferred.await() } }
         pending.compareAndSet(deferred, null)
-        return result ?: OfferDecision(accepted = false, reason = "No answer")
+        return result ?: OfferDecision(accepted = false, reason = "Offer not answered — open LoopJet to accept")
     }
 }
 
@@ -222,6 +225,8 @@ object SendQueue {
 class TransferService : Service() {
 
     private val running = AtomicBoolean(false)
+    private var hotspot: HotspotController? = null
+    private var hotspotInfo: HotspotController.HotspotInfo? = null
     private val worker = AtomicReference<Thread?>(null)
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
@@ -379,6 +384,10 @@ class TransferService : Service() {
         val built = buildManifest(items, app.prefs.deviceName, startedAt)
         val manifest = built.first
         val itemById = built.second
+        // The joined network wins; the global "active Wi-Fi" is only a fallback for the same-network
+        // case. Resolved before the UI is told which path this session uses.
+        val network = PendingPeer.network ?: tools.activeWifiNetwork()
+        val usingJoined = PendingPeer.network != null
         TransferHub.update {
             it.copy(
                 mode = SessionMode.SEND,
@@ -386,11 +395,10 @@ class TransferService : Service() {
                 peerName = peer.name,
                 filesTotal = items.size,
                 totalBytes = manifest.totalBytes,
-                linkLabel = pathLabelFor(peer),
+                linkLabel = if (usingJoined) "Hotspot link" else pathLabelFor(peer),
                 files = manifest.files.map { SessionFileUi(it.id, it.relPath.substringAfterLast('/'), it.size) }
             )
         }
-        val network = tools.activeWifiNetwork()
         val connector = SocketConnector { port, timeout ->
             val socket = Socket()
             tools.bind(socket, network)
@@ -646,7 +654,11 @@ class TransferService : Service() {
                         )
                     )
                     updateNotification()
-                    val decision = TransferHub.awaitDecision(180_000)
+                    // 180 s of silence was the worst failure in the app: the sender waited three
+                    // minutes and then got "No answer". The dialog lives in the Compose tree, so a
+                    // backgrounded app cannot show it at all — fail in 30 s with a message that says
+                    // what to do instead.
+                    val decision = TransferHub.awaitDecision(30_000)
                     // "Remember this device" is only meaningful if it is actually stored.
                     if (decision.accepted && decision.trustDevice && offer.peerFingerprint.isNotBlank()) {
                         app.prefs.trust(offer.peerFingerprint, offer.peerName)
@@ -704,21 +716,25 @@ class TransferService : Service() {
         val beaconServer = BeaconServer({ info }, { receiveCode })
         runCatching { beaconServer.bind(ProtocolLimits.BEACON_PORT) }
         beacon = beaconServer
-        val qr = "loopjet://${localAddress}:${engine.controlPort}#${app.identity.fingerprintHex}#${app.prefs.deviceId()}"
-        TransferHub.update {
-            it.copy(
-                mode = SessionMode.RECEIVE,
-                state = TransferState.IDLE,
-                receiveReady = true,
-                files = emptyList(),
-                fileProgress = emptyMap(),
-                receiveQr = qr,
-                receiveCode = code,
-                deviceName = app.prefs.deviceName,
-                pathLabel = factory.rootLabel(),
-                linkLabel = localAddress
-            )
-        }
+        // v1 code (LAN only). Published immediately so a same-Wi-Fi sender can connect while a
+        // fallback network is still starting; upgraded to a v2 code if one succeeds.
+        val lanQr = if (localAddress != "0.0.0.0") {
+            ConnectCode(
+                deviceId = app.prefs.deviceId(),
+                fingerprint = app.identity.fingerprintHex,
+                name = app.prefs.deviceName,
+                lanHost = localAddress,
+                lanPort = engine.controlPort
+            ).let { code0 ->
+                // Stay on the v1 form here: it is what an older peer understands. The v2 form is
+                // produced below once we know whether we can offer a network as well.
+                "loopjet://${code0.lanHost}:${code0.lanPort}#${app.identity.fingerprintHex}#${app.prefs.deviceId()}"
+            }
+        } else ""
+        publishReceiveCode(lanQr, localAddress)
+        // A phone with no usable LAN address (no Wi-Fi at all) can still be reached if it hosts a
+        // network itself. Starting one costs battery, so it is only done when LAN is not an option.
+        if (localAddress == "0.0.0.0") startFallbackHotspot()
         // Host a Wi-Fi Direct group so a sender that cannot see this phone on the Wi-Fi can still join
         // one. Best effort: on phones/ROMs without support the LAN and hotspot paths stay available.
         if (tools.supportsWifiDirect()) {
@@ -748,6 +764,68 @@ class TransferService : Service() {
                     break
                 }
             }
+        }
+    }
+
+    /** Publishes the code the Receive screen renders, plus the one-line explanation of the path. */
+    private fun publishReceiveCode(qr: String, localAddress: String, note: String? = null) {
+        val app = LoopJetApp.instance
+        TransferHub.update {
+            it.copy(
+                mode = SessionMode.RECEIVE,
+                state = TransferState.IDLE,
+                receiveReady = true,
+                files = emptyList(),
+                fileProgress = emptyMap(),
+                receiveQr = qr.ifBlank { "loopjet://waiting" },
+                deviceName = app.prefs.deviceName,
+                pathLabel = it.pathLabel.ifBlank { "Downloads/LoopJet" },
+                linkLabel = note ?: localAddress,
+                message = note ?: ""
+            )
+        }
+    }
+
+    /**
+     * Hosts a local-only hotspot and republishes the code as a v2 code carrying it.
+     *
+     * This is the path that needs **no SIM and no mobile data** — `startLocalOnlyHotspot` is not
+     * tethering — which is why it is preferred over Wi-Fi Direct for phones whose hotspot otherwise
+     * requires a SIM. When it is refused (device policy, no channel, OEM lock) the failure is
+     * reported instead of being swallowed, and the p2p path stays available.
+     */
+    private fun startFallbackHotspot() {
+        val controller = HotspotController(this)
+        hotspot = controller
+        controller.start { info, message ->
+            if (info == null) {
+                Log.d(TAG, "local-only hotspot unavailable: $message")
+                TransferHub.update { it.copy(message = "No shared Wi-Fi and the hotspot was refused — use Wi-Fi Direct") }
+                return@start
+            }
+            hotspotInfo = info
+            val host = info.address
+            val controlPort = receiver?.controlPort ?: ProtocolLimits.DEFAULT_PORT
+            val app = LoopJetApp.instance
+            if (host.isNullOrBlank()) {
+                return@start
+            }
+            val code = ConnectCode(
+                deviceId = app.prefs.deviceId(),
+                fingerprint = app.identity.fingerprintHex,
+                name = app.prefs.deviceName,
+                lanHost = "",
+                lanPort = 0,
+                network = ConnectNetwork(
+                    kind = "ap",
+                    ssid = info.ssid,
+                    psk = info.passphrase.orEmpty(),
+                    host = host,
+                    port = controlPort
+                )
+            )
+            publishReceiveCode(code.encode(), host)
+            Log.d(TAG, "hotspot ready: ${info.ssid} on $host")
         }
     }
 
@@ -856,6 +934,13 @@ class TransferService : Service() {
             p2pGroupHosted = false
             DirectLink.teardown()
         }
+        runCatching { hotspot?.stop() }
+        hotspot = null
+        hotspotInfo = null
+        // A joined network is released only when the session is over: unregistering the callback
+        // earlier tears the network down mid-transfer.
+        runCatching { HotspotController.of(this).releaseJoin() }
+        PendingPeer.network = null
         receiveCode = ""
         releaseLocks()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -1030,6 +1115,14 @@ class TransferService : Service() {
 object PendingPeer {
     @Volatile
     var peer: DiscoveredPeer? = null
+
+    /**
+     * Network the sender must bind its sockets to — set when the peer is only reachable through a
+     * hotspot or p2p group this phone just joined. `activeWifiNetwork()` cannot know about it, and
+     * binding to the wrong interface was why cross-network sessions failed.
+     */
+    @Volatile
+    var network: android.net.Network? = null
 }
 
 /**

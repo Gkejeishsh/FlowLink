@@ -47,6 +47,7 @@ import com.loopjet.app.platform.TransferHub
 import com.loopjet.app.ui.AboutScreen
 import com.loopjet.app.ui.AppState
 import com.loopjet.app.ui.AppViewModel
+import com.loopjet.app.ui.ConnectionDoctorScreen
 import com.loopjet.app.ui.HistoryScreen
 import com.loopjet.app.ui.HomeScreen
 import com.loopjet.app.ui.LocalMotion
@@ -217,6 +218,7 @@ class MainActivity : ComponentActivity() {
                                     onAppSettings = { runCatching { settingsLauncher.launch(Perms.appDetailsIntent(activity)) } }
                                 )
                             }
+                            Screen.Doctor -> ConnectionDoctorScreen(vm, onBack = { vm.back() })
                             Screen.About -> AboutScreen(vm)
                         }
                     }
