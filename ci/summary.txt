@@ -1,4 +1,4 @@
-compile=0 tests=0 debug=0 release=0 wrapper=0
+compile= tests= debug= release= wrapper=
 
 == first compile errors ==
 
