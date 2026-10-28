@@ -73,26 +73,34 @@ jobs:
       #      those exist, every push produces a signed APK, so any agent that can push can ship.
       # The key is written to $RUNNER_TEMP, never into the checkout, and never echoed.
       - name: Prepare signing material
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.sign == true && (inputs.keystore_b64 != '' || secrets.LJ_KEYSTORE_B64 != '')) || (github.event_name == 'push' && secrets.LJ_KEYSTORE_B64 != '') }}
+        # `secrets` is not a legal context inside a step-level `if`, so the values are mapped into
+        # env first and the condition tests those. Empty means "no key available": skip this step.
         env:
-          KS: ${{ inputs.keystore_b64 || secrets.LJ_KEYSTORE_B64 }}
+          KS_INPUT: ${{ inputs.keystore_b64 }}
+          KS_SECRET: ${{ secrets.LJ_KEYSTORE_B64 }}
           SP: ${{ inputs.store_pass || secrets.LJ_STORE_PASS }}
           KP: ${{ inputs.key_pass || secrets.LJ_KEY_PASS }}
           AL: ${{ inputs.key_alias || secrets.LJ_KEY_ALIAS || 'loopjet' }}
+          WANT_SIGN: ${{ inputs.sign }}
+        if: ${{ (env.KS_INPUT != '' || env.KS_SECRET != '') && (github.event_name == 'push' || env.WANT_SIGN == 'true') }}
         run: |
           set -eu
           umask 077
+          KS="$KS_INPUT"
+          [ -n "$KS" ] || KS="$KS_SECRET"
           printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.p12"
-          # Fail loudly instead of shipping an unsigned APK by accident.
-          head -c 2 "$RUNNER_TEMP/release.p12" | od -An -tx1 | grep -qi '30 82' \
-            || { echo "::error::signing material is not a PKCS#12 keystore"; exit 1; }
+          # Fail loudly instead of quietly shipping an unsigned APK.
+          if ! head -c 2 "$RUNNER_TEMP/release.p12" | od -An -tx1 | grep -qi '30 82'; then
+            echo "::error::the supplied signing material is not a PKCS#12/DER keystore"
+            exit 1
+          fi
+          [ -n "$SP" ] || { echo "::error::no keystore password supplied"; exit 1; }
           echo "LJ_KEYSTORE=$RUNNER_TEMP/release.p12" >> $GITHUB_ENV
           echo "LJ_STORE_PASS=$SP" >> $GITHUB_ENV
-          echo "LJ_KEY_PASS=$KP" >> $GITHUB_ENV
-          echo "LJ_KEY_ALIAS=$AL" >> $GITHUB_ENV
+          echo "LJ_KEY_PASS=${KP:-$SP}" >> $GITHUB_ENV
+          echo "LJ_KEY_ALIAS=${AL:-loopjet}" >> $GITHUB_ENV
           echo "LJ_SIGNING=1" >> $GITHUB_ENV
           echo "signing material prepared ($(stat -c%s "$RUNNER_TEMP/release.p12") bytes)"
-
       - name: Compile, test, package
         run: |
           mkdir -p ci
