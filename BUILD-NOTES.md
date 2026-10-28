@@ -137,3 +137,56 @@ The transfer path — chunking, sockets, the loops — is untouched, so the meas
 align/sign/verify step described **that** file while claiming it was the current build. The step now
 clears the artifacts it owns before building. (`dist/LoopJet-1.0.0-ui-fix.apk` is deliberately outside
 that set, so it survives later runs.)
+
+---
+
+# QR scanner build — 2026-10-28
+
+`dist/LoopJet-1.0.0-qr-scanner.apk` — compiled from commit **ff7b502**, CI run 40689631414
+(`compile=0 tests=0`, 12/12 unit tests passed).
+
+```
+sha256  539d364db413f2f0a38c1879087f38ee8254d736397901723622b57c4cd26bef
+size    2,359,597 bytes   (was 1,674,573 — CameraX adds ~685 KB)
+cert    97a5e9d716b80a32caf2743369c55a228155e034c13e1e929ec504c5773da17d
+        — the same key as LoopJet-1.0.0-ui-fix.apk, so this installs as an update over it
+```
+
+Verified inside the shipped APK: `android.permission.CAMERA` and `android.hardware.camera` are in the
+binary manifest (UTF-16 string pool), `MultiFormatReader`, `ImageAnalysis` and `PreviewView` are in the
+dex, and the scanner's own strings ("Scan the other phone's QR", "Camera stays on this phone", "Torch
+off", …) are present. `META-INF/version-control-info.textproto` reads revision `ff7b502…`.
+
+## The scanner
+
+`ui/QrScanner.kt`, reached from **Send › Nearby › "Scan the other phone's QR code"**.
+
+* CameraX preview + `ImageAnalysis` (`STRATEGY_KEEP_ONLY_LATEST`) feeding zxing's `MultiFormatReader`.
+  Only the luma plane is read — a QR code is monochrome — and `rowStride` is passed through, because
+  many sensors pad rows and ignoring that skews every frame.
+* One payload per visit (`AtomicBoolean`): the analyzer fires on every frame, and a second delivery
+  would start a second pairing mid-connect.
+* Accepts `loopjet://ip:port#fingerprint#device` (pairs and sends the selection), a bare six-digit
+  code, or an `http(s)` Web Share link (copied to the clipboard, since it belongs in a browser).
+* `CAMERA` is requested **only** from this screen, so onboarding is unchanged and an install that never
+  scans is never asked. Refused, missing or broken camera → a fallback screen that keeps the manual
+  code/link entry one tap away.
+* Torch toggle for a dark room or a dim screen.
+* CameraX rather than ML Kit: ML Kit pulls in Google Play services, which this app is documented not
+  to need on the transfer path.
+* `go()`/`back()` keep discovery running across the scanner — otherwise a freshly scanned link would
+  fail with "Open Send first so discovery is running" — and Back returns to Nearby rather than Home.
+
+## Other fixes in the same build
+
+* `ripple()` on the three custom cards (Send/Receive, small actions, peer rows) that only had the
+  scale animation, so a tap is acknowledged even before the screen changes.
+* The Receive card no longer shows a media **play triangle**; History no longer shows a **house**.
+* Removed the unlabelled theme button on Home — it drew a *refresh* glyph next to the gear, so it read
+  as "reload". The labelled System/Light/Dark selector in Settings is the way to change it.
+
+## Still not changed
+
+The transfer path. `git diff` for `core/` and `platform/` across this whole session is empty apart from
+the new UI file's calls into `pairWithLink` / `pairWithCode`, so speeds and the wire protocol are
+untouched.
