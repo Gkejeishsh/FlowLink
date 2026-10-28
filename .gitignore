@@ -25,3 +25,5 @@ Thumbs.db
 # Local signing scratch
 /tmp/
 tools/out/
+__pycache__/
+*.pyc

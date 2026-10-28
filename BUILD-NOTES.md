@@ -249,3 +249,82 @@ Phase 3 (the real hotspot client + exclusive-state ladder) and Phase 4 (QR v2, p
 credentials, fastest-path prediction) are **not** in this APK — they are the next phases in
 `CONNECTION-PLAN.md`. This build changes only UI and one counter, which is why it is safe to
 install over the last one.
+
+---
+
+# Build: LoopJet 1.0.0 — phase 3+4+5 (`dist/LoopJet-1.0.0-phase3-5.apk`)
+
+* size **2,375,981 bytes**
+* sha256 `103c36b17a027dd0febb2e64905e7f5eecb6a139d97736873a05f8cca2eedc76`
+* signed v2+v3 with `loopjet-ui-release.p12` (cert `97a5e9d7…`, same key as every build since
+  `-ui-fix`), `SELF-CHECK: OK`, v2 and v3 `signature_ok`/`content_digest_ok`
+* single dex, R8-minified, `android:debuggable` absent (checked in the binary manifest)
+* source commit `721339e`, CI run **40713878250**: `compile=0 tests=0 debug=0 release=0`,
+  **19/19 unit tests PASSED**
+* aligned payload `dist/unsigned/LoopJet-1.0.0-release-aligned.apk`
+  sha256 `6cb24df86efbac0f8010699193240fe781c97dfaa3f3c57644a1336c6a0c150d`
+
+## What is actually in it
+
+**P3 — the hotspot path now exists from both sides.** `HotspotController.joinAp()` returns the
+`Network` object Android grants, `PendingPeer.network` carries it into the send worker, and the
+sockets bind to it — previously the sender guessed `activeWifiNetwork()`, which is the phone's own
+Wi-Fi, not the AP it just joined. The receiver hosts a local-only hotspot (LOHS: no SIM, no mobile
+data, no tethering plan) when it has no LAN address, republishes a v2 code containing
+SSID/passphrase/address, and releases the hotspot plus any join at teardown.
+
+**P4 — versioned codes.** `loopjet2:` payload (base64url JSON) carries the LAN address and an
+optional network; v1 `loopjet://` still parses, and a v1 build that scans a v2 code says "update"
+instead of "not a LoopJet code". Ranking: lan 100 > ap 75 > p2p 70 > wifi 65, with p2p zeroed when
+the ROM has no Wi-Fi Direct.
+
+**P5 — connection doctor** (`Settings › Open connection doctor`): SDK/OEM, Wi-Fi state, SSID, band,
+link speed, the session address and interface, every local address, Wi-Fi-like interface names,
+p2p/5 GHz/6 GHz/BLE support, ports, session state, the code's offers (never the passphrase), and
+one-tap copy.
+
+## Bugs found while wiring this, and fixed
+
+1. **Offer timeout** 180 s → 30 s, with "Offer not answered — open LoopJet to accept". A backgrounded
+   receiver cannot raise the Compose dialog at all, so the sender used to wait three minutes.
+2. **Wi-Fi permission was never requested on the join path.** `NEARBY_WIFI_DEVICES` (13+) /
+   location (8–12) was only asked from Start/Receive, so a first scan of a hotspot code reached
+   `requestNetwork` with no grant and failed as "join failed". The scan is now remembered and
+   replayed after a one-permission dialog.
+3. **v1 link parser gluing the tail onto the device id** (`substringAfter('#')` returns everything
+   after the *first* hash). Caught by the new tests.
+4. **Camera permission permanently denied** showed a dead "Allow camera" button; it now offers
+   "Open app settings".
+5. **Hotspot callback thread**: `ConnectivityManager` answers on a binder thread, so UI state (and
+   `pairWithLink`) was mutated off the main thread. Results are now posted to the main looper.
+6. **Repeated Receive taps** left the previous hotspot reservation open and the OS then refused the
+   new one; and a hotspot that started without an AP address published a `0.0.0.0` code that could
+   never work. Both handled.
+7. **CI shipped the wrong APK for one run**: widening the artifact search to "largest APK" picked
+   `app-debug.apk` (14.7 MB, unminified, debuggable) over the 2.37 MB release build. Discovery is
+   now release-only and refuses a debuggable APK. Caught before publishing; nothing wrong was
+   released.
+
+## Tests
+
+12 → **19**. The seven new ones cover the code itself, which is the only part of the pairing work
+that can be proven without two phones: LAN round trip, hotspot code → join-then-connect, v1 links
+(including the tail bug), a payload split across lines / missing padding / standard alphabet,
+`WIFI:` escapes, junk input, 6-digit and http codes.
+
+## Throughput
+
+`core/` (engine, protocol, chunk map) is **byte-identical** to the build that measured 407.6 MB/s;
+`git diff 6944e3b..HEAD -- app/src/main/java/com/loopjet/app/core` is empty, and the benchmark
+imports only `core.*`. Measurements on identical code during this phase: 166.7, 172.5, 175.0,
+171.9, **358.9 MB/s** (small files 6.4–7.0 MB/s). Same binary, same test — the runner is bimodal,
+so the low readings are not a regression. Nothing on the data path was touched: no extra
+round-trip, no new syscall per chunk.
+
+## Not verified here
+
+No phone, emulator or JDK in this environment: the system consent sheet for joining an AP, LOHS on
+a real Samsung ROM, Wi-Fi Direct group formation, and the rings/bars themselves cannot be executed.
+What is verified is a clean compile, 19/19 JVM tests, a signed APK with the expected strings in the
+dex, and manifest permissions (`NEARBY_WIFI_DEVICES`, `ACCESS_FINE_LOCATION` maxSdk 32,
+`ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`, `CAMERA`).
