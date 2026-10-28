@@ -2,6 +2,10 @@ package com.loopjet.app.core
 
 /** Brand assets shared by the app and the browser pages (the only copy of the mark's vector data). */
 object Branding {
+    /** Name used by the browser pages and the ZIP they download. The app label itself lives in
+     *  `res/values/strings.xml`; both are the same word, on purpose. */
+    const val APP_NAME = "LoopJet"
+
     const val BLUE = "#2F6BFF"
     const val VIOLET = "#8B5CF6"
     const val CYAN = "#22D3EE"
@@ -105,7 +109,7 @@ background:transparent;color:var(--ink);font-size:17px;letter-spacing:.4em;text-
   <div><h1>${esc(config.title)}</h1><p class="sub">Install once, then send at full speed.</p></div>
 </div>
 <div class="card">
-  <a class="btn" data-name="LoopJet-${esc(config.versionName)}-release.apk" href="$href">Download ${esc(config.title)} <span style="opacity:.75">· ${Fmt.bytes(size)}</span></a>
+  <a class="btn" data-name="${Branding.APP_NAME}-${esc(config.versionName)}-release.apk" href="$href">Download ${esc(config.title)} <span style="opacity:.75">· ${Fmt.bytes(size)}</span></a>
   <div class="meta"><span class="pill">Version ${esc(config.versionName)}</span>
   <span class="pill"><span class="dot"></span> Local only</span>
   <span class="pill">No account · No ads</span></div>
@@ -227,7 +231,7 @@ async function upload(files){
         return head("${config.title} · Web Share") + """
 <div class="hero">
   <img class="logo" src="/logo.svg" alt="">
-  <div><h1>${esc(config.title)}</h1><p class="sub">Web Share · ${config.files.size} file(s) ready</p></div>
+  <div><h1>${esc(config.title)}</h1><p class="sub">${Branding.APP_NAME} Web Share · ${config.files.size} file(s) ready</p></div>
 </div>
 <div class="card">
   <h2>From the phone</h2>
@@ -235,7 +239,7 @@ async function upload(files){
   $zip
 </div>
 $upload
-<p class="foot">Local network only · session ends when the phone stops sharing.<br>
+<p class="foot">${Branding.APP_NAME} · local network only · session ends when the phone stops sharing.<br>
 Plain HTTP on your own Wi-Fi so no certificate warnings appear.</p>
 """ + TAIL
     }

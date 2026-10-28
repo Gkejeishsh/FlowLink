@@ -609,7 +609,12 @@ class P2pController(private val context: Context) {
             val config = if (Build.VERSION.SDK_INT >= 29) {
                 val builder = WifiP2pConfig.Builder()
                 when (band) {
-                    BAND_6 -> if (Build.VERSION.SDK_INT >= 36) builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_6GHZ) else builder
+                    // 6 GHz needs both a supporting phone and API 36; otherwise ask for automatic.
+                    BAND_6 -> if (Build.VERSION.SDK_INT >= 36) {
+                        builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_6GHZ)
+                    } else {
+                        builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_AUTO)
+                    }
                     BAND_5 -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
                     else -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_AUTO)
                 }

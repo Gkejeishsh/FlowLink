@@ -275,7 +275,7 @@ class WebServer(
                     writeHtml(output, 404, "Not found", Pages.messagePage("App file missing", "The sender no longer shares the installer."))
                     true
                 } else {
-                    serveFile(request, output, apk, "LoopJet-${config.versionName}-release.apk", config.title, client)
+                    serveFile(request, output, apk, "${Branding.APP_NAME}-${config.versionName}-release.apk", config.title, client)
                     keepAlive
                 }
             }
@@ -509,7 +509,8 @@ class WebServer(
         }
     }
 
-    private fun brandZipName(): String = "LoopJet-${Fmt.dayFolder(System.currentTimeMillis())}.zip"
+    private fun brandZipName(): String =
+        "${Branding.APP_NAME}-${Fmt.dayFolder(System.currentTimeMillis())}.zip"
 
     private fun receiveUpload(request: HttpRequest, input: InputStream, output: OutputStream) {
         val rawName = request.query["name"] ?: "upload.bin"

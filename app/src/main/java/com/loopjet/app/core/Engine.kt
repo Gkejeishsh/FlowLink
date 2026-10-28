@@ -399,6 +399,7 @@ class SenderEngine(
                     break
                 }
                 inFlight.incrementAndGet()
+                val work: WorkItem = item
                 try {
                     var attempts = 0
                     var sent = false
@@ -410,9 +411,9 @@ class SenderEngine(
                                 channel = pair.second
                                 dataSockets[index] = pair.first
                             }
-                            when (item) {
-                                is WorkItem.Chunk -> sendChunk(channel, item, readBuffer, staging, digest)
-                                is WorkItem.Bundle -> sendBundle(channel, item, readBuffer, staging, entryDigests)
+                            when (work) {
+                                is WorkItem.Chunk -> sendChunk(channel, work, readBuffer, staging, digest)
+                                is WorkItem.Bundle -> sendBundle(channel, work, readBuffer, staging, entryDigests)
                             }
                             sent = true
                         } catch (e: Exception) {
@@ -424,7 +425,7 @@ class SenderEngine(
                             if (cancelled.get() || finished.get()) return
                             if (attempts >= MAX_ITEM_ATTEMPTS) {
                                 if (requeueBudget.getAndDecrement() > 0) {
-                                    queue.add(item)
+                                    queue.add(work)
                                     sessionLog("stream $index: requeued after $attempts failed attempts")
                                     // Give the receiver time to accept a fresh stream before retrying.
                                     Thread.sleep(200)
@@ -551,7 +552,7 @@ class SenderEngine(
                     Frame.COMPLETE -> {
                         val m = channel.payloadJson()
                         val fileId = m.int("id") ?: -1
-                        val accepted = m.bool("ok") ?: true
+                        val accepted = m.bool("ok") != false
                         if (fileId >= 0) {
                             if (accepted) {
                                 completedIds.add(fileId)
