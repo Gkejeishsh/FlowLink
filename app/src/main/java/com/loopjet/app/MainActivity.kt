@@ -85,6 +85,32 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
+     * The join flow needs exactly one permission and nothing else. Asking for the full matrix here
+     * meant a noise prompt about photos and storage in the middle of pairing, and it started
+     * discovery as a side effect.
+     */
+    private val wifiJoinLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { granted ->
+        val ok = granted[android.Manifest.permission.NEARBY_WIFI_DEVICES] != false &&
+            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != false
+        if (ok) {
+            vmRef?.retryPendingScan()
+        } else {
+            vmRef?.notice("LoopJet cannot join the other phone's hotspot without the nearby-Wi-Fi permission")
+        }
+    }
+
+    private fun requestWifiJoinPermission() {
+        val wanted = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            arrayOf(android.Manifest.permission.NEARBY_WIFI_DEVICES)
+        } else {
+            arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        wifiJoinLauncher.launch(wanted)
+    }
+
+    /**
      * Android 17 shows a dedicated local-network prompt, so it is asked on its own and the rest of
      * the permissions are requested afterwards.
      */
@@ -138,6 +164,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val vm: AppViewModel = viewModel()
             vmRef = vm
+            // The scanner can need Wi-Fi permission before Start/Receive was ever tapped.
+            LaunchedEffect(Unit) { vm.requestWifiPermission = { requestWifiJoinPermission() } }
             val state by vm.state.collectAsStateWithLifecycle()
             val systemDark = isSystemInDarkTheme()
             val dark = when (state.themeMode) {

@@ -117,6 +117,15 @@ data class AppState(
 private const val PICKER_ROW_LIMIT = 20_000
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
+    /**
+     * Set by MainActivity. Joining a hotspot needs NEARBY_WIFI_DEVICES (Android 13+) or location
+     * (8-12) at runtime, and those are otherwise only asked when Start/Receive is tapped — so the
+     * first scan of a hotspot code would fail with a SecurityException. The scan is remembered and
+     * replayed once the dialog is answered.
+     */
+    var requestWifiPermission: (() -> Unit)? = null
+    private var pendingScan: String? = null
+
     private val app = application as LoopJetApp
     private val prefs = app.prefs
     private val tools = NetworkTools(application)
@@ -346,12 +355,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * tap, and no app can suppress it), then the peer is dialed on **that** network. A v1/v2 code with
      * only a LAN address connects directly.
      */
+    /** True when this phone may legally join/create a Wi-Fi network right now. */
+    private fun hasWifiPermission(): Boolean {
+        val ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = true)
+            .filter {
+                it.permission == android.Manifest.permission.NEARBY_WIFI_DEVICES ||
+                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
+            }
+        return com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
+    }
+
+    /**
+     * Called by MainActivity when its permission dialog closes: replay a scan that had to wait for
+     * the nearby-Wi-Fi grant instead of making the user walk back to the scanner.
+     */
+    fun retryPendingScan() {
+        val text = pendingScan ?: return
+        pendingScan = null
+        acceptScanned(text)
+    }
+
     fun acceptScanned(text: String) {
         when (val parsed = com.loopjet.app.platform.net.ConnectCodes.parse(text)) {
             is com.loopjet.app.platform.net.ScannedCode.JoinThenConnect -> {
                 if (sendItems.value.isEmpty()) {
                     // Joining a network costs a system prompt: ask for the files first.
                     notice("Pick the files to send first, then scan again")
+                    return
+                }
+                if (!hasWifiPermission()) {
+                    pendingScan = text
+                    notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join the other phone")
+                    val ask = requestWifiPermission
+                    if (ask != null) ask() else {
+                        pendingScan = null
+                        notice("Grant Nearby Wi-Fi devices in Settings to use a hotspot code")
+                    }
                     return
                 }
                 val net = parsed.network
@@ -386,6 +425,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
             is com.loopjet.app.platform.net.ScannedCode.PairingCode -> pairWithCode(parsed.digits)
             is com.loopjet.app.platform.net.ScannedCode.WifiOnly -> {
+                if (!hasWifiPermission()) {
+                    pendingScan = text
+                    notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join this network")
+                    requestWifiPermission?.invoke()
+                    return
+                }
                 val app = getApplication<android.app.Application>()
                 notice("Joining \"${parsed.ssid}\" — then scan the LoopJet code again")
                 com.loopjet.app.platform.net.HotspotController.of(app)
