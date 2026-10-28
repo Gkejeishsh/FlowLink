@@ -1,5 +1,5 @@
 == apk ==
--rw-r--r-- 1 runner runner 1641815 Oct 28 06:52 dist/LoopJet-1.0.0-release.apk
+-rw-r--r-- 1 runner runner 1641815 Oct 28 07:00 dist/LoopJet-1.0.0-release.apk
 
 == sha256 ==
 33e5c419e2faa6d4f4c7c84ceade7f64e29c45438aafffae979fc839261dc085  dist/LoopJet-1.0.0-release.apk

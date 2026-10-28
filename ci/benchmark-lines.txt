@@ -1,2 +1,2 @@
-    [loopback] 2000 small files: 5.8 MB in 1075 ms = 5.4 MB/s
-    [loopback] large file: 192.0 MB in 1143 ms = 168.0 MB/s
+    [loopback] 2000 small files: 5.8 MB in 1134 ms = 5.1 MB/s
+    [loopback] large file: 192.0 MB in 1149 ms = 167.1 MB/s
