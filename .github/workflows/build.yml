@@ -106,38 +106,61 @@ jobs:
 
       - name: Align, sign and verify
         run: |
-          mkdir -p dist ci
+          mkdir -p dist ci dist/unsigned
           set +e
           BT=$ANDROID_HOME/build-tools/36.0.0
           UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "unsigned apk: $UNSIGNED"
           if [ -z "$UNSIGNED" ]; then echo "no release apk produced" > dist/SIGNING-REPORT.txt; exit 0; fi
-          cp "$UNSIGNED" app/build/outputs/apk/release/LoopJet-release-unsigned.apk
-          APK=app/build/outputs/apk/release/LoopJet-release-unsigned.apk
-          ALIGNED=app/build/outputs/apk/release/LoopJet-release-aligned.apk
-          FINAL=dist/LoopJet-1.0.0-release.apk
-          $BT/zipalign -p -f 4 "$APK" "$ALIGNED" || cp "$APK" "$ALIGNED"
-          if [ "$LJ_SIGNING" = "1" ]; then
+          ALIGNED=dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+          $BT/zipalign -p -f 4 "$UNSIGNED" "$ALIGNED" || cp "$UNSIGNED" "$ALIGNED"
+          sha256sum "$ALIGNED" > dist/unsigned/SHA256.txt
+          # The source APK for the page served by Invite must be byte-identical to what we ship.
+          echo "aligned payload: $(stat -c%s "$ALIGNED") bytes"
+
+          REPORT=dist/SIGNING-REPORT.txt
+          : > $REPORT
+          if [ "$LJ_SIGNING" = "1" ] && [ -n "$LJ_KEYSTORE" ]; then
+            FINAL=dist/LoopJet-1.0.0-release.apk
             $BT/apksigner sign --ks "$LJ_KEYSTORE" --ks-key-alias "$LJ_KEY_ALIAS" \
               --ks-pass "pass:$LJ_STORE_PASS" --key-pass "pass:$LJ_KEY_PASS" \
-              --v2-signing-enabled true --v3-signing-enabled true \
+              --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true \
               --out "$FINAL" "$ALIGNED"
+          fi
+
+          if [ -f dist/LoopJet-1.0.0-release.apk ]; then
             {
+              echo "== apk =="
+              ls -l dist/LoopJet-1.0.0-release.apk
+              echo
+              echo "== sha256 =="
+              sha256sum dist/LoopJet-1.0.0-release.apk
+              echo
               echo "== apksigner verify --verbose --print-certs =="
-              $BT/apksigner verify --verbose --print-certs "$FINAL"
+              $BT/apksigner verify --verbose --print-certs dist/LoopJet-1.0.0-release.apk
+              echo "EXIT=$?"
               echo
               echo "== apksigner verify --min-sdk-version 26 --max-sdk-version 37 =="
-              $BT/apksigner verify --min-sdk-version 26 --max-sdk-version 37 "$FINAL"
+              $BT/apksigner verify --min-sdk-version 26 --max-sdk-version 37 dist/LoopJet-1.0.0-release.apk
+              echo "EXIT=$?"
               echo
-              echo "== apk ==" ; ls -l "$FINAL"
-              echo "== sha256 ==" ; sha256sum "$FINAL"
-            } > dist/SIGNING-REPORT.txt 2>&1
-            cat dist/SIGNING-REPORT.txt
+              echo "== zipalign -c -p -v 4 =="
+              $BT/zipalign -c -p -v 4 dist/LoopJet-1.0.0-release.apk | tail -3
+              echo "EXIT=$?"
+              echo
+              echo "== badging =="
+              $BT/aapt2 dump badging dist/LoopJet-1.0.0-release.apk 2>/dev/null | head -12
+              echo
+              echo "== embedded file count and size =="
+              unzip -l dist/LoopJet-1.0.0-release.apk | tail -2
+            } > $REPORT 2>&1
           else
-            echo "Release build was not signed (no keystore supplied on this run)." > dist/SIGNING-REPORT.txt
+            echo "No signed APK in dist/ yet: dist/unsigned/LoopJet-1.0.0-release-aligned.apk is the aligned payload." > $REPORT
+            sha256sum "$ALIGNED" >> $REPORT
           fi
+          cat $REPORT
           cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null
-          cp -r app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
+          cp app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
           exit 0
 
       - name: Publish results to the branch
