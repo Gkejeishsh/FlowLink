@@ -190,3 +190,62 @@ off", …) are present. `META-INF/version-control-info.textproto` reads revision
 The transfer path. `git diff` for `core/` and `platform/` across this whole session is empty apart from
 the new UI file's calls into `pairWithLink` / `pairWithCode`, so speeds and the wire protocol are
 untouched.
+
+---
+
+# Phase 1 + 2 build — 2026-10-28
+
+`dist/LoopJet-1.0.0-live-progress.apk` — commit **14830d5**, CI run 40699529299
+(`compile=0 tests=0`, 12/12 unit tests passed).
+
+```
+sha256  6801a375ffe5f7ee1c41fd1679bad9d1aaa7c2a8120f91361a206810d45899e
+size    2,359,597 bytes
+cert    97a5e9d7…  (same key as -ui-fix and -qr-scanner: installs as an update)
+```
+
+## P1 — the progress you could not see
+
+**Real bug fixed:** only the *sender* ever navigated to the transfer screen
+(`AppViewModel.sendTo()` set `screen = Transfer`). The receiver stayed on the Receive
+screen showing its QR, so a running transfer looked like nothing was happening on that
+phone. `openSessionIfRunning()` now opens the session on either device as soon as the
+state goes CONNECTING / WAITING_ACCEPT / TRANSFERRING / PAUSED, skipping onboarding and
+the scanner so it never yanks you out of those.
+
+**New transfer screen** (`TransferScreen` + `TransferSummary` + `FileTimelineRow`):
+* gradient bar with the **percentage drawn inside it**, not beside it;
+* speed, ETA, bytes and `3 of 7 files` beneath;
+* vertical timeline: connector line, and a **ring per file that fills with that file's own
+  bytes**, keyed by file id so rows never jump while scrolling;
+* states: queued (empty ring), in flight (ring + `1.2 GB of 2.9 GB · 82%`), done (full ring
+  + check, muted row), failed (error tint + the reason).
+
+**Engine change, and why it cannot cost speed:** one
+`fileBytes.getOrPut(id).addAndGet(n)` sits beside the existing `rate.add(n)` in the sender's
+chunk loop, the bundle loop and the receiver's write loop. `TransferProgress.fileProgress`
+reports **in-flight files only, capped at 64**, so a 2 000-file session never rebuilds a
+2 000-entry map every 100 ms. `Protocol.kt` is untouched.
+
+**Throughput, measured twice on the same code.** Run 40698454520 reported 179.9 MB/s for
+the 192 MB loopback (baseline 400–416), which looked like a regression, so an empty commit
+bought a second run on identical code: **407.6 MB/s**. The 180 was runner noise. The
+2 000-small-file case moved 4.7 → 7.7 → 4.9 MB/s across the same runs, i.e. noise too.
+
+## P2 — one decision instead of a hunt
+
+`Send › Nearby` now opens with two large cards side by side:
+
+* **Show my code** — `receiveHere()` switches to Receive, starts the server and starts
+  advertising in one tap;
+* **Scan a code** — opens the QR scanner.
+
+The typed 6-digit code and the pasted `loopjet://` link stay underneath as the fallback, so
+nothing was removed.
+
+## Not in this build
+
+Phase 3 (the real hotspot client + exclusive-state ladder) and Phase 4 (QR v2, p2p
+credentials, fastest-path prediction) are **not** in this APK — they are the next phases in
+`CONNECTION-PLAN.md`. This build changes only UI and one counter, which is why it is safe to
+install over the last one.
