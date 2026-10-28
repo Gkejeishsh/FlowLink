@@ -9,8 +9,9 @@ Environment
              Android SDK platform 37, build-tools 36.0.0, Gradle 9.6.0, AGP 9.4.1
   app        com.loopjet.app 1.0.0, minSdk 26, targetSdk 37
   hardware   no phone, no emulator (see "Not tested")
-  run ids    40656202018 (12 tests green, R8 release built), 40655284844 (one failing web test,
-             fixed in 6c713f8), 40651955288 (previous APK signature verified)
+  run ids    40656202018 and the run after c8859b8 (12 tests green, R8 release built),
+             40655284844 (one failing web test, fixed in 6c713f8),
+             40651955288 (previous APK signature verified)
 ```
 
 ## 1. Build and packaging
@@ -27,7 +28,7 @@ Environment
 | `apksigner verify --verbose --print-certs` | **Verifies** — v2: true, v3: true, v1: false (not needed at minSdk 26) |
 | Certificate | `CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK`, RSA 4096 |
 | Certificate SHA-256 | `fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d` |
-| APK SHA-256 | printed in `dist/SIGNING-REPORT.txt` for the exact shipped file |
+| APK SHA-256 | `4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911` (aligned payload `0ca4c578269b7f222ff495ef3f3f8f27a921ce1634b64c40b990664c588ab60c`, built from c8859b8) |
 
 `dist/SIGNING-REPORT.txt` is produced by the official `apksigner` inside CI over the committed APK, not
 by the local signing tool.
@@ -137,6 +138,9 @@ real pair of phones.
   covered by the new tests.
 * **`isSameSubnet` accepted anything** when no bind address was configured and ignored address-family
   mismatches. It now rejects what it cannot place.
+* **A permission granted on first run arrived after advertising had started**, so the mDNS,
+  multicast and BLE registrations of that attempt had already failed; only subnet probes worked until
+  the screen was left and reopened. A grant now restarts discovery with the receive role.
 * **A refused permission had no way back.** The app now remembers what it asked for, tells the user
   when Android will not show the dialog again, and offers the app-settings page; Android 17's
   local-network prompt is asked on its own so it is not bundled into a bulk dialog.
