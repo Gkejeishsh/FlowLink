@@ -342,7 +342,8 @@ class SenderEngine(
         var parts = ArrayList<BundlePart>()
         var bundleBytes = 0L
         for (file in small) {
-            if (bundleBytes + file.size > ProtocolLimits.BUNDLE_MAX && parts.isNotEmpty()) {
+            val projected = bundleBytes + file.size + 44L * (parts.size + 1) + 2
+            if (projected > ProtocolLimits.BUNDLE_MAX && parts.isNotEmpty()) {
                 queue.add(WorkItem.Bundle(ArrayList(parts), bundleBytes))
                 parts = ArrayList()
                 bundleBytes = 0
@@ -471,16 +472,15 @@ class SenderEngine(
         val headerSize = 2 + item.parts.size * 44
         val payloadSize = item.bytes.toInt()
         if (headerSize + payloadSize > staging.size) throw IOException("bundle too large")
-        val payload = ByteArray(payloadSize)
-        var payloadOffset = 0
+        var payloadOffset = headerSize
         var headerOffset = 2
         staging[0] = (item.parts.size ushr 8).toByte()
         staging[1] = item.parts.size.toByte()
         for (part in item.parts) {
             val source = sources.getOrPut(part.file.id) { sourceFor(part.file) }
-            val n = source.readAt(payload, payloadOffset, part.length, 0)
+            val n = source.readAt(staging, payloadOffset, part.length, 0)
             if (n != part.length) throw IOException("short read on ${part.file.relPath}")
-            Sha256.digestTo(payload, payloadOffset, n, digest, 0)
+            Sha256.digestTo(staging, payloadOffset, n, digest, 0)
             putInt(staging, headerOffset, part.file.id)
             putInt(staging, headerOffset + 4, 0)
             putInt(staging, headerOffset + 8, n)
@@ -489,7 +489,6 @@ class SenderEngine(
             payloadOffset += n
             currentFiles.add(part.file.relPath)
         }
-        System.arraycopy(payload, 0, staging, headerSize, payloadSize)
         channel.writeRecord(Frame.BUNDLE, staging, 0, headerSize + payloadSize)
         channel.flush()
         rate.add(item.bytes)

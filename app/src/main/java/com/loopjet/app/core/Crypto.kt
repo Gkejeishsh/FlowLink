@@ -348,7 +348,12 @@ object HandshakeCrypto {
         val okm = Hkdf.derive(sharedSecret, transcriptHash, INFO.toByteArray(), 64)
         val c2s = okm.copyOfRange(0, 32)
         val s2c = okm.copyOfRange(32, 64)
-        val sasBytes = Sha256.digest(transcriptHash, localFingerprint, peerFingerprint)
+        // Order the two fingerprints deterministically so both sides derive the same code.
+        val local = Bytes.hex(localFingerprint)
+        val peer = Bytes.hex(peerFingerprint)
+        val first = if (local <= peer) localFingerprint else peerFingerprint
+        val second = if (local <= peer) peerFingerprint else localFingerprint
+        val sasBytes = Sha256.digest(transcriptHash, first, second)
         val digits = ((sasBytes[0].toInt() and 0xFF).toLong() shl 16 or
             ((sasBytes[1].toInt() and 0xFF).toLong() shl 8) or
             (sasBytes[2].toInt() and 0xFF).toLong()) % 1_000_000L
