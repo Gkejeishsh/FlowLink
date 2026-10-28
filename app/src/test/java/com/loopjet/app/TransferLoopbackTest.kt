@@ -156,7 +156,14 @@ class TransferLoopbackTest {
 
         fun awaitReceiver(timeoutMs: Long = 120_000): TransferResult {
             receiverThread.get()?.join(timeoutMs)
-            return receiverResult.get() ?: error("receiver never returned")
+            val result = receiverResult.get() ?: error("receiver never returned")
+            println(
+                "[receiver] ok=${result.ok} msg=${result.message} bytes=${result.bytesTransferred} " +
+                    "files=${result.files.size} chunks=${result.chunksDone}/${result.chunksTotal} " +
+                    "ms=${result.durationMs} path=${result.pathLabel}"
+            )
+            if (!result.ok) dump("receiver-failed")
+            return result
         }
 
         override fun close() {

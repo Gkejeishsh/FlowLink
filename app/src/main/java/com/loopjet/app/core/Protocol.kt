@@ -62,8 +62,11 @@ object ProtocolLimits {
     /** Payload record size on the wire (plaintext). 256 KiB keeps resume granularity fine-grained. */
     const val CHUNK_SIZE: Int = 256 * 1024
 
-    /** Maximum plaintext payload of a single sealed record (bundles included). */
-    const val MAX_RECORD: Int = CHUNK_SIZE
+    /**
+     * Maximum plaintext payload of a single sealed record. A DATA record carries a 49-byte header in
+     * front of a full chunk, so the record cap sits above [CHUNK_SIZE] instead of equal to it.
+     */
+    const val MAX_RECORD: Int = CHUNK_SIZE + 64
 
     /** Small files below this size are packed into bundles. */
     const val BUNDLE_FILE_MAX: Long = 64L * 1024
