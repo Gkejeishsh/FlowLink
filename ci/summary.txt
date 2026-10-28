@@ -3,8 +3,13 @@ compile=0 tests=1 debug=0 release=0 wrapper=0
 == first compile errors ==
 
 == test failures ==
-> Task :app:compileDebugUnitTestKotlin FAILED
-BUILD FAILED in 32s
+TransferLoopbackTest > many small files are bundled and verified FAILED
+TransferLoopbackTest > pause and resume keeps the transfer alive FAILED
+TransferLoopbackTest > unicode names and nested folders survive FAILED
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks FAILED
+TransferLoopbackTest > single large file transfers and verifies FAILED
+> Task :app:testDebugUnitTest FAILED
+BUILD FAILED in 42s
 
 == benchmark lines ==
 
@@ -37,7 +42,7 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164891109.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793165395311.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 

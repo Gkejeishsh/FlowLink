@@ -24,32 +24,42 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
 > Task :app:processDebugResources
-> Task :app:bundleDebugClassesToCompileJar
 > Task :app:bundleDebugClassesToRuntimeJar
-
+> Task :app:bundleDebugClassesToCompileJar
 > Task :app:compileDebugUnitTestKotlin
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/test/java/com/loopjet/app/TransferLoopbackTest.kt:134:28 Outer class 'class TransferLoopbackTest : Any' of non-inner class cannot be used as receiver.
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
 
-> Task :app:compileDebugUnitTestKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164948837.json
+> Task :app:testDebugUnitTest
 
-[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+TransferLoopbackTest > many small files are bundled and verified FAILED
+    java.lang.AssertionError at TransferLoopbackTest.kt:234
+
+TransferLoopbackTest > pause and resume keeps the transfer alive FAILED
+    java.lang.AssertionError at TransferLoopbackTest.kt:363
+
+TransferLoopbackTest > unicode names and nested folders survive FAILED
+    java.lang.AssertionError at TransferLoopbackTest.kt:263
+
+TransferLoopbackTest > resume after a dropped link only re-sends missing chunks FAILED
+    java.lang.AssertionError at TransferLoopbackTest.kt:316
+
+TransferLoopbackTest > single large file transfers and verifies FAILED
+    java.lang.AssertionError at TransferLoopbackTest.kt:209
+
+6 tests completed, 5 failed
+
+> Task :app:testDebugUnitTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793165453343.json
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:compileDebugUnitTestKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: INACCESSIBLE_OUTER_CLASS_RECEIVER
-       Kotlin compiler error
-         Outer class 'class TransferLoopbackTest : Any' of non-inner class cannot be used as receiver.
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/test/java/com/loopjet/app/TransferLoopbackTest.kt line 134
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/FlowLink/FlowLink/app/build/reports/tests/testDebugUnitTest/index.html
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 32s
-24 actionable tasks: 16 executed, 1 from cache, 7 up-to-date
+BUILD FAILED in 42s
+26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
