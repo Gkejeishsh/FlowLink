@@ -1,56 +1,14 @@
 compile=1 tests=1 debug=1 release=1 wrapper=0
 
 == first compile errors ==
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:138:113 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:159:109 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:160:111 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:161:113 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:15:27 Unresolved reference 'GCMParameterSpec'.
 e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:136:29 None of the following candidates is applicable:
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:182:51 Unresolved reference 'GCMParameterSpec'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:201:55 Unresolved reference 'GCMParameterSpec'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:636:32 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:646:24 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:647:21 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:677:29 Unresolved reference 'AtomicReference'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:841:25 Operator '==' cannot be applied to 'MatchGroup?' and 'TransferState'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:871:37 Argument type mismatch: actual type is 'MatchGroup?', but 'TransferState' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:951:25 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:337:33 Argument type mismatch: actual type is 'Int', but 'Charset!' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:632:55 Argument type mismatch: actual type is 'Long', but 'Double' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/WebService.kt:150:26 Return type of 'fun onLog(message: String): Int' is not a subtype of the return type of the overridden member 'fun onLog(message: String): Unit' defined in 'com.loopjet.app.core.WebServerEvents'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:69:34 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:76 Unresolved reference 'primaryCpuAbi' on receiver of type 'ApplicationInfo'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:91 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:91 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:95 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:97 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:71:32 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:81:71 Unresolved reference 'LoopJetApp'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:442:26 Return type of 'fun onSuccess(): Int' is not a subtype of the return type of the overridden member 'fun onSuccess(): Unit' defined in 'android.net.wifi.p2p.WifiP2pManager.ActionListener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:443:26 Return type of 'fun onFailure(reason: Int): Int' is not a subtype of the return type of the overridden member 'fun onFailure(p0: Int): Unit' defined in 'android.net.wifi.p2p.WifiP2pManager.ActionListener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:543:68 Argument type mismatch: actual type is 'String', but 'MacAddress?' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:632:26 Return type of 'fun onStartFailure(errorCode: Int): Int' is not a subtype of the return type of the overridden member 'fun onStartFailure(p0: Int): Unit' defined in 'android.bluetooth.le.AdvertiseCallback'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:178:53 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'String?'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:483:42 Unresolved reference 'graphicsLayer'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:484:13 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1386:32 Unresolved reference 'collectAsStateWithLifecycle'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:245:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:248:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:249:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:278:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:281:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:282:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:419:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:422:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:423:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:82:71 Unresolved reference 'LoopJetApp'.
 FAILURE: Build failed with an exception.
 
 == test failures ==
 > Task :app:processDebugResources FAILED
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:178:53 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'String?'.
 > Task :app:compileDebugKotlin FAILED
-BUILD FAILED in 22s
+BUILD FAILED in 31s
 
 == benchmark lines ==
 
@@ -66,12 +24,7 @@ Daemon will be stopped at the end of the build
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
 
-> Task :app:compileDebugKotlin
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:138:113 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:159:109 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:160:111 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt:161:113 Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:15:27 Unresolved reference 'GCMParameterSpec'.
+> Task :app:compileDebugKotlin FAILED
 e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:136:29 None of the following candidates is applicable:
 
 fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
@@ -85,46 +38,8 @@ fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R:
 
 fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R:
   Candidate 'fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:182:51 Unresolved reference 'GCMParameterSpec'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:201:55 Unresolved reference 'GCMParameterSpec'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:636:32 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:646:24 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:647:21 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:677:29 Unresolved reference 'AtomicReference'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:841:25 Operator '==' cannot be applied to 'MatchGroup?' and 'TransferState'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:871:37 Argument type mismatch: actual type is 'MatchGroup?', but 'TransferState' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:951:25 Candidate 'fun Socket.shutDownQuietly(): Unit' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:337:33 Argument type mismatch: actual type is 'Int', but 'Charset!' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:632:55 Argument type mismatch: actual type is 'Long', but 'Double' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/WebService.kt:150:26 Return type of 'fun onLog(message: String): Int' is not a subtype of the return type of the overridden member 'fun onLog(message: String): Unit' defined in 'com.loopjet.app.core.WebServerEvents'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:69:34 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:76 Unresolved reference 'primaryCpuAbi' on receiver of type 'ApplicationInfo'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:91 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:91 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:95 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:70:97 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:71:32 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:81:71 Unresolved reference 'LoopJetApp'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:442:26 Return type of 'fun onSuccess(): Int' is not a subtype of the return type of the overridden member 'fun onSuccess(): Unit' defined in 'android.net.wifi.p2p.WifiP2pManager.ActionListener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:443:26 Return type of 'fun onFailure(reason: Int): Int' is not a subtype of the return type of the overridden member 'fun onFailure(p0: Int): Unit' defined in 'android.net.wifi.p2p.WifiP2pManager.ActionListener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:543:68 Argument type mismatch: actual type is 'String', but 'MacAddress?' was expected.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:632:26 Return type of 'fun onStartFailure(errorCode: Int): Int' is not a subtype of the return type of the overridden member 'fun onStartFailure(p0: Int): Unit' defined in 'android.bluetooth.le.AdvertiseCallback'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:178:53 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'String?'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:483:42 Unresolved reference 'graphicsLayer'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:484:13 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1386:32 Unresolved reference 'collectAsStateWithLifecycle'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:245:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:248:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:249:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:278:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:281:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:282:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:419:20 Unresolved reference 'animateFloat' on receiver of type 'InfiniteTransition'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:422:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Theme.kt:423:61 Cannot infer type for type parameter 'T'. Specify it explicitly.
-
-> Task :app:compileDebugKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793163684323.json
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:82:71 Unresolved reference 'LoopJetApp'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164115089.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
@@ -133,10 +48,22 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
 > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: ARGUMENT_TYPE_MISMATCH
+   > Kotlin compiler: NONE_APPLICABLE
        Kotlin compiler error
-         Argument type mismatch: actual type is 'BoxScope', but 'Context' was expected.
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/MainActivity.kt line 138
+         None of the following candidates is applicable:
+     
+         fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
+           Candidate 'fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
+     
+         fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
+           Candidate 'fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
+     
+         fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R:
+           Candidate 'fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
+     
+         fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R:
+           Candidate 'fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt line 136
 
 * Try:
 > Run with --stacktrace option to get the stack trace.
@@ -144,5 +71,5 @@ Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.a
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 47s
+BUILD FAILED in 52s
 7 actionable tasks: 7 executed
