@@ -75,8 +75,9 @@ class MainActivity : ComponentActivity() {
         reportDenials(granted)
         if (pendingReceive) {
             pendingReceive = false
-            // Receive means "let the other phone find me", so this side advertises.
-            vmRef?.startDiscovery(advertise = true)
+            // Receive means "let the other phone find me", so this side advertises. Restart rather
+            // than start: advertising began before the dialog and may have failed on the refusal.
+            vmRef?.restartDiscovery(advertise = true)
         }
     }
 
@@ -93,7 +94,7 @@ class MainActivity : ComponentActivity() {
         if (rest.isNotEmpty()) permissionLauncher.launch(rest)
         else if (pendingReceive) {
             pendingReceive = false
-            vmRef?.startDiscovery(advertise = true)
+            vmRef?.restartDiscovery(advertise = true)
         }
     }
 

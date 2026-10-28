@@ -234,6 +234,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(discovery = DiscoveryState(active = true))
     }
 
+    /**
+     * Restarts discovery with a definite role. Needed after a permission dialog: discovery may have
+     * been started a moment earlier, before the grant, so its mDNS/BLE registrations could have failed.
+     */
+    fun restartDiscovery(advertise: Boolean) {
+        stopDiscovery()
+        startDiscovery(advertise)
+    }
+
     fun stopDiscovery() {
         discovery?.stop()
         discovery = null
