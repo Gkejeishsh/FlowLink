@@ -23,11 +23,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -78,6 +80,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,8 +111,11 @@ private fun ScreenFrame(
     Column(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            // The root Surface already paints the window, so no per-screen background is needed.
             .statusBarsPadding()
+            // Insets are consumed here, so a nested navigationBarsPadding (the picker tray) will not
+            // double up — but no screen can end underneath the system bar any more.
+            .navigationBarsPadding()
     ) {
         if (title != null) {
             Row(
@@ -131,18 +137,7 @@ private fun ScreenFrame(
 @Suppress("ModifierParameter")
 @Composable
 private fun PrimaryAction(text: String, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
-    val (pressModifier, interaction) = rememberPressScale()
-    Box(
-        modifier
-            .then(pressModifier)
-            .height(58.dp)
-            .clip(MaterialTheme.shapes.large)
-            .background(if (enabled) BrandGradient else Brush.linearGradient(listOf(Color(0xFF9AA4BD), Color(0xFF9AA4BD))))
-            .clickable(enabled = enabled, interactionSource = interaction, indication = null) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text, color = Color.White, style = MaterialTheme.typography.titleMedium)
-    }
+    GradientButton(text = text, modifier = modifier, enabled = enabled, onClick = onClick)
 }
 
 // --- home -----------------------------------------------------------------------------------------
@@ -151,7 +146,7 @@ private fun PrimaryAction(text: String, modifier: Modifier = Modifier, enabled: 
 fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive: () -> Unit) {
     val session by vm.session.collectAsStateSafe()
     LazyColumn(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding(),
+        Modifier.fillMaxSize().statusBarsPadding(),
         contentPadding = PaddingValues(20.dp, 12.dp, 20.dp, 28.dp)
     ) {
         item {
@@ -254,16 +249,16 @@ private fun BigAction(
     Column(
         modifier
             .then(pressModifier)
-            .height(168.dp)
+            .heightIn(min = 160.dp)
             .clip(MaterialTheme.shapes.extraLarge)
             .background(
                 if (accent) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))
                 else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))
             )
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraLarge)
-            .clickable(interactionSource = interaction, indication = null) { onClick() }
+            .clickable(role = Role.Button, interactionSource = interaction, indication = null) { onClick() }
             .padding(18.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom)
     ) {
         Box(
             Modifier.size(46.dp).clip(CircleShape)
@@ -281,7 +276,9 @@ private fun BigAction(
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (accent) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (accent) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -302,14 +299,18 @@ private fun SmallAction(
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-            .clickable(interactionSource = interaction, indication = null) { onClick() }
+            .clickable(role = Role.Button, interactionSource = interaction, indication = null) { onClick() }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(10.dp))
-        Column {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.labelMedium,
@@ -475,14 +476,18 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
         }
         AnimatedVisibility(visible = picker.selection.isNotEmpty(), enter = slideInVertically { it }, exit = fadeOut()) {
             Row(
-                Modifier.fillMaxWidth().height(trayHeight)
+                Modifier.fillMaxWidth().heightIn(min = trayHeight)
                     .background(MaterialTheme.colorScheme.surface)
                     .navigationBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text("${picker.selection.size} selected", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "${picker.selection.size} selected",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Text(
                         Fmt.bytes(picker.selectedBytes),
                         style = MaterialTheme.typography.bodyMedium,
@@ -493,7 +498,7 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                 Spacer(Modifier.width(8.dp))
                 PrimaryAction(
                     text = if (picker.webShareMode) "Share" else "Next",
-                    modifier = Modifier.width(132.dp)
+                    modifier = Modifier.widthIn(min = 116.dp)
                 ) { vm.commitSelection() }
             }
         }
@@ -682,19 +687,19 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(10.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
-                            value = manualCode,
-                            onValueChange = { manualCode = it.filter { ch -> ch.isDigit() }.take(6) },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            placeholder = { Text("000000") },
-                            shape = MaterialTheme.shapes.large
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        PrimaryAction("Connect", Modifier.width(120.dp), enabled = manualCode.length == 6) {
-                            vm.pairWithCode(manualCode)
-                        }
+                    OutlinedTextField(
+                        value = manualCode,
+                        onValueChange = { manualCode = it.filter { ch -> ch.isDigit() }.take(6) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("000000") },
+                        shape = MaterialTheme.shapes.large
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // Stacked instead of sharing one row: side by side, the button label was squeezed
+                    // to nothing on narrow screens and at larger font scales.
+                    PrimaryAction("Connect", Modifier.fillMaxWidth(), enabled = manualCode.length == 6) {
+                        vm.pairWithCode(manualCode)
                     }
                     Spacer(Modifier.height(12.dp))
                     Text(
@@ -854,9 +859,10 @@ fun OfferDialog(offer: IncomingOfferUi, onAnswer: (Boolean, Boolean) -> Unit) {
                         .clip(MaterialTheme.shapes.medium)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(vertical = 14.dp),
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.headlineLarge,
                     textAlign = TextAlign.Center,
-                    letterSpacing = 6.sp
+                    letterSpacing = 3.sp,
+                    maxLines = 1
                 )
                 Spacer(Modifier.height(14.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1286,8 +1292,8 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                         )
                     }
                     Spacer(Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("🚀", "⚡", "🐉", "🌊", "🎧", "📷", "🦉", "🍀").forEach { candidate ->
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(listOf("🚀", "⚡", "🐉", "🌊", "🎧", "📷", "🦉", "🍀")) { candidate ->
                             Text(
                                 candidate,
                                 Modifier.clip(CircleShape)
@@ -1307,8 +1313,8 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                 SectionCard {
                     Text("Theme", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("system" to "System", "light" to "Light", "dark" to "Dark").forEach { (mode, label) ->
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(listOf("system" to "System", "light" to "Light", "dark" to "Dark")) { (mode, label) ->
                             val selected = state.themeMode == mode
                             Text(
                                 label,
@@ -1324,8 +1330,8 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                     Spacer(Modifier.height(14.dp))
                     Text("Speed mode", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("balanced" to "Balanced", "fast" to "Fast", "max" to "Max").forEach { (mode, label) ->
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(listOf("balanced" to "Balanced", "fast" to "Fast", "max" to "Max")) { (mode, label) ->
                             val selected = vm.speedMode() == mode
                             Text(
                                 label,
@@ -1364,7 +1370,7 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Switch(checked = verify, onCheckedChange = { verify = it; vm.setVerifyAfter(it) })
                         Spacer(Modifier.width(10.dp))
-                        Column {
+                        Column(Modifier.weight(1f)) {
                             Text("Verify after transfer", style = MaterialTheme.typography.bodyLarge)
                             Text(
                                 "Re-hash finished files before they are renamed. Slower on very large files.",
@@ -1376,7 +1382,7 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Switch(checked = autoAccept, onCheckedChange = { autoAccept = it; vm.setAutoAccept(it) })
                         Spacer(Modifier.width(10.dp))
-                        Column {
+                        Column(Modifier.weight(1f)) {
                             Text("Auto-accept trusted devices", style = MaterialTheme.typography.bodyLarge)
                             Text(
                                 "Everyone else still needs one tap.",

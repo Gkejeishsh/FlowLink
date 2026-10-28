@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
@@ -142,7 +143,19 @@ class MainActivity : ComponentActivity() {
                 "dark" -> true
                 else -> systemDark
             }
-            LaunchedEffect(dark) { vm.setDark(dark) }
+            // The system bars have to follow the app's own theme choice, not the system's: with
+            // edge-to-edge and no correction the status-bar icons stay dark, so on the dark theme they
+            // drew black-on-black. Re-applied whenever the resolved theme flips.
+            LaunchedEffect(dark) {
+                vm.setDark(dark)
+                val transparent = android.graphics.Color.TRANSPARENT
+                activity.enableEdgeToEdge(
+                    statusBarStyle = if (dark) SystemBarStyle.dark(transparent)
+                    else SystemBarStyle.light(transparent, transparent),
+                    navigationBarStyle = if (dark) SystemBarStyle.dark(transparent)
+                    else SystemBarStyle.light(transparent, transparent)
+                )
+            }
             LaunchedEffect(incomingUris) {
                 if (incomingUris.isNotEmpty()) {
                     vm.addSharedUris(incomingUris)

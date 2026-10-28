@@ -1,9 +1,11 @@
 package com.loopjet.app.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.Icons
@@ -173,13 +176,23 @@ fun OnboardingScreen(
             }
         }
         Spacer(Modifier.height(28.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            if (step > 0) {
-                TextButton(onClick = { step-- }) { Text("Back") }
-            } else {
-                TextButton(onClick = { step = steps.size }) { Text("Skip") }
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = { if (step > 0) step-- else step = steps.size },
+                modifier = Modifier.defaultMinSize(minWidth = 72.dp)
+            ) {
+                Text(if (step > 0) "Back" else "Skip")
             }
-            PrimaryButton(if (step == steps.size - 1) "Start" else "Next", Modifier.width(150.dp)) {
+            // weight, not a fixed width: the two controls now share the row at any screen width or
+            // font scale instead of pushing each other off the edge.
+            PrimaryButton(
+                if (step == steps.size - 1) "Start" else "Next",
+                Modifier.weight(1f)
+            ) {
                 step++
             }
         }
@@ -212,8 +225,9 @@ private fun Feature(title: String, body: String) {
             Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
         }
         Spacer(Modifier.width(12.dp))
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(2.dp))
             Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -221,21 +235,35 @@ private fun Feature(title: String, body: String) {
 
 @Composable
 private fun StepCard(title: String, body: String, done: Boolean) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Icon(
-            if (done) Icons.Filled.Check else Icons.Filled.Warning,
-            contentDescription = null,
-            tint = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-        )
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                if (done) Icons.Filled.Check else Icons.Filled.Warning,
+                contentDescription = null,
+                tint = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            // weight(1f) lets the explanatory text wrap inside the card instead of running past the
+            // rounded edge, which is what made the permission cards look misaligned.
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -248,13 +276,5 @@ private fun Granted() {
 @Suppress("ModifierParameter")
 @Composable
 private fun PrimaryButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val (pressModifier, interaction) = rememberPressScale()
-    Box(
-        modifier.then(pressModifier).height(54.dp).clip(MaterialTheme.shapes.large)
-            .background(BrandGradient)
-            .clickable(interactionSource = interaction, indication = null) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-    }
+    GradientButton(text = text, modifier = modifier, onClick = onClick)
 }
