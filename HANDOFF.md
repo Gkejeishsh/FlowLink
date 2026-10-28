@@ -10,6 +10,36 @@ failures, R8 release built, `apksigner` verifies v2 + v3).
 
 ---
 
+## Route 0 — you were handed a zip, or you will pull it from this repo
+
+`handoff/LoopJet-1.0.0-source.zip` (247 KB, 61 files) is the complete, build-ready source tree: the
+app module, Gradle wrapper and pinned version catalogue, `build-apk.sh`, this file and the design
+sources. It contains **no** keystore, no password, no build output and no `.git`.
+
+Either of these gets you a build directory:
+
+```bash
+# you were given the zip
+unzip LoopJet-1.0.0-source.zip -d ~/build && cd ~/build/LoopJet-1.0.0
+
+# or pull it straight out of the repository (no upload, no cloning the whole history)
+git clone --depth 1 --branch arena/7ef48d45-flowlink https://github.com/Gkejeishsh/FlowLink.git flowlink
+unzip -q flowlink/handoff/LoopJet-1.0.0-source.zip -d ~/build && cd ~/build/LoopJet-1.0.0
+```
+
+Verify the archive first — this is the only copy of that digest:
+
+```bash
+sha256sum -c <<< '1e8a6bb5989ce8d3dedba308c752681ec5d9496b35309c73772eb2009c038b75  LoopJet-1.0.0-source.zip'
+```
+
+Then pick a route below. With the zip you have source only, so use **Route B** (local build) or push
+the tree into a repository and use **Route A** (Actions). Signing needs a key: use the existing
+`keys/loopjet-release.p12` from the owner if you were given it, or `tools/make_keystore.py` to create
+a *new* one — but note the consequence in "Signing material" before you do that.
+
+---
+
 ## Route A — GitHub Actions (recommended; nothing to install)
 
 The workflow `.github/workflows/build.yml` already downloads JDK 21, the Android SDK

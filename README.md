@@ -153,7 +153,9 @@ pinned in `gradle/libs.versions.toml`.
 ```
 
 Building this repository on another machine or with another agent: `HANDOFF.md` has the complete
-runbook (both routes, the secret names, the acceptance checklist and the signing rules).
+runbook (both routes, the secret names, the acceptance checklist and the signing rules), and
+`handoff/LoopJet-1.0.0-source.zip` is a self-contained, build-ready copy of the source tree
+(`sha256 1e8a6bb5…8b75`) for handing to a build machine or another agent.
 
 `build-apk.sh` is the exact sequence CI runs, kept runnable on a normal machine so the shipped file
 can be reproduced: it checks JDK 21 and an SDK with platform 37 + build-tools 36, runs Gradle, aligns
