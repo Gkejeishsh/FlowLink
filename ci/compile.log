@@ -8,28 +8,47 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
-> Task :app:compileDebugKotlin
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:671:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:195:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:433:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:123:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:137:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:195:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:219:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:390:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:847:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1343:49 Unnecessary safe call on a non-null receiver of type 'FileResult'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1543:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793198484107.json
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:127:17 Conflicting declarations:
+var pendingScan: Boolean
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:150:17 Conflicting declarations:
+var pendingScan: String?
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:373:20 Overload resolution ambiguity between candidates:
+var pendingScan: String?
+var pendingScan: Boolean
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:374:9 Overload resolution ambiguity between candidates:
+var pendingScan: String?
+var pendingScan: Boolean
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:387:21 Overload resolution ambiguity between candidates:
+var pendingScan: String?
+var pendingScan: Boolean
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:391:25 Overload resolution ambiguity between candidates:
+var pendingScan: String?
+var pendingScan: Boolean
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:429:21 Overload resolution ambiguity between candidates:
+var pendingScan: String?
+var pendingScan: Boolean
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793199005962.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 13s
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: REDECLARATION
+       Kotlin compiler error
+         Conflicting declarations:
+         var pendingScan: Boolean
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt line 127
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 49s
 7 actionable tasks: 7 executed
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
