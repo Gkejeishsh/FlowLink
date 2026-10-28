@@ -1,2 +1,39 @@
-No signed APK in dist/ yet: dist/unsigned/LoopJet-1.0.0-release-aligned.apk is the aligned payload.
-e9b8d3e398a2b8289356738cd7f6342e8cfa19ebe387c495c3db40ee486b5c31  dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+== apk ==
+-rw-r--r-- 1 runner runner 1641803 Oct 28 06:34 dist/LoopJet-1.0.0-release.apk
+
+== sha256 ==
+673891c3e579b4d81f25f1c10d4823aadb0419746bda069270be112e1174cbda  dist/LoopJet-1.0.0-release.apk
+
+== apksigner verify --verbose --print-certs ==
+DOES NOT VERIFY
+ERROR: APK Signature Scheme v3 signer #1: Malformed APK Signature Scheme v3 signature record #1
+EXIT=1
+
+== apksigner verify --min-sdk-version 26 --max-sdk-version 37 ==
+DOES NOT VERIFY
+ERROR: APK Signature Scheme v3 signer #1: Malformed APK Signature Scheme v3 signature record #1
+EXIT=1
+
+== zipalign -c -p -v 4 ==
+ 1527222 res/vO.xml (OK - compressed)
+ 1527644 resources.arsc (OK)
+Verification successful
+EXIT=0
+
+== badging ==
+package: name='com.loopjet.app' versionCode='1' versionName='1.0.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'26'
+targetSdkVersion:'37'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='android.permission.ACCESS_WIFI_STATE'
+uses-permission: name='android.permission.CHANGE_WIFI_STATE'
+uses-permission: name='android.permission.CHANGE_WIFI_MULTICAST_STATE'
+uses-permission: name='android.permission.NEARBY_WIFI_DEVICES' usesPermissionFlags='neverForLocation'
+uses-permission: name='android.permission.ACCESS_LOCAL_NETWORK'
+uses-permission: name='android.permission.ACCESS_FINE_LOCATION' maxSdkVersion='32'
+uses-permission: name='android.permission.ACCESS_COARSE_LOCATION' maxSdkVersion='32'
+
+== embedded file count and size ==
+---------                     -------
+  3054676                     85 files

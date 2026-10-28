@@ -6,24 +6,22 @@ compile=0 tests=0 debug=0 release=0 wrapper=0
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
 
 == benchmark lines ==
-    [loopback] 2000 small files: 5.8 MB in 1087 ms = 5.3 MB/s
-    [loopback] large file: 192.0 MB in 488 ms = 393.4 MB/s
+    [loopback] 2000 small files: 5.8 MB in 864 ms = 6.7 MB/s
+    [loopback] large file: 192.0 MB in 1057 ms = 181.6 MB/s
 
 == last compile log lines ==
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
@@ -36,6 +34,7 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
+
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:245:21 Expression is unused.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
@@ -54,10 +53,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:379:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:736:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1082:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793168701604.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793169310632.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 58s
+BUILD SUCCESSFUL in 50s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
