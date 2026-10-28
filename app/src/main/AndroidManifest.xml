@@ -42,6 +42,10 @@
         android:name="android.permission.BLUETOOTH_CONNECT"
         tools:targetApi="31" />
 
+    <!-- Scanning the other phone's QR code. Requested lazily from the scanner screen only, so an
+         install that never scans is never asked. The app still works without it (manual code/link). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -76,6 +80,8 @@
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
         android:name=".platform.LoopJetApp"

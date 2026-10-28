@@ -55,6 +55,7 @@ import com.loopjet.app.ui.NearbyScreen
 import com.loopjet.app.ui.OfferDialog
 import com.loopjet.app.ui.OnboardingScreen
 import com.loopjet.app.ui.PickerScreen
+import com.loopjet.app.ui.QrScannerScreen
 import com.loopjet.app.ui.ReceiveScreen
 import com.loopjet.app.ui.Screen
 import com.loopjet.app.ui.SectionCard
@@ -196,6 +197,7 @@ class MainActivity : ComponentActivity() {
                             )
                             Screen.Picker -> PickerScreen(vm, state, onPickFolder = { folderLauncher.launch(null) })
                             Screen.Nearby -> NearbyScreen(vm, state)
+                            Screen.Scanner -> QrScannerScreen(vm, onClose = { vm.go(Screen.Nearby) })
                             Screen.Receive -> ReceiveScreen(vm, state)
                             Screen.Transfer -> TransferScreen(vm, state)
                             Screen.Invite -> WebScreen(vm, state, invite = true)

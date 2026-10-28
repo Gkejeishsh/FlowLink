@@ -61,6 +61,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -163,9 +164,8 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(onClick = { vm.toggleTheme() }) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Theme", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                // The refresh glyph here read as "reload", not "theme": the theme selector lives in
+                // Settings, where the System/Light/Dark choice is labelled.
                 IconButton(onClick = { vm.go(Screen.Settings) }) {
                     Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -190,7 +190,7 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
                 BigAction(
                     title = "Receive",
                     subtitle = "Show a code, get files",
-                    icon = Icons.Filled.PlayArrow,
+                    icon = Icons.Filled.KeyboardArrowDown,
                     modifier = Modifier.weight(1f),
                     onClick = onReceive,
                     accent = true
@@ -211,7 +211,7 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SmallAction("History", "${vm.history().size} sessions", Icons.Filled.Home, Modifier.weight(1f)) { vm.go(Screen.History) }
+                SmallAction("History", "${vm.history().size} sessions", Icons.Filled.Refresh, Modifier.weight(1f)) { vm.go(Screen.History) }
                 SmallAction("Settings", "Speed, trust, theme", Icons.Filled.Settings, Modifier.weight(1f)) { vm.go(Screen.Settings) }
             }
             Spacer(Modifier.height(18.dp))
@@ -256,7 +256,7 @@ private fun BigAction(
                 else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))
             )
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraLarge)
-            .clickable(role = Role.Button, interactionSource = interaction, indication = null) { onClick() }
+            .clickable(role = Role.Button, interactionSource = interaction, indication = ripple()) { onClick() }
             .padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom)
     ) {
@@ -299,7 +299,7 @@ private fun SmallAction(
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-            .clickable(role = Role.Button, interactionSource = interaction, indication = null) { onClick() }
+            .clickable(role = Role.Button, interactionSource = interaction, indication = ripple()) { onClick() }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -671,6 +671,13 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
             overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(14.dp))
+        // Scanning is the fastest path, so it is the first thing offered; typing the code stays
+        // available underneath for a dirty lens or a phone with no camera.
+        PrimaryAction(
+            "Scan the other phone's QR code",
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) { vm.go(Screen.Scanner) }
+        Spacer(Modifier.height(6.dp))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
             items(discovery.peers.size) { index ->
                 val peer = discovery.peers[index]
@@ -737,7 +744,7 @@ private fun PeerRow(peer: DiscoveredPeer, onClick: () -> Unit) {
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-            .clickable(interactionSource = interaction, indication = null) { onClick() }
+            .clickable(role = Role.Button, interactionSource = interaction, indication = ripple()) { onClick() }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

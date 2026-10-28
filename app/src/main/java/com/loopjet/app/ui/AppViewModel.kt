@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-enum class Screen { Home, Picker, Nearby, Receive, Transfer, Invite, WebShare, History, Settings, About, Onboarding }
+enum class Screen { Home, Picker, Nearby, Scanner, Receive, Transfer, Invite, WebShare, History, Settings, About, Onboarding }
 
 enum class PickCategory(val label: String) {
     Apps("Apps"),
@@ -148,8 +148,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun go(screen: Screen) {
         _state.value = _state.value.copy(screen = screen)
-        if (screen == Screen.Nearby) startDiscovery(advertise = false)
-        if (screen != Screen.Nearby) stopDiscovery()
+        if (screen == Screen.Nearby || screen == Screen.Scanner) startDiscovery(advertise = false)
+        // The scanner sits inside Send: stopping discovery there would make a freshly scanned link
+        // fail with "Open Send first so discovery is running".
+        if (screen != Screen.Nearby && screen != Screen.Scanner) stopDiscovery()
         if (screen == Screen.Receive) {
             TransferService.startReceive(getApplication())
             // The receiving phone is the one that has to be findable: it announces itself over mDNS,
@@ -162,9 +164,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun back(): Screen {
         val current = _state.value.screen
         val next = when (current) {
+            Screen.Scanner -> Screen.Nearby
             Screen.Picker, Screen.Settings, Screen.History, Screen.Invite, Screen.WebShare, Screen.Nearby,
             Screen.Receive, Screen.About -> Screen.Home
             else -> Screen.Home
+        }
+        // Re-open discovery when the scanner hands control back to Nearby (see go()).
+        if (current == Screen.Scanner) {
+            _state.value = _state.value.copy(screen = next)
+            startDiscovery(advertise = false)
+            return next
         }
         if (current == Screen.Receive || current == Screen.Transfer) {
             // Leaving the receive screen stops an idle server; an active transfer keeps running in the

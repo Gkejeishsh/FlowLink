@@ -100,6 +100,12 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.zxing.core)
+    // CameraX + zxing-core: live QR scanning. Deliberately not ML Kit, which would drag Google
+    // Play services onto a phone that is documented to transfer without it.
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)
