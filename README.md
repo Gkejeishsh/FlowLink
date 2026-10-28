@@ -143,13 +143,29 @@ pins it), AGP 9.4.1, Kotlin 2.4.21 (built into AGP), Compose BOM 2026.09.00. Eve
 pinned in `gradle/libs.versions.toml`.
 
 ```bash
+./build-apk.sh                   # build → zipalign → sign → verify → print hashes
+./build-apk.sh --test            # the same, after the unit tests
+
 ./gradlew assembleDebug          # debug APK
-./gradlew testDebugUnitTest      # engine tests over real sockets
+./gradlew testDebugUnitTest      # engine + HTTP tests over real sockets
 ./gradlew assembleRelease        # R8 release APK (unsigned without LJ_KEYSTORE)
 ./gradlew lintRelease
 ```
 
-CI (`.github/workflows/build.yml`) runs exactly those tasks, then zipaligns the release payload,
+`build-apk.sh` is the exact sequence CI runs, kept runnable on a normal machine so the shipped file
+can be reproduced: it checks JDK 21 and an SDK with platform 37 + build-tools 36, runs Gradle, aligns
+the payload with `zipalign -p 4`, signs with `apksigner` v2+v3 (password passed via `env:`, never on
+the command line), verifies the result and prints the SHA-256 and badging. Without a keystore it stops
+after alignment and says so — an unsigned APK does not install.
+
+Reproducing the shipped artefact:
+
+```bash
+python3 tools/make_keystore.py --out ~/keys/loopjet.p12 --credentials ~/keys/creds.txt   # once
+LJ_KEYSTORE=~/keys/loopjet.p12 LJ_STORE_PASS=... ./build-apk.sh --test
+```
+
+CI (`.github/workflows/build.yml`) downloads the Android SDK, runs exactly those tasks, then zipaligns the release payload,
 verifies it with `apksigner`, and publishes `ci/*.log`, `ci/summary.txt`, the benchmark lines and
 `dist/SIGNING-REPORT.txt` back to the branch. Signing is done with `tools/sign_apk.py`, a small
 independent v2+v3 signer, because the keystore must not live in the repository — CI only ever verifies
