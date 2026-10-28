@@ -66,7 +66,7 @@
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">2.530s</div>
+<div class="counter">2.456s</div>
 <p>duration</p>
 </div>
 </td>
@@ -89,23 +89,185 @@
 <h2>standard output</h2>
 <span class="code">
 <pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=true msg=Transfer complete bytes=25165824 files=0 chunks=96/96
-[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2135 path=/tmp/loopjet-test-resume-237795167643/dst
-[receiver-failed] --- engine log (12 lines) ---
-[receiver-failed] R: sender Test Phone connected, code 292916
-[receiver-failed] S: handshake complete with Receiver, code 292916
+[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2134 path=/tmp/loopjet-test-resume-389719922815/dst
+[receiver-failed] --- engine log (174 lines) ---
+[receiver-failed] S: handshake complete with Receiver, code 335950
+[receiver-failed] R: sender Test Phone connected, code 335950
 [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
 [receiver-failed] S: data stream 0 open
 [receiver-failed] S: data stream 1 open
 [receiver-failed] S: data stream 2 open
 [receiver-failed] S: data stream 3 open
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: stalled for 1988ms, ending session
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 0 open
+[receiver-failed] S: data stream 3 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] R: stalled for 1986ms, ending session
 [loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
 [sender] ok=true msg=Transfer complete bytes=25165824 files=0 chunks=96/96
-[receiver] ok=true msg=Transfer complete bytes=25165824 files=1 chunks=96/96 ms=196 path=/tmp/loopjet-test-resume-237795167643/dst
+[receiver] ok=true msg=Transfer complete bytes=25165824 files=1 chunks=96/96 ms=179 path=/tmp/loopjet-test-resume-389719922815/dst
 [loopback] resume: sender=24.0 MB receiver ok=true
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">Copy</button>
@@ -148,7 +310,7 @@ Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: slee
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 28, 2026, 6:12:20 AM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 28, 2026, 6:26:41 AM</p>
 </div>
 </div>
 </body>

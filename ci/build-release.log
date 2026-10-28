@@ -12,32 +12,32 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:generateReleaseBuildConfig
 > Task :app:generateReleaseResources FROM-CACHE
 > Task :app:extractReleaseNativeSymbolTables
-> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:packageReleaseResources
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:processReleaseNavigationResources
 > Task :app:parseReleaseLocalResources FROM-CACHE
 > Task :app:generateReleaseRFile FROM-CACHE
 > Task :app:javaPreCompileRelease FROM-CACHE
 > Task :app:mergeReleaseArtProfile
 > Task :app:mapReleaseSourceSetPaths
-> Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:checkReleaseAarMetadata
+> Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:extractProguardFiles
-> Task :app:processReleaseManifestForPackage
 > Task :app:mergeReleaseStartupProfile
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
+> Task :app:processReleaseManifestForPackage
 > Task :app:compressReleaseAssets
-> Task :app:mergeReleaseResources
 > Task :app:extractReleaseVersionControlInfo
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
+> Task :app:mergeReleaseResources
 > Task :app:processReleaseResources
 
 > Task :app:compileReleaseKotlin
@@ -46,24 +46,24 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:323:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:174:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:342:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:519:136 Expression is unused.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:521:136 Expression is unused.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:105:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:120:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:189:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:213:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:190:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:214:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:379:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:736:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1082:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 
 > Task :app:compileReleaseJavaWithJavac
 > Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:processReleaseJavaRes
-> Task :app:mergeReleaseJavaResource
 > Task :app:expandReleaseArtProfileWildcards
+> Task :app:mergeReleaseJavaResource
 > Task :app:produceReleaseComposeMapping
 > Task :app:reportReleaseComposeMappingErrors
 > Task :app:minifyReleaseWithR8
@@ -74,10 +74,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793168012206.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793168869043.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 2m 7s
+BUILD SUCCESSFUL in 2m 1s
 47 actionable tasks: 42 executed, 5 from cache
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
