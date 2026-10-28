@@ -177,9 +177,9 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 20 errors, 61 warnings and 3 hints</span>
+      <span class="mdl-layout-title">Lint Report: 17 errors and 61 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Wed Oct 28 07:30:41 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Wed Oct 28 07:41:41 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -194,11 +194,9 @@ document.getElementById(id).style.display = 'none';
       <a class="mdl-navigation__link" href="#GradleDependency"><i class="material-icons warning-icon">warning</i>Obsolete Gradle Dependency (5)</a>
       <a class="mdl-navigation__link" href="#NewerVersionAvailable"><i class="material-icons warning-icon">warning</i>Newer Library Versions Available (2)</a>
       <a class="mdl-navigation__link" href="#ModifierParameter"><i class="material-icons warning-icon">warning</i>Guidelines for Modifier parameters in a Composable function (1)</a>
-      <a class="mdl-navigation__link" href="#UnrememberedMutableState"><i class="material-icons error-icon">error</i>Creating a state object during composition without using <code>remember</code> (3)</a>
       <a class="mdl-navigation__link" href="#DiscouragedApi"><i class="material-icons warning-icon">warning</i>Using discouraged APIs (1)</a>
       <a class="mdl-navigation__link" href="#DataExtractionRules"><i class="material-icons warning-icon">warning</i>Missing data extraction rules (1)</a>
       <a class="mdl-navigation__link" href="#ObsoleteSdkInt"><i class="material-icons warning-icon">warning</i>Obsolete SDK_INT Version Check (6)</a>
-      <a class="mdl-navigation__link" href="#AutoboxingStateCreation"><i class="material-icons warning-icon">warning</i><code>State&lt;T></code> will autobox values assigned to this state. Use a specialized state type instead. (3)</a>
       <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (6)</a>
       <a class="mdl-navigation__link" href="#UsableSpace"><i class="material-icons warning-icon">warning</i>Using getUsableSpace() (3)</a>
       <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (28)</a>
@@ -241,9 +239,6 @@ document.getElementById(id).style.display = 'none';
 <td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#ModifierParameter">ModifierParameter</a>: Guidelines for Modifier parameters in a Composable function</td></tr>
 <tr>
-<td class="countColumn">3</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
-<a href="#UnrememberedMutableState">UnrememberedMutableState</a>: Creating a state object during composition without using <code>remember</code></td></tr>
-<tr>
 <td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#DiscouragedApi">DiscouragedApi</a>: Using discouraged APIs</td></tr>
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Security">Security</a>
@@ -256,9 +251,6 @@ document.getElementById(id).style.display = 'none';
 <tr>
 <td class="countColumn">6</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#ObsoleteSdkInt">ObsoleteSdkInt</a>: Obsolete SDK_INT Version Check</td></tr>
-<tr>
-<td class="countColumn">3</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#AutoboxingStateCreation">AutoboxingStateCreation</a>: <code>State&lt;T></code> will autobox values assigned to this state. Use a specialized state type instead.</td></tr>
 <tr>
 <td class="countColumn">6</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#UnusedResources">UnusedResources</a>: Unused resources</td></tr>
@@ -877,14 +869,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:175</span>: <span class="message">Modifier parameter should be the first optional parameter</span><br /><pre class="errorlines">
-<span class="lineno"> 172 </span><span class="javadoc"> * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
-</span><span class="lineno"> 173 </span><span class="javadoc"> */</span>
-<span class="lineno"> 174 </span><span class="annotation">@Composable</span>
-<span class="caretline"><span class="lineno"> 175 </span><span class="keyword">fun</span> LoopJetMark(size: Int = <span class="number">72</span>, <span class="warning">modifier</span>: Modifier = Modifier, roundedBackground: Boolean = <span class="keyword">true</span>) {&nbsp;</span>
-<span class="lineno"> 176 </span>    Canvas(modifier = modifier.size(size.dp)) {
-<span class="lineno"> 177 </span>        <span class="keyword">val</span> s = <span class="keyword">this</span>.size.minDimension
-<span class="lineno"> 178 </span>        <span class="keyword">if</span> (roundedBackground) {
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:176</span>: <span class="message">Modifier parameter should be the first optional parameter</span><br /><pre class="errorlines">
+<span class="lineno"> 173 </span><span class="javadoc"> * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
+</span><span class="lineno"> 174 </span><span class="javadoc"> */</span>
+<span class="lineno"> 175 </span><span class="annotation">@Composable</span>
+<span class="caretline"><span class="lineno"> 176 </span><span class="keyword">fun</span> LoopJetMark(size: Int = <span class="number">72</span>, <span class="warning">modifier</span>: Modifier = Modifier, roundedBackground: Boolean = <span class="keyword">true</span>) {&nbsp;</span>
+<span class="lineno"> 177 </span>    Canvas(modifier = modifier.size(size.dp)) {
+<span class="lineno"> 178 </span>        <span class="keyword">val</span> s = <span class="keyword">this</span>.size.minDimension
+<span class="lineno"> 179 </span>        <span class="keyword">if</span> (roundedBackground) {
 </pre>
 
 </div>
@@ -920,74 +912,6 @@ Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">
               <div class="mdl-card__actions mdl-card--border">
 <button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationModifierParameterLink" onclick="reveal('explanationModifierParameter');">
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="ModifierParameterCardLink" onclick="hideid('ModifierParameterCard');">
-Dismiss</button>            </div>
-            </div>
-          </section><a name="UnrememberedMutableState"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="UnrememberedMutableStateCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Creating a state object during composition without using remember</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:256</span>: <span class="message">Creating a state object during composition without using <code>remember</code></span><br /><pre class="errorlines">
-<span class="lineno"> 253 </span>            label = <span class="string">"phase"</span>
-<span class="lineno"> 254 </span>        )
-<span class="lineno"> 255 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 256 </span>        androidx.compose.runtime.<span class="error">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 257 </span>    }
-<span class="lineno"> 258 </span>    Canvas(modifier) {
-<span class="lineno"> 259 </span>        <span class="keyword">val</span> maxRadius = size.minDimension / <span class="number">2f</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:288</span>: <span class="message">Creating a state object during composition without using <code>remember</code></span><br /><pre class="errorlines">
-<span class="lineno"> 285 </span>            label = <span class="string">"dash"</span>
-<span class="lineno"> 286 </span>        )
-<span class="lineno"> 287 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 288 </span>        androidx.compose.runtime.<span class="error">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 289 </span>    }
-<span class="lineno"> 290 </span>    Canvas(modifier) {
-<span class="lineno"> 291 </span>        <span class="keyword">val</span> y = size.height / <span class="number">2f</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:430</span>: <span class="message">Creating a state object during composition without using <code>remember</code></span><br /><pre class="errorlines">
-<span class="lineno"> 427 </span>            label = <span class="string">"float"</span>
-<span class="lineno"> 428 </span>        )
-<span class="lineno"> 429 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 430 </span>        androidx.compose.runtime.<span class="error">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 431 </span>    }
-<span class="lineno"> 432 </span>    Column(
-<span class="lineno"> 433 </span>        modifier.fillMaxWidth().padding(<span class="number">28.d</span>p),
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationUnrememberedMutableState" style="display: none;">
-State objects created during composition need to be `remember`ed, otherwise they will be recreated during recomposition, and lose their state. Either hoist the state to an object that is not created during composition, or wrap the state in a call to <code>remember</code>.<br/>To suppress this error, use the issue id "UnrememberedMutableState" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="vendor">
-Vendor: Jetpack Compose<br/>
-Identifier: androidx.compose.runtime<br/>
-Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">https://issuetracker.google.com/issues/new?component=612128</a><br/>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">UnrememberedMutableState</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Correctness</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Error</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 3/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationUnrememberedMutableStateLink" onclick="reveal('explanationUnrememberedMutableState');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="UnrememberedMutableStateCardLink" onclick="hideid('UnrememberedMutableStateCard');">
 Dismiss</button>            </div>
             </div>
           </section><a name="DiscouragedApi"></a>
@@ -1175,74 +1099,6 @@ To suppress this error, use the issue id "ObsoleteSdkInt" as explained in the <a
               <div class="mdl-card__actions mdl-card--border">
 <button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationObsoleteSdkIntLink" onclick="reveal('explanationObsoleteSdkInt');">
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="ObsoleteSdkIntCardLink" onclick="hideid('ObsoleteSdkIntCard');">
-Dismiss</button>            </div>
-            </div>
-          </section><a name="AutoboxingStateCreation"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="AutoboxingStateCreationCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">State&amp;lt;T> will autobox values assigned to this state. Use a specialized state type instead.</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:256</span>: <span class="message">Prefer <code>mutableFloatStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno"> 253 </span>            label = <span class="string">"phase"</span>
-<span class="lineno"> 254 </span>        )
-<span class="lineno"> 255 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 256 </span>        androidx.compose.runtime.<span class="warning">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 257 </span>    }
-<span class="lineno"> 258 </span>    Canvas(modifier) {
-<span class="lineno"> 259 </span>        <span class="keyword">val</span> maxRadius = size.minDimension / <span class="number">2f</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:288</span>: <span class="message">Prefer <code>mutableFloatStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno"> 285 </span>            label = <span class="string">"dash"</span>
-<span class="lineno"> 286 </span>        )
-<span class="lineno"> 287 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 288 </span>        androidx.compose.runtime.<span class="warning">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 289 </span>    }
-<span class="lineno"> 290 </span>    Canvas(modifier) {
-<span class="lineno"> 291 </span>        <span class="keyword">val</span> y = size.height / <span class="number">2f</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:430</span>: <span class="message">Prefer <code>mutableFloatStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno"> 427 </span>            label = <span class="string">"float"</span>
-<span class="lineno"> 428 </span>        )
-<span class="lineno"> 429 </span>    } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 430 </span>        androidx.compose.runtime.<span class="warning">mutableStateOf</span>(<span class="number">0f</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 431 </span>    }
-<span class="lineno"> 432 </span>    Column(
-<span class="lineno"> 433 </span>        modifier.fillMaxWidth().padding(<span class="number">28.d</span>p),
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationAutoboxingStateCreation" style="display: none;">
-Calling <code>mutableStateOf&lt;T>()</code> when <code>T</code> is either backed by a primitive type on the JVM or is a value class results in a state implementation that requires all state values to be boxed. This usually causes an additional allocation for each state write, and adds some additional work to auto-unbox values when reading the value of the state. Instead, prefer to use a specialized primitive state implementation for <code>Int</code>, <code>Long</code>, <code>Float</code>, and <code>Double</code> when the state does not need to track null values and does not override the default <code>SnapshotMutationPolicy</code>. See <code>mutableIntStateOf()</code>, <code>mutableLongStateOf()</code>, <code>mutableFloatStateOf()</code>, and <code>mutableDoubleStateOf()</code> for more information.<br/>To suppress this error, use the issue id "AutoboxingStateCreation" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="vendor">
-Vendor: Jetpack Compose<br/>
-Identifier: androidx.compose.runtime<br/>
-Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">https://issuetracker.google.com/issues/new?component=612128</a><br/>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">AutoboxingStateCreation</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Performance</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Hint</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 3/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationAutoboxingStateCreationLink" onclick="reveal('explanationAutoboxingStateCreation');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="AutoboxingStateCreationCardLink" onclick="hideid('AutoboxingStateCreationCard');">
 Dismiss</button>            </div>
             </div>
           </section><a name="UnusedResources"></a>
