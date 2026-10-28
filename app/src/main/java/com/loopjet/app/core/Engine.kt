@@ -837,6 +837,7 @@ class ReceiverEngine(
             val lastActivity = AtomicLong(System.currentTimeMillis())
             val committedFiles = ConcurrentHashMap.newKeySet<Int>()
             val commitLock = Any()
+            var lastSaveAt = System.currentTimeMillis()
             val progressThread = Thread({
                 while (!closed.get() && doneLatch.count > 0) {
                     val transferredNow = rate.total()
@@ -856,6 +857,17 @@ class ReceiverEngine(
                                 )
                                 channel.flush()
                             }
+                        }
+                    }
+                    if (System.currentTimeMillis() - lastSaveAt > 2000) {
+                        lastSaveAt = System.currentTimeMillis()
+                        runCatching {
+                            resumeStore.save(
+                                m.sessionId,
+                                m.chunkSize,
+                                maps.filterValues { !it.isComplete() },
+                                emptyMap()
+                            )
                         }
                     }
                     listener.onProgress(
@@ -996,11 +1008,19 @@ class ReceiverEngine(
                         }
                     }
                     sinks.remove(file.id)
-                    resumeStore.save(m.sessionId, m.chunkSize, maps.filterValues { !it.isComplete() }, emptyMap())
                 } else {
                     pending.add(file)
                     sink.close()
                 }
+            }
+            // Persist every file that is not complete: this is what a later session resumes from.
+            runCatching {
+                resumeStore.save(
+                    m.sessionId,
+                    m.chunkSize,
+                    maps.filterValues { !it.isComplete() },
+                    emptyMap()
+                )
             }
             synchronized(commitLock) {
                 runCatching {
