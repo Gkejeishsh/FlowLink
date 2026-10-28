@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,7 +59,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -478,11 +478,7 @@ private fun StaggeredEntrance(index: Int, content: @Composable () -> Unit) {
         animationSpec = if (motion.enabled) tween(220, delayMillis = (index % 12) * 22) else tween(0),
         label = "alpha"
     )
-    Box(Modifier.fillMaxWidth()) {
-        androidx.compose.runtime.CompositionLocalProvider(
-            androidx.compose.ui.graphics.graphicsLayer(alpha = alpha)
-        ) { content() }
-    }
+    Box(Modifier.fillMaxWidth().graphicsLayer { this.alpha = alpha }) { content() }
 }
 
 @Composable
