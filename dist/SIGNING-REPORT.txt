@@ -1,1 +1,52 @@
-no release apk produced
+== apk ==
+-rw-r--r-- 1 runner runner 1674573 Oct 28 12:22 dist/LoopJet-1.0.0-release.apk
+
+== sha256 ==
+11075d62bef87259f0fbe315c38ca6ccf4446d4d8baba234e8ec0e0b07e46b80  dist/LoopJet-1.0.0-release.apk
+
+== apksigner verify --verbose --print-certs ==
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=PK, ST=Local, L=Local, O=LoopJet, OU=Release, CN=LoopJet
+Signer #1 certificate SHA-256 digest: f35454a191e71fc689835921811560d70093f33ac43d0b01aa455a5b22d363dd
+Signer #1 certificate SHA-1 digest: 2174f29b7a2d339e527baef411ef8e5333897c03
+Signer #1 certificate MD5 digest: 732579dc46f534d8d342e7d7617a9d9a
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 4096
+Signer #1 public key SHA-256 digest: a97e2d42c3cebf8d64a2d55d18f549c9efa3fe967b1d95a20cac8a76db1a1b3f
+Signer #1 public key SHA-1 digest: 1845b0734e84fe5faad90d3c3e350cb507e8dd72
+Signer #1 public key MD5 digest: 0912c4c06beb40376c92c443fa74e126
+EXIT=0
+
+== apksigner verify --min-sdk-version 26 --max-sdk-version 37 ==
+EXIT=0
+
+== zipalign -c -p -v 4 ==
+ 1559990 res/vO.xml (OK - compressed)
+ 1560412 resources.arsc (OK)
+Verification successful
+EXIT=0
+
+== badging ==
+package: name='com.loopjet.app' versionCode='1' versionName='1.0.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'26'
+targetSdkVersion:'37'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='android.permission.ACCESS_WIFI_STATE'
+uses-permission: name='android.permission.CHANGE_WIFI_STATE'
+uses-permission: name='android.permission.CHANGE_WIFI_MULTICAST_STATE'
+uses-permission: name='android.permission.NEARBY_WIFI_DEVICES' usesPermissionFlags='neverForLocation'
+uses-permission: name='android.permission.ACCESS_LOCAL_NETWORK'
+uses-permission: name='android.permission.ACCESS_FINE_LOCATION' maxSdkVersion='32'
+uses-permission: name='android.permission.ACCESS_COARSE_LOCATION' maxSdkVersion='32'
+
+== embedded file count and size ==
+---------                     -------
+  3112233                     85 files
