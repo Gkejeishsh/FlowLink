@@ -4,6 +4,7 @@ import com.loopjet.app.core.Json
 import com.loopjet.app.core.int
 import com.loopjet.app.core.obj
 import com.loopjet.app.core.str
+import java.util.Base64
 
 /**
  * The one code that carries everything needed to connect.
