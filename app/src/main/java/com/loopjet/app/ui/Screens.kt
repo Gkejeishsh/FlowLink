@@ -1253,12 +1253,15 @@ private fun FileTimelineRow(
         inFlight -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.outline
     }
+    // Canvas draws outside composition, so every theme colour it needs is read here.
+    val lineColor = MaterialTheme.colorScheme.outlineVariant
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
     Row(Modifier.fillMaxWidth()) {
         // Timeline gutter: the ring is the node, the line runs through it.
         Box(Modifier.width(56.dp).heightIn(min = 64.dp), contentAlignment = Alignment.TopCenter) {
             Canvas(Modifier.width(2.dp).fillMaxHeight().padding(top = 40.dp)) {
                 if (!isLast) {
-                    drawRect(color = MaterialTheme.colorScheme.outlineVariant)
+                    drawRect(color = lineColor)
                 }
             }
             Box(Modifier.padding(top = 6.dp).size(40.dp), contentAlignment = Alignment.Center) {
@@ -1266,7 +1269,7 @@ private fun FileTimelineRow(
                     val stroke = 4f
                     val inset = stroke / 2
                     drawArc(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = trackColor,
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
