@@ -127,7 +127,8 @@ def signed_data_v2(digest: bytes, cert_der: bytes) -> bytes:
 def signed_data_v3(digest: bytes, cert_der: bytes, min_sdk: int, max_sdk: int) -> bytes:
     digests = lp(u32(SIG_ALG_RSA_PKCS1_SHA256) + lp(digest))
     certificates = lp(cert_der)
-    attributes = lp(b"")
+    # v3 signed data holds the raw attribute sequence; the length prefix belongs to the field.
+    attributes = b""
     return lp(digests) + lp(certificates) + u32(min_sdk) + u32(max_sdk) + lp(attributes)
 
 
