@@ -1,18 +1,31 @@
 == apk ==
--rw-r--r-- 1 runner runner 1641819 Oct 28 06:41 dist/LoopJet-1.0.0-release.apk
+-rw-r--r-- 1 runner runner 1641815 Oct 28 06:52 dist/LoopJet-1.0.0-release.apk
 
 == sha256 ==
-1c8690fd310264aba436f917a167ec9ac181c1b91a6be8eea518eec2b68a0148  dist/LoopJet-1.0.0-release.apk
+33e5c419e2faa6d4f4c7c84ceade7f64e29c45438aafffae979fc839261dc085  dist/LoopJet-1.0.0-release.apk
 
 == apksigner verify --verbose --print-certs ==
-DOES NOT VERIFY
-ERROR: APK Signature Scheme v3 signer #1: Malformed additional attribute #1
-EXIT=1
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK
+Signer #1 certificate SHA-256 digest: fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d
+Signer #1 certificate SHA-1 digest: ab5e3be6b444f72e443456ff25b82cc906430a4a
+Signer #1 certificate MD5 digest: 89f90989c15b71e213fd2a26c0d33991
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 4096
+Signer #1 public key SHA-256 digest: 2b4c1fedd02d25d0be34783315f1dcaa9b7a4758681da8e63a191c5da11e3038
+Signer #1 public key SHA-1 digest: f81641b1d22526b7ad1c400e80d7ac2196cc825e
+Signer #1 public key MD5 digest: 5cbcb69fa1b9a4af011f56adc23f575f
+EXIT=0
 
 == apksigner verify --min-sdk-version 26 --max-sdk-version 37 ==
-DOES NOT VERIFY
-ERROR: APK Signature Scheme v3 signer #1: Malformed additional attribute #1
-EXIT=1
+EXIT=0
 
 == zipalign -c -p -v 4 ==
  1527222 res/vO.xml (OK - compressed)
