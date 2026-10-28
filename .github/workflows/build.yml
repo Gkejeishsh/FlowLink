@@ -38,6 +38,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - uses: actions/setup-java@v5
         with:
@@ -144,17 +145,33 @@ jobs:
         if: always()
         run: |
           mkdir -p ci dist
-          grep -h "MB/s" ci/test.log > ci/benchmark-lines.txt 2>/dev/null || true
+          set +e
+          grep -h "MB/s" ci/test.log > ci/benchmark-lines.txt 2>/dev/null
+          {
+            echo "compile=$COMPILE_RC tests=$TEST_RC debug=$DEBUG_RC release=$RELEASE_RC wrapper=$WRAPPER_RC"
+            echo
+            echo "== first compile errors =="
+            grep -E "^e: |error:|FAILURE:" ci/compile.log | head -60
+            echo
+            echo "== test failures =="
+            grep -E "FAILED|Exception|assert" ci/test.log | head -60
+            echo
+            echo "== benchmark lines =="
+            grep "MB/s" ci/test.log | head -40
+            echo
+            echo "== last compile log lines =="
+            tail -40 ci/compile.log
+          } > ci/summary.txt
+          cat ci/summary.txt
           ls -la ci dist
-          git config user.name "loopjet-ci"
-          git config user.email "ci@loopjet.local"
-          git add -f ci dist gradle/wrapper
-          if git diff --cached --quiet; then echo "nothing to publish"; exit 0; fi
-          git commit -m "ci: build artifacts and reports [skip ci]"
-          for i in 1 2 3; do
-            git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && break
-            sleep 3
-          done
+          for d in ci dist gradle/wrapper; do git add -f "$d" 2>/dev/null; done
+          git -c user.name=loopjet-ci -c user.email=ci@loopjet.local commit -m "ci: results [skip ci]" 2>/dev/null || echo "nothing to commit"
+          git push origin HEAD:refs/heads/${GITHUB_REF_NAME} 2>/dev/null || {
+            git fetch origin ${GITHUB_REF_NAME} 2>/dev/null
+            git rebase FETCH_HEAD 2>/dev/null || true
+            git push origin HEAD:refs/heads/${GITHUB_REF_NAME}
+          }
+          exit 0
 
       - name: Report failures
         if: always()

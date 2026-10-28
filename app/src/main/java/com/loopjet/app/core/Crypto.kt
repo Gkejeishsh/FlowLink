@@ -281,6 +281,9 @@ object IdentityVerifier {
 class SoftwareIdentity(private val privateKey: PrivateKey, override val publicKeySpki: ByteArray) : Identity {
     override val algorithm: String = "EC"
 
+    /** PKCS#8 export used when persisting the fallback identity in private preferences. */
+    fun privateKeyPkcs8(): ByteArray = privateKey.encoded
+
     override fun sign(data: ByteArray): ByteArray {
         val sig = Signature.getInstance("SHA256withECDSA")
         sig.initSign(privateKey)
