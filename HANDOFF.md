@@ -27,10 +27,14 @@ git clone --depth 1 --branch arena/7ef48d45-flowlink https://github.com/Gkejeish
 unzip -q flowlink/handoff/LoopJet-1.0.0-source.zip -d ~/build && cd ~/build/LoopJet-1.0.0
 ```
 
-Verify the archive first — this is the only copy of that digest:
+Verify the archive before you build from it. The digest lives in `handoff/SHA256SUMS.txt`, next to the
+zip and *outside* it — hard-coding it inside the archive it describes would be self-referential, because
+any edit to this file changes the zip:
 
 ```bash
-sha256sum -c <<< '1e8a6bb5989ce8d3dedba308c752681ec5d9496b35309c73772eb2009c038b75  LoopJet-1.0.0-source.zip'
+cd flowlink/handoff && sha256sum -c SHA256SUMS.txt
+# or, if you were handed the zip on its own, compare against the value in that file:
+sha256sum LoopJet-1.0.0-source.zip
 ```
 
 Then pick a route below. With the zip you have source only, so use **Route B** (local build) or push
