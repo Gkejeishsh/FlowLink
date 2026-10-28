@@ -328,3 +328,75 @@ a real Samsung ROM, Wi-Fi Direct group formation, and the rings/bars themselves 
 What is verified is a clean compile, 19/19 JVM tests, a signed APK with the expected strings in the
 dex, and manifest permissions (`NEARBY_WIFI_DEVICES`, `ACCESS_FINE_LOCATION` maxSdk 32,
 `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`, `CAMERA`).
+
+---
+
+# Build: LoopJet 1.0.0 — connection fix (`dist/LoopJet-1.0.0-connect-fix.apk`)
+
+* size **2,373,939 bytes**
+* sha256 `360a39a60cb8e24c643a780014df23018244a4b662093e80b382df2045fa62b2`
+* signed v2+v3, `SELF-CHECK: OK`, single dex, not debuggable
+* source commit `ee22ca8`, CI run **40741852868**: compile/debug/release all 0, **24/24 tests**
+* aligned payload sha256 `70304d15…`
+
+## ⚠ This APK is signed with a NEW key
+
+The old signing keystore lived outside the persisted workspace and was destroyed when the
+sandbox restarted, and repo secrets are not accessible from here (and CI has no signing
+secret, which is why its builds are unsigned). A fresh RSA-2048 key was generated and now
+lives at `keys/` inside the workspace, git-ignored, so it survives from here on.
+
+**Consequence: uninstall the previous LoopJet once before installing this one** (Android
+refuses an update signed by a different key). Settings and history from the old install are
+not carried over. Every build from this one onwards keeps this signature.
+
+## The bug that made every scan fail
+
+`Receive` was started **twice** per entry: `receiveHere()` called `go(Screen.Receive)` — which
+already starts the service — and then called `startReceive()` again. The second
+`ACTION_RECEIVE` built a second receiver, could not have port 43130 because the first one held
+it, bound **43132**, published a QR pointing at 43132, and then reached `startWorker()` with
+`running == true`, which called `stopSelfSafely()` and tore down *both* engines and the
+service.
+
+Net effect: the screen advertised `loopjet://<ip>:43132` with nothing listening, the sender
+dialled it and got `failed to connect`, and the receiving phone sat on the QR page forever
+because its own session was already dead. Transport-independent, which is why Wi-Fi and
+hotspot both failed.
+
+## Fixes
+
+1. `ACTION_RECEIVE` is idempotent — an existing receive session is reused, never rebound or
+   republished; a send in flight is reported instead of killed.
+2. `startWorker()` no longer stops the service when a session is already running.
+3. `receiveHere()` no longer double-starts.
+4. Tapping Send while receiving closes only the passive receiver (`stopReceivingOnly`), so a
+   phone can swap roles.
+5. The receiver now publishes `CONNECTING` after the handshake and `WAITING_ACCEPT` before the
+   offer, so **the receiving phone moves to the transfer screen by itself**. Before, its first
+   state change was `TRANSFERRING`, so the screen only appeared once bytes were moving — the
+   "section only opens on the phone that scans" complaint.
+6. The Receive screen says "receiver stopped — this code will not connect" with a Restart
+   button instead of showing a code that cannot work.
+7. `ConnectDiagnosis` replaces the raw socket text: different subnets, peer alive but its port
+   closed, or peer silent — each with the phone to fix. Runs only after a failure.
+8. A bound socket that cannot connect retries on the default route (covers a stale specifier
+   network left by an earlier hotspot join).
+9. The advertised address is re-checked every 3 s while idle, so opening Receive *before*
+   joining Wi-Fi no longer leaves a dead code on screen.
+10. `sessionBinding()` prefers `wlan*` over `ap*/swlan*` and `p2p*`, so a leftover Wi-Fi Direct
+    address (192.168.49.1) can no longer be advertised to a same-Wi-Fi peer.
+11. `ReceiveCodes.lanLink` is the single place the code is built and refuses `0.0.0.0` — the
+    new test caught that regression in review.
+
+## Tests
+
+19 → **24**. New: the published code must point at the port the receiver is actually
+listening on; a sender dialling the *parsed* link must transfer a file end to end; the
+diagnosis messages; empty/portless links are never published.
+
+## Throughput
+
+`core/`'s data path was not touched: the only change in `Engine.kt` is two UI listener
+callbacks. Loopback in this run: 370.7 MB/s large file, 6.9 MB/s for 2 000 small files —
+inside the runner's usual spread (166–407 MB/s on identical code).

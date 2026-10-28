@@ -27,3 +27,6 @@ Thumbs.db
 tools/out/
 __pycache__/
 *.pyc
+
+# Signing material: never publish the release key.
+keys/
