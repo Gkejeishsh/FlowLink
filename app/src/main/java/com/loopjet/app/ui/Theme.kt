@@ -100,9 +100,10 @@ private val DarkScheme: ColorScheme = darkColorScheme(
     onSecondaryContainer = Color(0xFFE9DEFF),
     tertiary = Color(0xFF57D8E8),
     onTertiary = Color(0xFF00282E),
-    background = Color(0xFF07090F),
+    // True black for OLED, with surfaces lifted just enough to keep elevation readable in AA contrast.
+    background = Color(0xFF000000),
     onBackground = Color(0xFFF2F5FF),
-    surface = Color(0xFF0E121B),
+    surface = Color(0xFF0B0F17),
     onSurface = Color(0xFFF2F5FF),
     surfaceVariant = Color(0xFF1A2030),
     onSurfaceVariant = Color(0xFFAEB7CC),
