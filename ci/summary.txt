@@ -1,0 +1,48 @@
+compile=1 tests=1 debug=1 release=1 wrapper=1
+
+== first compile errors ==
+e: file:///home/runner/work/FlowLink/FlowLink/app/build.gradle.kts:23:45: Unresolved reference 'io'.
+e: file:///home/runner/work/FlowLink/FlowLink/app/build.gradle.kts:25:34: Unresolved reference 'io'.
+FAILURE: Build failed with an exception.
+
+== test failures ==
+BUILD FAILED in 11s
+
+== benchmark lines ==
+
+== last compile log lines ==
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+w: file:///home/runner/work/FlowLink/FlowLink/app/build.gradle.kts:18:9: 'val resourceConfigurations: MutableSet<String>' is deprecated. Support for resource configurations will be removed. For language resource configurations in applications, use androidResources.localeFilters.
+e: file:///home/runner/work/FlowLink/FlowLink/app/build.gradle.kts:23:45: Unresolved reference 'io'.
+e: file:///home/runner/work/FlowLink/FlowLink/app/build.gradle.kts:25:34: Unresolved reference 'io'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793163280301.json
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/runner/work/FlowLink/FlowLink/app/build.gradle.kts' line: 18
+
+* What went wrong:
+Script compilation errors:
+
+  Line 18:         resourceConfigurations += listOf("en")
+                   ^ 'val resourceConfigurations: MutableSet<String>' is deprecated. Support for resource configurations will be removed. For language resource configurations in applications, use androidResources.localeFilters.
+
+  Line 23:         if (releaseKeystore != null && java.io.File(releaseKeystore).exists()) {
+                                                       ^ Unresolved reference 'io'.
+
+  Line 25:                 storeFile = java.io.File(releaseKeystore)
+                                            ^ Unresolved reference 'io'.
+
+3 errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 12s
