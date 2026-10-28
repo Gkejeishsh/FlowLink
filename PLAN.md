@@ -287,9 +287,11 @@ in-app benchmark exists precisely so a user can produce the missing numbers on r
 
 * `LoopJet-1.0.0-release.apk` — universal, R8, non-debuggable, zipaligned, v2+v3 signed.
 * Cert SHA-256 printed by `apksigner verify --print-certs` in `dist/SIGNING-REPORT.txt`.
-* Keystore lives outside the source tree (`/home/user/deliverables/loopjet-release.jks`); the alias,
+* Keystore lives outside the source tree (`/home/user/keys/loopjet-release.p12`, PKCS#12); the alias,
   password, certificate fingerprints and a backup warning are in a separate file outside the
-  repository (`/home/user/loopjet-credentials.md`). `.gitignore` blocks `*.jks`/`*.keystore`.
+  repository (`/home/user/keys/loopjet-credentials.txt`). `.gitignore` blocks `*.jks`/`*.keystore`/`*.p12`,
+  and `tools/make_keystore.py` reproduces the key with the same parameters without ever printing the
+  password to the shell.
 * `README.md` (build, run, architecture, limits), this plan, `TEST_REPORT.md`.
 
 ---

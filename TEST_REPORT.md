@@ -24,22 +24,22 @@ Environment
 | Debug APK build | pass |
 | Lint (release) | runs; findings listed in `dist/lint-report.html` |
 | `zipalign -c -p -v 4` | `Verification successful` |
-| APK size | 1 674 583 bytes, 86 entries, `resources.arsc` present |
+| APK size | 1 674 573 bytes, 85 entries, `resources.arsc` present |
 | `aapt2 dump badging` | `com.loopjet.app` versionCode 1, versionName 1.0.0, minSdk 26, targetSdk 37 |
 | `apksigner verify --verbose --print-certs` | **Verifies** — v2: true, v3: true, v1: false (not needed at minSdk 26) |
 | Certificate | `CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK`, RSA 4096 |
-| Certificate SHA-256 | `fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d` |
-| APK SHA-256 | `4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911` (aligned payload `0ca4c578269b7f222ff495ef3f3f8f27a921ce1634b64c40b990664c588ab60c`, built from c8859b8) |
+| Certificate SHA-256 | `f35454a191e71fc689835921811560d70093f33ac43d0b01aa455a5b22d363dd` |
+| APK SHA-256 | `11075d62bef87259f0fbe315c38ca6ccf4446d4d8baba234e8ec0e0b07e46b80` (aligned payload `aac1163e77c1dd85e503d2588b392f9012f0c88449e1ec8c47b29ed3dd7a0b04`, R8 release build of the current source tree) |
 
 `dist/SIGNING-REPORT.txt` is produced by the official `apksigner` inside CI over the committed APK, not
 by the local signing tool. For the shipped file it contains:
 
 ```
-4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911  dist/LoopJet-1.0.0-release.apk
+11075d62bef87259f0fbe315c38ca6ccf4446d4d8baba234e8ec0e0b07e46b80  dist/LoopJet-1.0.0-release.apk
 Verifies
 Verified using v2 scheme (APK Signature Scheme v2): true
 Verified using v3 scheme (APK Signature Scheme v3): true
-Signer #1 certificate SHA-256 digest: fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d
+Signer #1 certificate SHA-256 digest: f35454a191e71fc689835921811560d70093f33ac43d0b01aa455a5b22d363dd
 ```
 
 and both `apksigner verify` invocations (default, and `--min-sdk-version 26 --max-sdk-version 37`)
@@ -129,6 +129,25 @@ Consequences to keep in mind: the speed claims that matter (5 GHz link rate, 10 
 files over the air) can only be confirmed on hardware. The design is aimed at them, the pipeline is
 measured, and the in-app benchmark exists so the missing numbers can be produced in one minute on a
 real pair of phones.
+
+### Signing key, stated plainly
+
+The release key that produced the earlier builds in this branch lived outside the repository (as it
+must) and the build environment it was created in no longer exists, so that key is gone and no further
+APK can carry its certificate. This build is therefore signed by a newly generated key with the same
+parameters (RSA 4096, self-signed, 30 years, `CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local,
+C=PK`), certificate SHA-256 `f35454a1…d363dd`. Consequences, in full:
+
+* If an earlier build of LoopJet is installed on a phone, it has to be uninstalled before this APK
+  installs; Android refuses an update that changes the signing certificate.
+* Future updates must be signed with `/home/user/keys/loopjet-release.p12` (password in the separate
+  credentials file). That file is the only copy: **back it up in two places now.** Losing it means
+  every installed copy has to be uninstalled before the next build.
+* `tools/make_keystore.py` regenerates a key with identical parameters if the original is lost, but a
+  regenerated key is a *different* certificate, not a recovery of the old one.
+
+An unsigned release APK is not an option: Android will not install one (`INSTALL_PARSE_FAILED_NO_CERTIFICATES`),
+so signing is mandatory for a deliverable.
 
 ## 6. Known defects and limits found during this work
 

@@ -12,7 +12,7 @@ the hello is encrypted with AES-256-GCM, and the receiver always decides what la
   signed with APK Signature Scheme v2 **and** v3
 
 ```
-certificate SHA-256  fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d
+certificate SHA-256  f35454a191e71fc689835921811560d70093f33ac43d0b01aa455a5b22d363dd
 signer               CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK (RSA 4096)
 ```
 
