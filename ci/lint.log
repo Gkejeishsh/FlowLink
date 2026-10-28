@@ -22,8 +22,8 @@ Wrote HTML report to file:///home/runner/work/FlowLink/FlowLink/app/build/report
 Wrote SARIF report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.sarif
 
 > Task :app:lintRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793175487723.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793176117707.json
 
-BUILD SUCCESSFUL in 54s
+BUILD SUCCESSFUL in 1m 22s
 16 actionable tasks: 4 executed, 12 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

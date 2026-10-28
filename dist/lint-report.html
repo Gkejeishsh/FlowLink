@@ -179,7 +179,7 @@ document.getElementById(id).style.display = 'none';
     <div class="mdl-layout__header-row">
       <span class="mdl-layout-title">Lint Report: 18 errors and 66 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Wed Oct 28 08:18:59 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Wed Oct 28 08:29:56 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -475,14 +475,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:621</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
-<span class="lineno"> 618 </span>                WifiP2pConfig()
-<span class="lineno"> 619 </span>            }
-<span class="lineno"> 620 </span>            runCatching {
-<span class="caretline"><span class="lineno"> 621 </span>                m.<span class="error">createGroup</span>(c, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 622 </span>                    override <span class="keyword">fun</span> onSuccess() = onResult(<span class="keyword">true</span>, <span class="string">"Group created"</span>)
-<span class="lineno"> 623 </span>                    override <span class="keyword">fun</span> onFailure(reason: Int) = attempt(index + <span class="number">1</span>)
-<span class="lineno"> 624 </span>                })
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:626</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
+<span class="lineno"> 623 </span>                WifiP2pConfig()
+<span class="lineno"> 624 </span>            }
+<span class="lineno"> 625 </span>            runCatching {
+<span class="caretline"><span class="lineno"> 626 </span>                m.<span class="error">createGroup</span>(c, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 627 </span>                    override <span class="keyword">fun</span> onSuccess() = onResult(<span class="keyword">true</span>, <span class="string">"Group created"</span>)
+<span class="lineno"> 628 </span>                    override <span class="keyword">fun</span> onFailure(reason: Int) = attempt(index + <span class="number">1</span>)
+<span class="lineno"> 629 </span>                })
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:83</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
