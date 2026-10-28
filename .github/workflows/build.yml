@@ -178,6 +178,10 @@ jobs:
             sha256sum "$ALIGNED" >> $REPORT
           fi
           cat $REPORT
+          # Start clean: `cp -r` merges into an existing directory, so leftovers from an earlier
+          # run (a stale 5-failure tree next to a fresh 12/0 one) used to survive here and make
+          # the published report contradict ci/test.log.
+          rm -rf dist/unit-test-report
           cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null
           cp app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
           exit 0
