@@ -20,8 +20,8 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:javaPreCompileRelease FROM-CACHE
 > Task :app:mergeReleaseArtProfile
 > Task :app:mapReleaseSourceSetPaths
-> Task :app:checkReleaseAarMetadata
 > Task :app:compileReleaseNavigationResources FROM-CACHE
+> Task :app:checkReleaseAarMetadata
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
 > Task :app:processReleaseMainManifest
@@ -30,9 +30,9 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:mergeReleaseStartupProfile
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
-> Task :app:processReleaseManifestForPackage
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
+> Task :app:processReleaseManifestForPackage
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:writeReleaseAppMetadata
@@ -62,8 +62,8 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 > Task :app:compileReleaseJavaWithJavac
 > Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:processReleaseJavaRes
-> Task :app:expandReleaseArtProfileWildcards
 > Task :app:mergeReleaseJavaResource
+> Task :app:expandReleaseArtProfileWildcards
 > Task :app:produceReleaseComposeMapping
 > Task :app:reportReleaseComposeMappingErrors
 > Task :app:minifyReleaseWithR8
@@ -74,10 +74,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793169435470.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793169926466.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 19s
+BUILD SUCCESSFUL in 2m 2s
 47 actionable tasks: 42 executed, 5 from cache
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

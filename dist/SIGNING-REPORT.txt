@@ -1,17 +1,17 @@
 == apk ==
--rw-r--r-- 1 runner runner 1641803 Oct 28 06:34 dist/LoopJet-1.0.0-release.apk
+-rw-r--r-- 1 runner runner 1641819 Oct 28 06:41 dist/LoopJet-1.0.0-release.apk
 
 == sha256 ==
-673891c3e579b4d81f25f1c10d4823aadb0419746bda069270be112e1174cbda  dist/LoopJet-1.0.0-release.apk
+1c8690fd310264aba436f917a167ec9ac181c1b91a6be8eea518eec2b68a0148  dist/LoopJet-1.0.0-release.apk
 
 == apksigner verify --verbose --print-certs ==
 DOES NOT VERIFY
-ERROR: APK Signature Scheme v3 signer #1: Malformed APK Signature Scheme v3 signature record #1
+ERROR: APK Signature Scheme v3 signer #1: Malformed additional attribute #1
 EXIT=1
 
 == apksigner verify --min-sdk-version 26 --max-sdk-version 37 ==
 DOES NOT VERIFY
-ERROR: APK Signature Scheme v3 signer #1: Malformed APK Signature Scheme v3 signature record #1
+ERROR: APK Signature Scheme v3 signer #1: Malformed additional attribute #1
 EXIT=1
 
 == zipalign -c -p -v 4 ==
