@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
-import com.loopjet.app.platform.LoopJetApp
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
@@ -79,7 +78,7 @@ class DiscoveryEngine(
     private val beaconClient = BeaconClient()
     private val p2p = P2pController(context)
     private val ble = BleBeacon(context)
-    private val fingerprintProvider: () -> String = { com.loopjet.app.LoopJetApp.instance.identity.fingerprintHex }
+    private val fingerprintProvider: () -> String = { com.loopjet.app.platform.LoopJetApp.instance.identity.fingerprintHex }
 
     private var advertise = false
     private var controlPort = ProtocolLimits.DEFAULT_PORT

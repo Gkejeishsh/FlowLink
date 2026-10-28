@@ -133,7 +133,7 @@ object Sha256 {
 object Hkdf {
     /** RFC 5869 HKDF-SHA256. */
     fun derive(ikm: ByteArray, salt: ByteArray, info: ByteArray, length: Int): ByteArray {
-        val prk = hmac(salt.ifEmpty { ByteArray(32) }, ikm)
+        val prk = hmac(if (salt.isEmpty()) ByteArray(32) else salt, ikm)
         val out = ByteArray(length)
         var t = ByteArray(0)
         var pos = 0
