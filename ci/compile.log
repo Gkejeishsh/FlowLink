@@ -1,0 +1,34 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:compileDebugKotlin
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:634:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:195:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:433:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:105:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:121:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:191:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:215:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:380:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:760:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1208:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793184875049.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 55s
+7 actionable tasks: 7 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
