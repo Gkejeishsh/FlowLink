@@ -149,6 +149,15 @@ sealed class ScannedCode {
     data object Unknown : ScannedCode()
 }
 
+/**
+ * The one place a v1 receive link is built. The Receive screen's QR, the "copy link" action and the
+ * tests all go through here so the advertised host and port cannot drift from the listening socket.
+ */
+object ReceiveCodes {
+    fun lanLink(host: String, port: Int, fingerprint: String, deviceId: String): String =
+        if (host.isBlank() || port <= 0) "" else "loopjet://$host:$port#$fingerprint#$deviceId"
+}
+
 object ConnectCodes {
 
     /** Parses anything the scanner can see. Never throws. */

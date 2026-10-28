@@ -43,6 +43,7 @@ import com.loopjet.app.core.TransferResult
 import com.loopjet.app.core.TransferState
 import com.loopjet.app.platform.net.ConnectCode
 import com.loopjet.app.platform.net.ConnectNetwork
+import com.loopjet.app.platform.net.ReceiveCodes
 import com.loopjet.app.platform.net.DirectLink
 import com.loopjet.app.platform.net.HotspotController
 import com.loopjet.app.platform.net.DiscoveredPeer
@@ -249,9 +250,35 @@ class TransferService : Service() {
                     stopSelfSafely("No device selected")
                     return START_NOT_STICKY
                 }
+                // Sending from a phone that is still showing its own code is normal (the two people
+                // swap roles). The passive receive session used to make this fail with "another
+                // transfer is already running"; drop just the receiver and keep the service up.
+                if (running.get() && receiver != null) stopReceivingOnly()
                 startWorker { runSend(peer) }
             }
             ACTION_RECEIVE -> {
+                // Receive is re-entered constantly: the Home button, the "Show my code" card (which
+                // calls this twice) and every return to the Receive screen. Starting a second receiver
+                // used to bind a *different* port, republish a QR pointing at it, and then shut the
+                // whole service down as "already running" -- so the code on screen advertised a port
+                // with no listener behind it and every scan failed with "failed to connect" while this
+                // phone sat on the QR page forever. Receiving is now idempotent.
+                if (running.get() && receiver != null) {
+                    Log.d(TAG, "receive already running on port ${receiver?.controlPort}; reusing it")
+                    promote("Ready to receive", "Waiting for a sender")
+                    TransferHub.update { it.copy(mode = SessionMode.RECEIVE, receiveReady = true) }
+                    updateNotification()
+                    return START_STICKY
+                }
+                if (running.get()) {
+                    // A send is in flight. Do not kill it and do not advertise a second port: the
+                    // user has to finish or cancel first, and the message says so.
+                    TransferHub.update {
+                        it.copy(message = "Sending is in progress — finish or cancel it, then tap Receive")
+                    }
+                    promote("Ready to receive", "Finish the current transfer first")
+                    return START_STICKY
+                }
                 promote("Ready to receive", "Waiting for a sender")
                 startReceiver()
             }
@@ -286,16 +313,16 @@ class TransferService : Service() {
         return START_STICKY
     }
 
-    private fun startWorker(block: () -> Unit) {
+    private fun startWorker(block: () -> Unit): Boolean {
         if (!running.compareAndSet(false, true)) {
-            // A session is already running (send while receiving, or a double tap). Say so instead of
-            // silently dropping the request, which used to look like a dead button.
+            // A session is already running. Report it and leave that session alone: shutting the
+            // service down here is what made a live receive session disappear while its QR stayed on
+            // screen.
             TransferHub.update {
                 it.copy(message = "Another transfer is already running — finish or cancel it first")
             }
             MediaIndex.notifyFinished(this, false, "Another transfer is already running")
-            stopSelfSafely("Already running")
-            return
+            return false
         }
         acquireLocks()
         val thread = Thread({
@@ -312,6 +339,30 @@ class TransferService : Service() {
         thread.isDaemon = true
         worker.set(thread)
         thread.start()
+        return true
+    }
+
+    /**
+     * Closes a passive receive session without stopping the service or touching the foreground
+     * notification, so the same phone can immediately start sending. The sender engine is left
+     * alone: cancelling a live transfer is the user's decision, not a side effect of tapping Send.
+     */
+    private fun stopReceivingOnly() {
+        Log.d(TAG, "closing the receive session to start sending")
+        running.set(false)
+        beacon?.close()
+        beacon = null
+        receiver?.close()
+        receiver = null
+        receiveCode = ""
+        worker.get()?.let { thread ->
+            if (thread !== Thread.currentThread()) {
+                runCatching { thread.interrupt() }
+                runCatching { thread.join(1500) }
+            }
+        }
+        // startWorker() re-acquires them for the send that is about to begin.
+        releaseLocks()
     }
 
     // --- sending ---------------------------------------------------------------------------------
@@ -400,10 +451,24 @@ class TransferService : Service() {
             )
         }
         val connector = SocketConnector { port, timeout ->
-            val socket = Socket()
-            tools.bind(socket, network)
-            socket.connect(InetSocketAddress(peer.address, port), timeout)
-            socket
+            val target = InetSocketAddress(peer.address, port)
+            if (network != null) {
+                val bound = runCatching {
+                    Socket().apply {
+                        tools.bind(this, network)
+                        connect(target, timeout)
+                    }
+                }.getOrNull()
+                if (bound != null) return@SocketConnector bound
+                // A bound socket can fail even though the peer is reachable: the Network object may be
+                // a specifier network left over from an earlier hotspot join, or a VPN may own the
+                // default route. Same Wi-Fi still works through the default route, so try it before
+                // telling the user the phones cannot see each other. Only for the LAN path -- after a
+                // real hotspot join the default route is by definition the wrong one.
+                if (usingJoined) throw java.io.IOException("Could not connect to ${peer.address}:$port over the joined hotspot")
+                Log.d(TAG, "connect over the bound network failed; retrying on the default route")
+            }
+            Socket().apply { connect(target, timeout) }
         }
         val listener = object : TransferListener {
             override fun onState(state: TransferState, detail: String) {
@@ -483,6 +548,37 @@ class TransferService : Service() {
             sender = resumed
             result = resumed.run()
             attempt++
+        }
+        // A bare socket message names an IP and a port, not a cause. Only after the session has
+        // already failed, ask the peer's beacon whether it is alive at all and compare subnets, so
+        // the user is told which phone to fix. Nothing here runs on the transfer path.
+        if (!result.ok && com.loopjet.app.platform.net.ConnectDiagnosis.isConnectFailure(result.message)) {
+            val beaconAnswered = runCatching {
+                com.loopjet.app.core.BeaconClient().probe(
+                    peer.address,
+                    ProtocolLimits.BEACON_PORT,
+                    900
+                ) != null
+            }.getOrDefault(false)
+            val explained = com.loopjet.app.platform.net.ConnectDiagnosis.explain(
+                peerName = peer.name,
+                peerAddress = peer.address,
+                peerPort = peer.controlPort,
+                cause = result.message,
+                localAddresses = tools.allLocalAddresses().map { it.second.hostAddress ?: "" },
+                beaconAnswered = beaconAnswered
+            )
+            Log.d(TAG, "connect failure '${result.message}' explained as: $explained")
+            result = TransferResult(
+                ok = false,
+                message = explained,
+                files = result.files,
+                bytesTransferred = result.bytesTransferred,
+                durationMs = result.durationMs,
+                chunksTotal = result.chunksTotal,
+                chunksDone = result.chunksDone,
+                pathLabel = result.pathLabel
+            )
         }
         // Sending to a device never grants it trust: trust is something the *receiver* decides when it
         // accepts an offer (and can be revoked in Settings).
@@ -718,19 +814,15 @@ class TransferService : Service() {
         beacon = beaconServer
         // v1 code (LAN only). Published immediately so a same-Wi-Fi sender can connect while a
         // fallback network is still starting; upgraded to a v2 code if one succeeds.
-        val lanQr = if (localAddress != "0.0.0.0") {
-            ConnectCode(
-                deviceId = app.prefs.deviceId(),
-                fingerprint = app.identity.fingerprintHex,
-                name = app.prefs.deviceName,
-                lanHost = localAddress,
-                lanPort = engine.controlPort
-            ).let { code0 ->
-                // Stay on the v1 form here: it is what an older peer understands. The v2 form is
-                // produced below once we know whether we can offer a network as well.
-                "loopjet://${code0.lanHost}:${code0.lanPort}#${app.identity.fingerprintHex}#${app.prefs.deviceId()}"
-            }
-        } else ""
+        // v1 form: it is what an older peer understands, and the v2 form is produced below once we
+        // know whether we can offer a network as well. Built through ReceiveCodes so the port in the
+        // code is always the port [engine] is listening on.
+        val lanQr = ReceiveCodes.lanLink(
+            host = localAddress,
+            port = engine.controlPort,
+            fingerprint = app.identity.fingerprintHex,
+            deviceId = app.prefs.deviceId()
+        )
         publishReceiveCode(lanQr, localAddress)
         // A phone with no usable LAN address (no Wi-Fi at all) can still be reached if it hosts a
         // network itself. Starting one costs battery, so it is only done when LAN is not an option.

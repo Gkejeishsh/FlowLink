@@ -809,6 +809,11 @@ class ReceiverEngine(
             }
             activeKeys = handshake.keys
             sessionLog("sender ${handshake.peer.name} connected, code ${handshake.keys.sas}")
+            // Both phones have to show the session, and on the receiving phone the first evidence
+            // used to be the bytes themselves: until then it sat on its QR page while the sender was
+            // already waiting for an answer, which reads as "nothing happened". A listener callback
+            // is UI only -- no frame, no round trip, nothing added to the data path.
+            listener.onState(TransferState.CONNECTING, "${handshake.peer.name} is connected")
 
             val channel = handshake.channel
             var manifest: TransferManifest? = null
@@ -861,6 +866,12 @@ class ReceiverEngine(
                 throw ProtocolException("Not enough free space on the receiving device")
             }
 
+            // The offer is about to be shown; make sure the receiving screen is the transfer screen
+            // by the time it appears, for the same reason as above.
+            listener.onState(
+                TransferState.WAITING_ACCEPT,
+                "${handshake.peer.name} wants to send ${m.files.size} file(s)"
+            )
             val decision = listener.onOffer(
                 TransferOffer(
                     peerName = handshake.peer.name,

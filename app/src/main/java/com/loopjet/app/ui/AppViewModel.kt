@@ -454,9 +454,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun receiveHere() {
+        // go(Receive) already starts the service and the discovery. Starting it a second time was
+        // the trigger for the dead-QR bug: the second receiver bound another port, the code on
+        // screen moved to it, and then the service shut itself down as "already running".
         go(Screen.Receive)
-        TransferService.startReceive(getApplication())
-        startDiscovery(advertise = true)
     }
 
     fun cancelTransfer() {

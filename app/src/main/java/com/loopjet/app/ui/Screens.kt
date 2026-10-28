@@ -886,6 +886,20 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                         )
                     }
                     Spacer(Modifier.height(18.dp))
+                    // A code with no receiver behind it is the worst possible thing to show: the other
+                    // phone scans it, fails to connect, and nothing on this screen ever admits why.
+                    if (!session.receiveReady) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Receiver stopped — this code will not connect",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.weight(1f)
+                            )
+                            PrimaryAction("Restart", enabled = true) { vm.receiveHere() }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
                     // Keep the screen awake while a code is on it: a dimmed phone is a phone the other
                     // user cannot scan.
                     KeepScreenOn()
