@@ -199,7 +199,10 @@ class TransferLoopbackTest {
     }
 
     private fun assertSameContent(source: File, received: File) {
-        assertTrue("missing received file ${received.absolutePath}", received.isFile)
+        if (!received.isFile) {
+            val siblings = received.parentFile?.list()?.joinToString(", ") ?: "<no directory>"
+            assertTrue("missing received file ${received.absolutePath}; directory holds: $siblings", false)
+        }
         assertEquals("size of ${received.name}", source.length(), received.length())
         val a = Sha256.ofFile(source)
         val b = Sha256.ofFile(received)

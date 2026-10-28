@@ -886,6 +886,7 @@ class ReceiverEngine(
             val pool = Executors.newFixedThreadPool(maxStreams)
             dataServer!!.soTimeout = 600
             val finishedAccepting = AtomicBoolean(false)
+            val pendingCommits = AtomicInteger(0)
             val maybeFinish = Runnable {
                 if (remaining.get() <= 0 && !finishedAccepting.getAndSet(true)) {
                     doneLatch.countDown()
@@ -895,7 +896,7 @@ class ReceiverEngine(
                 while (!closed.get() && !finishedAccepting.get()) {
                     try {
                         val socket = dataServer!!.accept()
-                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, onCommitted, pendingFiles, maybeFinish) }
+                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, onCommitted, pendingFiles, maybeFinish, pendingCommits) }
                     } catch (_: SocketTimeoutException) {
                         if (remaining.get() <= 0) break
                     } catch (_: Exception) {
@@ -950,6 +951,12 @@ class ReceiverEngine(
             }, "lj-recv-watchdog").apply { isDaemon = true; start() }
 
             doneLatch.await(sessionTimeoutMs, TimeUnit.MILLISECONDS)
+            // A data thread may still be verifying and renaming the final file: wait for it, or the
+            // caller would see "complete" while the bytes are not yet visible on disk.
+            val commitDeadline = System.currentTimeMillis() + 180_000
+            while (pendingCommits.get() > 0 && System.currentTimeMillis() < commitDeadline) {
+                Thread.sleep(20)
+            }
             finishedAccepting.set(true)
             pool.shutdownNow()
             dataServer?.shutDownQuietly()
@@ -962,7 +969,12 @@ class ReceiverEngine(
                 val map = maps[file.id] ?: continue
                 if (map.isComplete()) {
                     try {
-                        val committed = sink.commit(file.sha256)
+                        pendingCommits.incrementAndGet()
+                        val committed = try {
+                            sink.commit(file.sha256)
+                        } finally {
+                            pendingCommits.decrementAndGet()
+                        }
                         onCommitted(file, committed)
                         results.add(FileResult(file.id, file.relPath, file.size, true, "received"))
                         synchronized(commitLock) {
@@ -1054,7 +1066,8 @@ class ReceiverEngine(
         results: MutableList<FileResult>,
         onCommitted: (TransferFile, java.io.File) -> Unit,
         pendingFiles: ConcurrentHashMap<Int, TransferFile>,
-        maybeFinish: Runnable
+        maybeFinish: Runnable,
+        pendingCommits: AtomicInteger
     ) {
         var channel: RecordChannel? = null
         try {
@@ -1105,7 +1118,7 @@ class ReceiverEngine(
                                 }
                             }
                             if (map.isComplete()) {
-                                finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted)
+                                finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits)
                             }
                         }
                     }
@@ -1131,7 +1144,7 @@ class ReceiverEngine(
                                     remaining.decrementAndGet()
                                 }
                                 if (map != null && map.isComplete()) {
-                                    finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted)
+                                    finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits)
                                 }
                             }
                             headerOffset += 44
@@ -1166,14 +1179,20 @@ class ReceiverEngine(
         results: MutableList<FileResult>,
         control: RecordChannel,
         commitLock: Any,
-        onCommitted: (TransferFile, java.io.File) -> Unit
+        onCommitted: (TransferFile, java.io.File) -> Unit,
+        pendingCommits: AtomicInteger
     ) {
         if (!committedFiles.add(file.id)) return
         val sink = sinks.remove(file.id) ?: return
         var ok = true
         var message = "received"
         try {
-            val committed = synchronized(sink) { sink.commit(file.sha256) }
+            pendingCommits.incrementAndGet()
+            val committed = try {
+                synchronized(sink) { sink.commit(file.sha256) }
+            } finally {
+                pendingCommits.decrementAndGet()
+            }
             onCommitted(file, committed)
         } catch (e: Exception) {
             ok = false
