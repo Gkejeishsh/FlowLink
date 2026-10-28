@@ -2,18 +2,51 @@ name: build
 on:
   push:
   workflow_dispatch:
+    inputs:
+      sign:
+        description: 'Sign the release APK'
+        type: boolean
+        default: true
+      keystore_b64:
+        description: 'base64 of release keystore (PKCS12)'
+        type: string
+        required: false
+      store_pass:
+        description: 'keystore password'
+        type: string
+        required: false
+      key_alias:
+        description: 'key alias'
+        type: string
+        default: 'loopjet'
+      key_pass:
+        description: 'key password'
+        type: string
+        required: false
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
+
       - name: Android SDK
         run: |
           set -x
@@ -28,29 +61,131 @@ jobs:
           for p in "platform-tools" "platforms;android-37" "platforms;android-37.0" "build-tools;36.0.0"; do
             $SM "$p" > /dev/null 2>&1 || echo "skip $p"
           done
-          ls $SDK/platforms $SDK/build-tools
           echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
+          ls $SDK/build-tools $SDK/platforms
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: Wrapper
+
+      - name: Generate Gradle wrapper
         run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.6.0 --no-daemon; fi
-          ls -la gradle/wrapper || true
-      - name: Build
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 9.6.0
+          fi
+
+      - name: Prepare signing material
+        if: ${{ inputs.sign == true && inputs.keystore_b64 != '' }}
+        env:
+          KS: ${{ inputs.keystore_b64 }}
+          SP: ${{ inputs.store_pass }}
+          KP: ${{ inputs.key_pass }}
+          AL: ${{ inputs.key_alias }}
         run: |
-          set -o pipefail
-          mkdir -p build-logs
-          ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee build-logs/build.log | tail -200
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: build-output
-          path: |
-            build-logs/**
-            app/build/outputs/apk/**/*.apk
-            app/build/reports/**
-            gradle/wrapper/**
-          if-no-files-found: warn
-          retention-days: 5
+          printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "LJ_KEYSTORE=$RUNNER_TEMP/release.jks" >> $GITHUB_ENV
+          echo "LJ_STORE_PASS=$SP" >> $GITHUB_ENV
+          echo "LJ_KEY_PASS=$KP" >> $GITHUB_ENV
+          echo "LJ_KEY_ALIAS=$AL" >> $GITHUB_ENV
+          echo "LJ_SIGNING=1" >> $GITHUB_ENV
+
+      - name: Unit tests + loopback benchmark
+        run: |
+          mkdir -p ci
+          set +e
+          ./gradlew --no-daemon testDebugUnitTest --console=plain > ci/test.log 2>&1
+          rc=$?
+          tail -120 ci/test.log
+          echo "TEST_RC=$rc" >> $GITHUB_ENV
+          exit 0
+
+      - name: Build debug
+        run: |
+          set +e
+          ./gradlew --no-daemon assembleDebug --console=plain > ci/build-debug.log 2>&1
+          rc=$?
+          tail -80 ci/build-debug.log
+          echo "DEBUG_RC=$rc" >> $GITHUB_ENV
+          exit 0
+
+      - name: Build release (R8)
+        run: |
+          set +e
+          ./gradlew --no-daemon assembleRelease --console=plain > ci/build-release.log 2>&1
+          rc=$?
+          tail -80 ci/build-release.log
+          echo "RELEASE_RC=$rc" >> $GITHUB_ENV
+          exit 0
+
+      - name: Lint
+        run: |
+          set +e
+          ./gradlew --no-daemon lintRelease --console=plain > ci/lint.log 2>&1
+          tail -40 ci/lint.log
+          exit 0
+
+      - name: Align, sign and verify
+        run: |
+          set -e
+          mkdir -p dist ci
+          BT=$ANDROID_HOME/build-tools/36.0.0
+          UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1 || true)
+          echo "unsigned apk: $UNSIGNED"
+          if [ -z "$UNSIGNED" ]; then echo "no release apk produced" > dist/SIGNING-REPORT.txt; exit 0; fi
+          if [ "$UNSIGNED" != "app/build/outputs/apk/release/LoopJet-release-unsigned.apk" ]; then
+            cp "$UNSIGNED" app/build/outputs/apk/release/LoopJet-release-unsigned.apk
+          fi
+          APK=app/build/outputs/apk/release/LoopJet-release-unsigned.apk
+          ALIGNED=app/build/outputs/apk/release/LoopJet-release-aligned.apk
+          FINAL=dist/LoopJet-1.0.0-release.apk
+          $BT/zipalign -p -f 4 "$APK" "$ALIGNED"
+          if [ "$LJ_SIGNING" = "1" ]; then
+            $BT/apksigner sign --ks "$LJ_KEYSTORE" --ks-key-alias "$LJ_KEY_ALIAS" \
+              --ks-pass "pass:$LJ_STORE_PASS" --key-pass "pass:$LJ_KEY_PASS" \
+              --v2-signing-enabled true --v3-signing-enabled true \
+              --out "$FINAL" "$ALIGNED"
+            {
+              echo "== apksigner verify --verbose --print-certs =="
+              $BT/apksigner verify --verbose --print-certs "$FINAL"
+              echo
+              echo "== apksigner verify (v4 off, min-sdk 26) =="
+              $BT/apksigner verify --min-sdk-version 26 --max-sdk-version 37 "$FINAL"
+              echo
+              echo "== apk size =="
+              ls -l "$FINAL"
+              echo
+              echo "== sha256 =="
+              sha256sum "$FINAL"
+            } > dist/SIGNING-REPORT.txt 2>&1
+            cat dist/SIGNING-REPORT.txt
+          else
+            cp "$ALIGNED" "${FINAL%.apk}-unsigned.apk"
+            echo "Build was not signed (no keystore supplied)." > dist/SIGNING-REPORT.txt
+          fi
+
+      - name: Collect APKs and reports
+        run: |
+          mkdir -p dist ci/screens
+          cp app/build/outputs/apk/debug/*.apk dist/ 2>/dev/null || true
+          cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null || true
+          cp -r app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null || true
+          grep -h "MB/s" ci/test.log > ci/benchmark-lines.txt 2>/dev/null || true
+          ls -la dist ci
+
+      - name: Publish build results to the branch
+        run: |
+          git config user.name "loopjet-ci"
+          git config user.email "ci@loopjet.local"
+          git add -f dist ci gradle/wrapper
+          if git diff --cached --quiet; then echo "nothing to publish"; exit 0; fi
+          git commit -m "ci: build artifacts and reports [skip ci]"
+          git pull --rebase origin "$GITHUB_REF_NAME" || true
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Fail if the build failed
+        run: |
+          if [ "$DEBUG_RC" != "0" ] || [ "$RELEASE_RC" != "0" ] || [ "$TEST_RC" != "0" ]; then
+            echo "debug=$DEBUG_RC release=$RELEASE_RC tests=$TEST_RC"
+            exit 1
+          fi
