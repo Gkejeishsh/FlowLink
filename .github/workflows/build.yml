@@ -1,0 +1,56 @@
+name: build
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Android SDK
+        run: |
+          set -x
+          SDK=$HOME/android-sdk
+          mkdir -p $SDK/cmdline-tools
+          curl -sSL -o /tmp/cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+          unzip -q /tmp/cmdline.zip -d $SDK/cmdline-tools
+          mv $SDK/cmdline-tools/cmdline-tools $SDK/cmdline-tools/latest
+          export ANDROID_HOME=$SDK
+          SM=$SDK/cmdline-tools/latest/bin/sdkmanager
+          yes | $SM --licenses > /dev/null 2>&1 || true
+          for p in "platform-tools" "platforms;android-37" "platforms;android-37.0" "build-tools;36.0.0"; do
+            $SM "$p" > /dev/null 2>&1 || echo "skip $p"
+          done
+          ls $SDK/platforms $SDK/build-tools
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Wrapper
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.6.0 --no-daemon; fi
+          ls -la gradle/wrapper || true
+      - name: Build
+        run: |
+          set -o pipefail
+          mkdir -p build-logs
+          ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee build-logs/build.log | tail -200
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-output
+          path: |
+            build-logs/**
+            app/build/outputs/apk/**/*.apk
+            app/build/reports/**
+            gradle/wrapper/**
+          if-no-files-found: warn
+          retention-days: 5
