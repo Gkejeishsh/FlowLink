@@ -384,6 +384,7 @@ class NsdHelper(
  * Band ladder: 6 GHz (API 36+) → 5 GHz (API 29+) → automatic. Every request is reported back with
  * the *actual* frequency the group got, because asking for 5 GHz is not the same as getting it.
  */
+@SuppressLint("MissingPermission")
 class P2pController(private val context: Context) {
     private val manager: WifiP2pManager? = context.getSystemService(WifiP2pManager::class.java)
     private var channel: WifiP2pManager.Channel? = null
@@ -468,9 +469,9 @@ class P2pController(private val context: Context) {
                             GroupState(
                                 isGroupOwner = group.isGroupOwner,
                                 ownerAddress = group.owner?.deviceAddress,
-                                frequency = group.frequency,
-                                ssid = group.networkName,
-                                passphrase = group.passphrase
+                                frequency = if (Build.VERSION.SDK_INT >= 29) group.frequency else 0,
+                                ssid = if (Build.VERSION.SDK_INT >= 30) runCatching { group.networkName }.getOrNull() else null,
+                                passphrase = if (Build.VERSION.SDK_INT >= 30) runCatching { group.passphrase }.getOrNull() else null
                             )
                         )
                     }
@@ -485,9 +486,10 @@ class P2pController(private val context: Context) {
                             GroupState(
                                 isGroupOwner = group.isGroupOwner,
                                 ownerAddress = group.owner?.deviceAddress,
-                                frequency = group.frequency,
-                                ssid = group.networkName,
-                                passphrase = group.passphrase
+                                // getFrequency() is API 29+, the name/passphrase getters API 30+.
+                                frequency = if (Build.VERSION.SDK_INT >= 29) group.frequency else 0,
+                                ssid = if (Build.VERSION.SDK_INT >= 30) runCatching { group.networkName }.getOrNull() else null,
+                                passphrase = if (Build.VERSION.SDK_INT >= 30) runCatching { group.passphrase }.getOrNull() else null
                             )
                         )
                     }

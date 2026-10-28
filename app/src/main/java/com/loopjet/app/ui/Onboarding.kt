@@ -245,6 +245,7 @@ private fun Granted() {
     StepCard("Ready", "Nearby Wi-Fi, notifications and Bluetooth access are granted.", true)
 }
 
+@Suppress("ModifierParameter")
 @Composable
 private fun PrimaryButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val (pressModifier, interaction) = rememberPressScale()

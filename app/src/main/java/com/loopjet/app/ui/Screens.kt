@@ -127,6 +127,7 @@ private fun ScreenFrame(
     }
 }
 
+@Suppress("ModifierParameter")
 @Composable
 private fun PrimaryAction(text: String, modifier: Modifier = Modifier, enabled: Boolean = true, onClick: () -> Unit) {
     val (pressModifier, interaction) = rememberPressScale()
