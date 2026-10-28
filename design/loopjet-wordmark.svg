@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Wordmark lockup used on the install page and splash. Text uses the platform sans; the mark is vector. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 108" width="360" height="108">
+  <defs>
+    <linearGradient id="w" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2F6BFF"/>
+      <stop offset="0.5" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8,4) scale(0.9)">
+    <path d="M40 76 C26 64 28 44 44 37 C53 33 62 35 69 42 L76 49"
+          fill="none" stroke="url(#w)" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M78 38 C91 51 89 72 73 79 C63 83 54 80 47 73 L41 66"
+          fill="none" stroke="url(#w)" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M59 32 L43 58 L52 58 L47 77 L66 51 L55 51 Z" fill="url(#w)"/>
+  </g>
+  <text x="126" y="72" font-family="Inter, Roboto, sans-serif" font-size="46" font-weight="700"
+        fill="currentColor">LoopJet</text>
+</svg>

@@ -333,8 +333,17 @@ class TransferLoopbackTest {
             harness2.startReceiver()
             val second = harness2.runSender(sessionId)
             val secondReceive = harness2.awaitReceiver()
-            println("[loopback] resume: sender=${Fmt.bytes(second.bytesTransferred)} receiver ok=${secondReceive.ok}")
+            println(
+                "[loopback] resume: sender re-sent ${second.bytesTransferred} bytes of $size, " +
+                    "receiver has ${secondReceive.bytesTransferred} bytes, ok=${secondReceive.ok}"
+            )
             assertTrue("resume failed: ${secondReceive.message}", secondReceive.ok)
+            // The whole point of the chunk map: the second attempt must not re-send what is on disk.
+            assertTrue(
+                "resume re-sent everything (${second.bytesTransferred} bytes); nothing was skipped",
+                second.bytesTransferred < size
+            )
+            assertEquals("receiver must still end up with the whole file", size, secondReceive.bytesTransferred)
             assertSameContent(File(src, "big.bin"), File(dst, "big.bin"))
         } finally {
             harness2.close()
