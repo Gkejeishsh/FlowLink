@@ -1,8 +1,8 @@
 == apk ==
--rw-r--r-- 1 runner runner 1641815 Oct 28 08:21 dist/LoopJet-1.0.0-release.apk
+-rw-r--r-- 1 runner runner 1674583 Oct 28 08:35 dist/LoopJet-1.0.0-release.apk
 
 == sha256 ==
-7a80bc4d7a8012fe7799426df4a4a0aa2110bc250a2b47950b2fabd0a7c47c45  dist/LoopJet-1.0.0-release.apk
+0f4f7d6fe1dfc9c1efeab3d200a373a58aacb8412bd3a24a21a7ddf7af9fc155  dist/LoopJet-1.0.0-release.apk
 
 == apksigner verify --verbose --print-certs ==
 Verifies
@@ -28,8 +28,8 @@ EXIT=0
 EXIT=0
 
 == zipalign -c -p -v 4 ==
- 1527222 res/vO.xml (OK - compressed)
- 1527644 resources.arsc (OK)
+ 1559990 res/vO.xml (OK - compressed)
+ 1560412 resources.arsc (OK)
 Verification successful
 EXIT=0
 
@@ -49,4 +49,4 @@ uses-permission: name='android.permission.ACCESS_COARSE_LOCATION' maxSdkVersion=
 
 == embedded file count and size ==
 ---------                     -------
-  3055755                     85 files
+  3112165                     85 files
