@@ -1,29 +1,40 @@
-compile=0 tests=0 debug=0 release=0 wrapper=0
+compile=0 tests=1 debug=0 release=0 wrapper=0
 
 == first compile errors ==
 
 == test failures ==
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+ReceiveLinkTest > aSenderDialingTheScannedLinkTransfers FAILED
+        at org.junit.Assert.assertEquals(Assert.java:120)
+        at org.junit.Assert.assertEquals(Assert.java:146)
+ReceiveLinkTest > emptyOrPortlessLinksAreNeverAdvertised FAILED
+        at app//org.junit.Assert.assertEquals(Assert.java:117)
+        at app//org.junit.Assert.assertEquals(Assert.java:146)
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+> Task :app:testDebugUnitTest FAILED
+BUILD FAILED in 52s
 
 == benchmark lines ==
-    [loopback] 2000 small files: 5.8 MB in 1096 ms = 5.3 MB/s
-    [loopback] large file: 192.0 MB in 513 ms = 374.3 MB/s
+    [loopback] 2000 small files: 5.8 MB in 1029 ms = 5.7 MB/s
+    [loopback] large file: 192.0 MB in 499 ms = 384.8 MB/s
 
 == last compile log lines ==
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
@@ -39,7 +50,7 @@ Daemon will be stopped at the end of the build
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:671:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:767:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:195:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:433:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:123:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
@@ -52,12 +63,12 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:219:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:390:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:847:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1343:49 Unnecessary safe call on a non-null receiver of type 'FileResult'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1543:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793201111619.json
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1357:49 Unnecessary safe call on a non-null receiver of type 'FileResult'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1557:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793209833798.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 58s
+BUILD SUCCESSFUL in 1m 11s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
