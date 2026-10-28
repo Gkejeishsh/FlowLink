@@ -81,6 +81,16 @@ data class ReceivedAppUi(
     val message: String = ""
 )
 
+/**
+ * One row of the transfer timeline. [id] is the protocol file id, so live per-file bytes can be
+ * matched without comparing names (two files may legitimately share a name in different folders).
+ */
+data class SessionFileUi(
+    val id: Int,
+    val name: String,
+    val size: Long
+)
+
 data class SessionUi(
     val mode: SessionMode = SessionMode.IDLE,
     val state: TransferState = TransferState.IDLE,
@@ -104,7 +114,11 @@ data class SessionUi(
     val deviceName: String = "",
     val receivedApps: List<ReceivedAppUi> = emptyList(),
     /** Six digits shown on the Receive screen for manual pairing. */
-    val receiveCode: String = ""
+    val receiveCode: String = "",
+    /** Everything in this session, in manifest order — the transfer timeline. */
+    val files: List<SessionFileUi> = emptyList(),
+    /** Live byte counts for files still in flight, keyed by [SessionFileUi.id]. */
+    val fileProgress: Map<Int, Long> = emptyMap()
 ) {
     val active: Boolean get() = mode != SessionMode.IDLE
 }
@@ -372,7 +386,8 @@ class TransferService : Service() {
                 peerName = peer.name,
                 filesTotal = items.size,
                 totalBytes = manifest.totalBytes,
-                linkLabel = pathLabelFor(peer)
+                linkLabel = pathLabelFor(peer),
+                files = manifest.files.map { SessionFileUi(it.id, it.relPath.substringAfterLast('/'), it.size) }
             )
         }
         val network = tools.activeWifiNetwork()
@@ -397,6 +412,7 @@ class TransferService : Service() {
                         filesDone = progress.filesDone,
                         filesTotal = maxOf(progress.filesTotal, current.filesTotal),
                         etaMs = progress.etaMs,
+                        fileProgress = progress.fileProgress,
                         pathLabel = progress.pathLabel.ifBlank { current.pathLabel },
                         state = progress.state,
                         speedHistory = (current.speedHistory + progress.instantBytesPerSecond).takeLast(120)
@@ -611,6 +627,15 @@ class TransferService : Service() {
                         Log.d(TAG, "auto-accepted offer from trusted device ${offer.peerName}")
                         return OfferDecision(accepted = true)
                     }
+                    // The timeline is published here, from the manifest, so the receiving screen can
+                    // show every file (with its ring) the moment the session is accepted.
+                    TransferHub.update { current ->
+                        current.copy(
+                            files = offer.manifest.files.map {
+                                SessionFileUi(it.id, it.relPath.substringAfterLast('/'), it.size)
+                            }
+                        )
+                    }
                     TransferHub.offer(
                         IncomingOfferUi(
                             peerName = offer.peerName,
@@ -685,6 +710,8 @@ class TransferService : Service() {
                 mode = SessionMode.RECEIVE,
                 state = TransferState.IDLE,
                 receiveReady = true,
+                files = emptyList(),
+                fileProgress = emptyMap(),
                 receiveQr = qr,
                 receiveCode = code,
                 deviceName = app.prefs.deviceName,
@@ -791,6 +818,7 @@ class TransferService : Service() {
                 doneBytes = result.bytesTransferred,
                 totalBytes = if (result.bytesTransferred > it.totalBytes) result.bytesTransferred else it.totalBytes,
                 fileResults = if (result.files.isNotEmpty()) result.files else it.fileResults,
+                fileProgress = emptyMap(),
                 offer = null
             )
         }

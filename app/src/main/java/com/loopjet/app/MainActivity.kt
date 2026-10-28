@@ -163,6 +163,10 @@ class MainActivity : ComponentActivity() {
                     incomingUris = emptyList()
                 }
             }
+            // Both phones show the live session. The receiver used to stay on the Receive screen, so a
+            // running transfer was invisible on that side.
+            val session by TransferHub.session.collectAsStateWithLifecycle()
+            LaunchedEffect(session.mode, session.state) { vm.openSessionIfRunning() }
             LoopJetTheme(dark = dark) {
                 val motion = LocalMotion.current
                 val snackbar = remember { SnackbarHostState() }

@@ -306,6 +306,41 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(screen = Screen.Transfer)
     }
 
+    /**
+     * Opens the transfer screen on whichever phone a session starts on.
+     *
+     * Only the sender used to navigate (see [sendTo]); the receiver stayed on the Receive screen and
+     * therefore showed no percentage and no speed, which made a running transfer look like nothing was
+     * happening. Returns true when it navigated.
+     */
+    fun openSessionIfRunning(): Boolean {
+        val session = TransferHub.session.value
+        if (session.mode == com.loopjet.app.platform.SessionMode.IDLE) return false
+        val live = when (session.state) {
+            com.loopjet.app.core.TransferState.CONNECTING,
+            com.loopjet.app.core.TransferState.WAITING_ACCEPT,
+            com.loopjet.app.core.TransferState.TRANSFERRING,
+            com.loopjet.app.core.TransferState.PAUSED -> true
+            else -> false
+        }
+        if (!live) return false
+        val current = _state.value.screen
+        // Never yank the user out of onboarding or out from behind the camera.
+        if (current == Screen.Transfer || current == Screen.Onboarding || current == Screen.Scanner) return false
+        _state.value = _state.value.copy(screen = Screen.Transfer)
+        return true
+    }
+
+    /**
+     * "Show my code": switch this phone into Receive so the other phone can scan it. Discovery stays
+     * up on both sides, which is what keeps a scanned link connectable.
+     */
+    fun receiveHere() {
+        go(Screen.Receive)
+        TransferService.startReceive(getApplication())
+        startDiscovery(advertise = true)
+    }
+
     fun cancelTransfer() {
         TransferService.stop(getApplication())
     }

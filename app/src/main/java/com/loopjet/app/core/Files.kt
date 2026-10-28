@@ -165,8 +165,17 @@ data class TransferProgress(
     val state: TransferState,
     val pathLabel: String = "",
     val chunkCount: Int = 0,
-    val chunksDone: Int = 0
+    val chunksDone: Int = 0,
+    /**
+     * Bytes written so far, per file id, for files still in flight. Only files with a live sink are
+     * included and the map is capped (see [MAX_FILE_PROGRESS_ENTRIES]) so a 2 000-file session does
+     * not rebuild a 2 000-entry map every 100 ms — the hot path must not pay for the UI.
+     */
+    val fileProgress: Map<Int, Long> = emptyMap()
 )
+
+/** Upper bound on how many in-flight files a progress tick reports. */
+const val MAX_FILE_PROGRESS_ENTRIES: Int = 64
 
 data class TransferOffer(
     val peerName: String,

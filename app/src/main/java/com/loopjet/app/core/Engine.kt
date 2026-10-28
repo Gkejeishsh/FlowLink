@@ -74,6 +74,34 @@ internal class RateMeter(private val windowMs: Long = 1500) {
     fun total(): Long = totalBytes
 }
 
+/**
+ * Builds the per-file snapshot handed to the UI.
+ *
+ * Deliberately small: only files that still have bytes to go, at most [MAX_FILE_PROGRESS_ENTRIES]
+ * of them, so this allocation stays the same whether the session has 5 files or 5 000. Called from
+ * the progress reporter thread only.
+ */
+internal fun snapshotFileProgress(
+    counters: Map<Int, AtomicLong>,
+    files: Collection<TransferFile>,
+    completed: Set<Int>
+): Map<Int, Long> {
+    if (counters.isEmpty()) return emptyMap()
+    val sizes = HashMap<Int, Long>(files.size.coerceAtMost(256))
+    for (file in files) sizes[file.id] = file.size
+    val out = HashMap<Int, Long>(min(counters.size, MAX_FILE_PROGRESS_ENTRIES))
+    for ((id, counter) in counters) {
+        if (id in completed) continue
+        val done = counter.get()
+        if (done <= 0L) continue
+        val size = sizes[id] ?: continue
+        // A finished file is reported as complete even if it is still marked in-flight.
+        out[id] = if (size > 0 && done >= size) size else done
+        if (out.size >= MAX_FILE_PROGRESS_ENTRIES) break
+    }
+    return out
+}
+
 internal fun readFully(input: InputStream, dst: ByteArray, off: Int, len: Int) {
     var done = 0
     while (done < len) {
@@ -131,6 +159,8 @@ class SenderEngine(
     private val sources = ConcurrentHashMap<Int, RandomAccessSource>()
     private val chunksDone = AtomicInteger(0)
     private val currentFiles = ConcurrentHashMap.newKeySet<String>()
+    /** Bytes sent per file id — one atomic add beside the existing rate.add, nothing else. */
+    private val fileBytes = ConcurrentHashMap<Int, AtomicLong>()
 
     @Volatile private var controlSocket: Socket? = null
     @Volatile private var controlChannel: RecordChannel? = null
@@ -498,6 +528,7 @@ class SenderEngine(
             System.arraycopy(readBuffer, 0, staging, 49, n)
             channel.writeRecord(Frame.DATA, staging, 0, 49 + n)
             rate.add(n.toLong())
+            fileBytes.getOrPut(file.id) { AtomicLong() }.addAndGet(n.toLong())
             chunksDone.incrementAndGet()
             offset += n
             remaining -= n
@@ -536,6 +567,9 @@ class SenderEngine(
         channel.writeRecord(Frame.BUNDLE, staging, 0, headerSize + payloadSize)
         channel.flush()
         rate.add(item.bytes)
+        for (part in item.parts) {
+            fileBytes.getOrPut(part.file.id) { AtomicLong() }.addAndGet(part.length.toLong())
+        }
         chunksDone.addAndGet(item.parts.size)
         currentFiles.clear()
     }
@@ -615,7 +649,8 @@ class SenderEngine(
                         },
                         pathLabel = pathLabel,
                         chunkCount = chunksTotal,
-                        chunksDone = chunksDone.get()
+                        chunksDone = chunksDone.get(),
+                        fileProgress = snapshotFileProgress(fileBytes, manifest.files, completedIds)
                     )
                 )
                 Thread.sleep(100)
@@ -669,6 +704,8 @@ class ReceiverEngine(
     private var controlServer: ServerSocket? = null
     private var dataServer: ServerSocket? = null
     private val closed = AtomicBoolean(false)
+    /** Bytes written per file id, so the receiving screen can fill a ring per file. */
+    private val fileBytes = ConcurrentHashMap<Int, AtomicLong>()
 
     var controlPort: Int = 0
         private set
@@ -960,6 +997,7 @@ class ReceiverEngine(
                             filesDone = committedFiles.size,
                             filesTotal = pendingFiles.size + results.size,
                             currentFiles = emptyList(),
+                            fileProgress = snapshotFileProgress(fileBytes, m.files, committedFiles),
                             elapsedMs = elapsedMs,
                             etaMs = if (average > 1) ((totalBytes - transferredNow).coerceAtLeast(0) / average).toLong() else 0,
                             state = progressState.get(),
@@ -1235,6 +1273,7 @@ class ReceiverEngine(
                         val sink = sinks[fileId] ?: continue
                         synchronized(sink) { sink.writeAt(payload, 49, length, offset) }
                         rate.add(length.toLong())
+                        fileBytes.getOrPut(fileId) { AtomicLong() }.addAndGet(length.toLong())
                         lastActivity.set(System.currentTimeMillis())
                         val map = maps[fileId]
                         if (map != null) {
@@ -1268,6 +1307,7 @@ class ReceiverEngine(
                                 if (bad) throw ProtocolException("bundle checksum mismatch on ${file.relPath}")
                                 synchronized(sink) { sink.writeAt(payload, payloadOffset, length, 0) }
                                 rate.add(length.toLong())
+                                fileBytes.getOrPut(fileId) { AtomicLong() }.addAndGet(length.toLong())
                                 val map = maps[fileId]
                                 if (map != null && map.chunkCount > 0 && !map.isSet(0)) {
                                     map.set(0)

@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,7 +77,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -94,6 +100,7 @@ import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.TransferState
 import com.loopjet.app.platform.IncomingOfferUi
 import com.loopjet.app.platform.ReceivedAppUi
+import com.loopjet.app.platform.SessionFileUi
 import com.loopjet.app.platform.SessionMode
 import com.loopjet.app.platform.SessionUi
 import com.loopjet.app.platform.apps.InstalledApp
@@ -670,14 +677,29 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(Modifier.height(14.dp))
-        // Scanning is the fastest path, so it is the first thing offered; typing the code stays
-        // available underneath for a dirty lens or a phone with no camera.
-        PrimaryAction(
-            "Scan the other phone's QR code",
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        ) { vm.go(Screen.Scanner) }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(12.dp))
+        // One screen, two choices — the whole connection flow. "Show" puts this phone's code up,
+        // "Scan" reads the other phone's. Everything else (typed code, pasted link) lives underneath
+        // as a fallback, so the common case is a single decision.
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            PrimerButton(
+                title = "Show my code",
+                subtitle = "The other phone scans it",
+                icon = Icons.Filled.Share,
+                modifier = Modifier.weight(1f)
+            ) { vm.receiveHere() }
+            PrimerButton(
+                title = "Scan a code",
+                subtitle = "Read the other phone",
+                icon = Icons.Filled.Search,
+                accent = true,
+                modifier = Modifier.weight(1f)
+            ) { vm.go(Screen.Scanner) }
+        }
+        Spacer(Modifier.height(8.dp))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
             items(discovery.peers.size) { index ->
                 val peer = discovery.peers[index]
@@ -732,6 +754,57 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
                 }
             }
         }
+    }
+}
+
+/**
+ * A large two-line choice card. Used for the two ways to connect, so the decision is one tap and
+ * needs no reading of a list of discovered devices.
+ */
+@Composable
+private fun PrimerButton(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    accent: Boolean = false,
+    onClick: () -> Unit
+) {
+    val (pressModifier, interaction) = rememberPressScale()
+    Column(
+        modifier
+            .then(pressModifier)
+            .heightIn(min = 104.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(
+                if (accent) BrandGradient
+                else Brush.linearGradient(
+                    listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface)
+                )
+            )
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
+            .clickable(role = Role.Button, interactionSource = interaction, indication = ripple()) { onClick() }
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = if (accent) Color.White else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            color = if (accent) Color.White else MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            subtitle,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (accent) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -938,47 +1011,75 @@ fun qrBitmap(text: String, size: Int, dark: Boolean): Bitmap? {
 fun TransferScreen(vm: AppViewModel, state: AppState) {
     val session by vm.session.collectAsStateSafe()
     val sending = session.mode == SessionMode.SEND
-    val total = session.totalBytes.coerceAtLeast(1)
+    val total = session.totalBytes.coerceAtLeast(1L)
     val progress = (session.doneBytes.toFloat() / total).coerceIn(0f, 1f)
+    val live = session.state == TransferState.TRANSFERRING
+    val finished = session.state == TransferState.DONE
+    // Finished-but-failed files, keyed by id, so a row can show why it did not make it.
+    val resultsById = remember(session.fileResults) { session.fileResults.associateBy { it.fileId } }
     ScreenFrame(
         title = when {
             session.state == TransferState.DONE -> "Complete"
             session.state == TransferState.FAILED -> "Stopped"
+            session.state == TransferState.CANCELLED -> "Cancelled"
             sending -> "Sending"
             else -> "Receiving"
         },
         onBack = { vm.back() }
     ) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp)) {
+        LazyColumn(
+            Modifier.weight(1f),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 20.dp)
+        ) {
             item {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    ProgressRing(progress = progress) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                "${(progress * 100).toInt()}%",
-                                style = MaterialTheme.typography.displaySmall
-                            )
-                            Text(
-                                Fmt.rate(session.instantBps.toDouble()),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                "${Fmt.bytes(session.doneBytes)} of ${Fmt.bytes(session.totalBytes)}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                SpeedGraph(
-                    values = session.speedHistory,
-                    modifier = Modifier.fillMaxWidth().height(84.dp)
+                TransferSummary(
+                    peerName = session.peerName.ifBlank { state.selectedPeerName },
+                    sending = sending,
+                    progress = progress,
+                    doneBytes = session.doneBytes,
+                    totalBytes = session.totalBytes,
+                    instantBps = session.instantBps,
+                    etaMs = session.etaMs,
+                    filesDone = session.filesDone,
+                    filesTotal = maxOf(session.filesTotal, session.files.size),
+                    live = live,
+                    state = session.state,
+                    message = session.message
                 )
-                Spacer(Modifier.height(10.dp))
-                SectionCard {
-                    StatRow("Peer", session.peerName.ifBlank { state.selectedPeerName })
+                Spacer(Modifier.height(14.dp))
+            }
+            if (session.speedHistory.size > 2) {
+                item {
+                    SpeedGraph(
+                        values = session.speedHistory,
+                        modifier = Modifier.fillMaxWidth().height(64.dp)
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+            }
+            if (session.files.isNotEmpty()) {
+                item {
+                    Text(
+                        if (sending) "Files being sent" else "Files being received",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(Modifier.height(6.dp))
+                }
+                // keyed, so rows never jump and a ring stays attached to its file while scrolling
+                items(session.files, key = { it.id }) { file ->
+                    FileTimelineRow(
+                        file = file,
+                        sentBytes = session.fileProgress[file.id] ?: 0L,
+                        result = resultsById[file.id],
+                        live = live,
+                        isLast = file.id == session.files.lastOrNull()?.id
+                    )
+                }
+                item { Spacer(Modifier.height(12.dp)) }
+            }
+            item {
+                SectionCard {
                     StatRow("Path", session.linkLabel.ifBlank { "local link" })
                     Spacer(Modifier.height(6.dp))
                     StatRow("Average", Fmt.rate(session.averageBps.toDouble()))
@@ -992,24 +1093,16 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                     StatRow("Target", session.pathLabel.ifBlank { "Downloads/LoopJet" })
                 }
                 Spacer(Modifier.height(14.dp))
-                LinkDashes(
-                    progress = progress,
-                    active = session.state == TransferState.TRANSFERRING,
-                    modifier = Modifier.fillMaxWidth().height(20.dp)
-                )
-                Spacer(Modifier.height(14.dp))
-                if (session.receivedApps.isNotEmpty()) {
+            }
+            if (session.receivedApps.isNotEmpty()) {
+                item {
                     Text("Apps received", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
                     session.receivedApps.forEach { received -> ReceivedAppRow(vm, received) }
                     Spacer(Modifier.height(10.dp))
                 }
-                if (session.fileResults.isNotEmpty()) {
-                    Text("Files", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    session.fileResults.takeLast(40).forEach { result -> FileResultRow(result) }
-                }
-                Spacer(Modifier.height(16.dp))
+            }
+            item {
                 when (session.state) {
                     TransferState.TRANSFERRING, TransferState.CONNECTING, TransferState.WAITING_ACCEPT -> {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1033,7 +1126,209 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                         }
                     }
                 }
+                Spacer(Modifier.height(8.dp))
             }
+        }
+    }
+}
+
+/**
+ * The header both phones show: one gradient bar with the percentage *inside* it, then speed, bytes and
+ * file counts. The percentage sits in the bar rather than beside it so the answer to "is anything
+ * happening?" is the largest thing on the screen.
+ */
+@Composable
+private fun TransferSummary(
+    peerName: String,
+    sending: Boolean,
+    progress: Float,
+    doneBytes: Long,
+    totalBytes: Long,
+    instantBps: Long,
+    etaMs: Long,
+    filesDone: Int,
+    filesTotal: Int,
+    live: Boolean,
+    state: TransferState,
+    message: String
+) {
+    val percent = (progress * 100f).toInt()
+    val accent = when (state) {
+        TransferState.FAILED -> MaterialTheme.colorScheme.error
+        TransferState.DONE -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.primary
+    }
+    SectionCard {
+        Text(
+            if (sending) "Sending to ${peerName.ifBlank { "device" }}" else "Receiving from ${peerName.ifBlank { "device" }}",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(Modifier.height(12.dp))
+        // The bar itself: a rounded track with a gradient fill and the percentage drawn inside.
+        Box(
+            Modifier.fillMaxWidth().height(52.dp).clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress.coerceIn(0f, 1f))
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(if (state == TransferState.FAILED) Brush.linearGradient(listOf(accent, accent)) else BrandGradient)
+            )
+            Text(
+                "$percent%",
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 18.dp),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (progress > 0.35f || state == TransferState.FAILED) Color.White
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                if (live) Fmt.rate(instantBps.toDouble()) else when (state) {
+                    TransferState.DONE -> "Finished"
+                    TransferState.PAUSED -> "Paused"
+                    TransferState.FAILED -> "Stopped"
+                    TransferState.CANCELLED -> "Cancelled"
+                    else -> "Preparing…"
+                },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f)
+            )
+            if (live && etaMs > 0) {
+                Text(
+                    "${Fmt.duration(etaMs)} left",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "${Fmt.bytes(doneBytes)} of ${Fmt.bytes(totalBytes)}" +
+                if (filesTotal > 0) "  ·  $filesDone of $filesTotal files" else "",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (message.isNotBlank() && state != TransferState.DONE) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                message,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (state == TransferState.FAILED) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/**
+ * One file in the vertical timeline: a connector line, a circular ring that fills with that file's
+ * own progress, and the name with its size. A finished file shows a check inside the ring.
+ */
+@Composable
+private fun FileTimelineRow(
+    file: SessionFileUi,
+    sentBytes: Long,
+    result: FileResult?,
+    live: Boolean,
+    isLast: Boolean
+) {
+    val fraction = when {
+        result?.ok == true -> 1f
+        result != null -> 1f
+        file.size > 0 -> (sentBytes.toFloat() / file.size).coerceIn(0f, 1f)
+        else -> 0f
+    }
+    val failed = result != null && !result.ok
+    val done = result?.ok == true
+    val inFlight = sentBytes > 0 && !done && !failed
+    val ringColor = when {
+        failed -> MaterialTheme.colorScheme.error
+        done -> MaterialTheme.colorScheme.primary
+        inFlight -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline
+    }
+    Row(Modifier.fillMaxWidth()) {
+        // Timeline gutter: the ring is the node, the line runs through it.
+        Box(Modifier.width(56.dp).heightIn(min = 64.dp), contentAlignment = Alignment.TopCenter) {
+            Canvas(Modifier.width(2.dp).fillMaxHeight().padding(top = 40.dp)) {
+                if (!isLast) {
+                    drawRect(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+            Box(Modifier.padding(top = 6.dp).size(40.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val stroke = 4f
+                    val inset = stroke / 2
+                    drawArc(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = Offset(inset, inset),
+                        size = Size(size.width - stroke, size.height - stroke),
+                        style = Stroke(width = stroke, cap = StrokeCap.Round)
+                    )
+                    if (fraction > 0f) {
+                        drawArc(
+                            color = ringColor,
+                            startAngle = -90f,
+                            sweepAngle = 360f * fraction,
+                            useCenter = false,
+                            topLeft = Offset(inset, inset),
+                            size = Size(size.width - stroke, size.height - stroke),
+                            style = Stroke(width = stroke, cap = StrokeCap.Round)
+                        )
+                    }
+                }
+                if (done) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                } else {
+                    Text(
+                        extensionBadge(file.name).take(2),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (inFlight) ringColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        Column(Modifier.weight(1f).padding(start = 4.dp, top = 10.dp, bottom = 10.dp)) {
+            Text(
+                file.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = if (done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                when {
+                    failed -> "Failed · ${result?.message?.ifBlank { "error" } ?: "error"}"
+                    done -> "${Fmt.bytes(file.size)} · done"
+                    inFlight -> "${Fmt.bytes(sentBytes)} of ${Fmt.bytes(file.size)} · ${(fraction * 100).toInt()}%"
+                    live -> "${Fmt.bytes(file.size)} · waiting"
+                    else -> Fmt.bytes(file.size)
+                },
+                style = MaterialTheme.typography.labelMedium,
+                color = when {
+                    failed -> MaterialTheme.colorScheme.error
+                    done -> MaterialTheme.colorScheme.onSurfaceVariant
+                    inFlight -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
