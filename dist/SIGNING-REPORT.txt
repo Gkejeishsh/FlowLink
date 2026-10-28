@@ -1,1 +1,1 @@
-no release apk produced
+Release build was not signed (no keystore supplied on this run).

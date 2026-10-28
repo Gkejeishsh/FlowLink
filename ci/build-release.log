@@ -31,14 +31,15 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
-> Task :app:extractReleaseVersionControlInfo
 > Task :app:processReleaseManifestForPackage
+> Task :app:extractReleaseVersionControlInfo
 > Task :app:collectReleaseDependencies
-> Task :app:mergeReleaseResources
 > Task :app:sdkReleaseDependencyData
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
-> Task :app:processReleaseResources FAILED
+> Task :app:mergeReleaseResources
+> Task :app:processReleaseResources
+
 > Task :app:compileReleaseKotlin
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:245:21 Expression is unused.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
@@ -57,25 +58,26 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164606313.json
+
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:mergeReleaseGeneratedProguardFiles
+> Task :app:processReleaseJavaRes
+> Task :app:expandReleaseArtProfileWildcards
+> Task :app:mergeReleaseJavaResource
+> Task :app:produceReleaseComposeMapping
+> Task :app:reportReleaseComposeMappingErrors
+> Task :app:minifyReleaseWithR8
+> Task :app:mergeReleaseComposeMapping
+> Task :app:convertShrunkResourcesToBinaryRelease
+> Task :app:optimizeReleaseResources
+> Task :app:compileReleaseArtProfile
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793165051000.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:processReleaseResources' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
-   > Android resource linking failed
-     com.loopjet.app-mergeReleaseResources-35:/values-v31/values-v31.xml:11: error: style attribute 'android:attr/postSplashScreenTheme' not found.
-     error: failed linking references.
-
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 44s
-33 actionable tasks: 28 executed, 5 from cache
+BUILD SUCCESSFUL in 2m 1s
+47 actionable tasks: 42 executed, 5 from cache
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

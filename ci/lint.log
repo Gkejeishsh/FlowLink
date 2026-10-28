@@ -10,7 +10,7 @@ Daemon will be stopped at the end of the build
 > Task :app:generateReleaseRFile UP-TO-DATE
 > Task :app:compileReleaseKotlin UP-TO-DATE
 > Task :app:javaPreCompileRelease UP-TO-DATE
-> Task :app:compileReleaseJavaWithJavac
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:extractDeepLinksRelease UP-TO-DATE
 > Task :app:processReleaseMainManifest UP-TO-DATE
@@ -22,8 +22,8 @@ Wrote HTML report to file:///home/runner/work/FlowLink/FlowLink/app/build/report
 Wrote SARIF report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.sarif
 
 > Task :app:lintRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164651583.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793165172512.json
 
-BUILD SUCCESSFUL in 1m 21s
-16 actionable tasks: 5 executed, 11 up-to-date
+BUILD SUCCESSFUL in 1m 15s
+16 actionable tasks: 4 executed, 12 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

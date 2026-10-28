@@ -1,10 +1,10 @@
-compile=0 tests=1 debug=1 release=1 wrapper=0
+compile=0 tests=1 debug=0 release=0 wrapper=0
 
 == first compile errors ==
 
 == test failures ==
-> Task :app:processDebugResources FAILED
-BUILD FAILED in 25s
+> Task :app:compileDebugUnitTestKotlin FAILED
+BUILD FAILED in 32s
 
 == benchmark lines ==
 
@@ -37,10 +37,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164452268.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164891109.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 59s
+BUILD SUCCESSFUL in 57s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
