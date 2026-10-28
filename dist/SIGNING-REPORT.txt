@@ -1,8 +1,8 @@
 == apk ==
--rw-r--r-- 1 runner runner 1674583 Oct 28 08:53 dist/LoopJet-1.0.0-release.apk
+-rw-r--r-- 1 runner runner 1674573 Oct 28 09:13 dist/LoopJet-1.0.0-release.apk
 
 == sha256 ==
-4d79b20febf1c1ad0fb4299b49ff76257d7d1e67f1b48abbef5868a29171f911  dist/LoopJet-1.0.0-release.apk
+11075d62bef87259f0fbe315c38ca6ccf4446d4d8baba234e8ec0e0b07e46b80  dist/LoopJet-1.0.0-release.apk
 
 == apksigner verify --verbose --print-certs ==
 Verifies
@@ -13,15 +13,15 @@ Verified using v3.1 scheme (APK Signature Scheme v3.1): false
 Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
-Signer #1 certificate DN: CN=LoopJet, OU=Release, O=LoopJet, L=Local, ST=Local, C=PK
-Signer #1 certificate SHA-256 digest: fea2a9d950971eb7fd76948d1f85cd06bbd0347a90722492e2d7968dff0c747d
-Signer #1 certificate SHA-1 digest: ab5e3be6b444f72e443456ff25b82cc906430a4a
-Signer #1 certificate MD5 digest: 89f90989c15b71e213fd2a26c0d33991
+Signer #1 certificate DN: C=PK, ST=Local, L=Local, O=LoopJet, OU=Release, CN=LoopJet
+Signer #1 certificate SHA-256 digest: f35454a191e71fc689835921811560d70093f33ac43d0b01aa455a5b22d363dd
+Signer #1 certificate SHA-1 digest: 2174f29b7a2d339e527baef411ef8e5333897c03
+Signer #1 certificate MD5 digest: 732579dc46f534d8d342e7d7617a9d9a
 Signer #1 key algorithm: RSA
 Signer #1 key size (bits): 4096
-Signer #1 public key SHA-256 digest: 2b4c1fedd02d25d0be34783315f1dcaa9b7a4758681da8e63a191c5da11e3038
-Signer #1 public key SHA-1 digest: f81641b1d22526b7ad1c400e80d7ac2196cc825e
-Signer #1 public key MD5 digest: 5cbcb69fa1b9a4af011f56adc23f575f
+Signer #1 public key SHA-256 digest: a97e2d42c3cebf8d64a2d55d18f549c9efa3fe967b1d95a20cac8a76db1a1b3f
+Signer #1 public key SHA-1 digest: 1845b0734e84fe5faad90d3c3e350cb507e8dd72
+Signer #1 public key MD5 digest: 0912c4c06beb40376c92c443fa74e126
 EXIT=0
 
 == apksigner verify --min-sdk-version 26 --max-sdk-version 37 ==

@@ -8,6 +8,7 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
+
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
@@ -25,10 +26,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:380:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:760:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1208:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793177701226.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793178897066.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 56s
+BUILD SUCCESSFUL in 43s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

@@ -1,1 +1,1 @@
-aac1163e77c1dd85e503d2588b392f9012f0c88449e1ec8c47b29ed3dd7a0b04  dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+7b1c249047a55fa8d24b3a1ae51952cf03598a8c3ac77afbffa242be731c626d  dist/unsigned/LoopJet-1.0.0-release-aligned.apk
