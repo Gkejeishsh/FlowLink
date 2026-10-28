@@ -862,6 +862,9 @@ class TransferService : Service() {
     /** Publishes the code the Receive screen renders, plus the one-line explanation of the path. */
     private fun publishReceiveCode(qr: String, localAddress: String, note: String? = null) {
         val app = LoopJetApp.instance
+        // Never put a placeholder address under the code: "Same Wi-Fi · 0.0.0.0" is worse than
+        // admitting that the address is still being worked out.
+        val label = note ?: localAddress.takeIf { it.isNotBlank() && it != "0.0.0.0" } ?: "preparing the connection"
         TransferHub.update {
             it.copy(
                 mode = SessionMode.RECEIVE,
@@ -872,7 +875,7 @@ class TransferService : Service() {
                 receiveQr = qr.ifBlank { "loopjet://waiting" },
                 deviceName = app.prefs.deviceName,
                 pathLabel = it.pathLabel.ifBlank { "Downloads/LoopJet" },
-                linkLabel = note ?: localAddress,
+                linkLabel = label,
                 message = note ?: ""
             )
         }

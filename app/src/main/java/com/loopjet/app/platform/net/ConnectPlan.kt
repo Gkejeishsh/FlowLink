@@ -154,8 +154,15 @@ sealed class ScannedCode {
  * tests all go through here so the advertised host and port cannot drift from the listening socket.
  */
 object ReceiveCodes {
-    fun lanLink(host: String, port: Int, fingerprint: String, deviceId: String): String =
-        if (host.isBlank() || port <= 0) "" else "loopjet://$host:$port#$fingerprint#$deviceId"
+    /**
+     * Empty when there is nothing usable to advertise. "0.0.0.0" is what the caller has when no
+     * interface could be found, and "loopjet://0.0.0.0:43130" is a code that can only ever fail --
+     * so it is turned into no code at all, which makes the screen say it is still preparing.
+     */
+    fun lanLink(host: String, port: Int, fingerprint: String, deviceId: String): String {
+        val usable = host.isNotBlank() && host != "0.0.0.0" && host != "::" && port in 1..65535
+        return if (usable) "loopjet://$host:$port#$fingerprint#$deviceId" else ""
+    }
 }
 
 object ConnectCodes {

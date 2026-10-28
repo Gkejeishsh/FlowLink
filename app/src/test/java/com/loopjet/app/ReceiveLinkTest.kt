@@ -87,7 +87,6 @@ class ReceiveLinkTest {
         val identity = SoftwareIdentity.generate()
         val senderIdentity = SoftwareIdentity.generate()
         val done = CountDownLatch(1)
-        var received = 0
         val receiver = ReceiverEngine(
             identity = identity,
             sinkFactory = LocalFileSinkFactory(File(dir, "in")),
@@ -95,7 +94,6 @@ class ReceiveLinkTest {
                 override fun onState(state: TransferState, detail: String) {
                     if (state == TransferState.DONE) done.countDown()
                 }
-                override fun onProgress(progress: TransferProgress) { received = progress.filesDone }
             },
             resumeStore = InMemoryResumeStore(),
             requestedPort = 45410,
@@ -145,7 +143,9 @@ class ReceiveLinkTest {
         val result = sender.run()
         accept.await(10, TimeUnit.SECONDS)
         assertTrue("sender failed: ${result.message}", result.ok)
-        assertEquals(1, received)
+        val receiverOutcome = receiverResult.get()
+        assertTrue("receiver failed: ${receiverOutcome?.message}", receiverOutcome?.ok == true)
+        assertEquals(1, receiverOutcome?.files?.size)
         val landed = File(dir, "in/payload.bin")
         assertTrue("received file missing at ${landed.absolutePath}", landed.isFile)
         assertEquals(source.length(), landed.length())
