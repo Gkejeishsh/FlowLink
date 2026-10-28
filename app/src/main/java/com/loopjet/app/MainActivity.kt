@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
         val ok = granted[android.Manifest.permission.NEARBY_WIFI_DEVICES] != false &&
             granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != false
         if (ok) {
-            vmRef?.retryPendingScan()
+            vmRef?.retryWifiScan()
         } else {
             vmRef?.notice("LoopJet cannot join the other phone's hotspot without the nearby-Wi-Fi permission")
         }

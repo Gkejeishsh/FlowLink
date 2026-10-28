@@ -124,7 +124,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * replayed once the dialog is answered.
      */
     var requestWifiPermission: (() -> Unit)? = null
-    private var pendingScan: String? = null
+    private var pendingWifiScan: String? = null
 
     private val app = application as LoopJetApp
     private val prefs = app.prefs
@@ -369,9 +369,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * Called by MainActivity when its permission dialog closes: replay a scan that had to wait for
      * the nearby-Wi-Fi grant instead of making the user walk back to the scanner.
      */
-    fun retryPendingScan() {
-        val text = pendingScan ?: return
-        pendingScan = null
+    fun retryWifiScan() {
+        val text = pendingWifiScan ?: return
+        pendingWifiScan = null
         acceptScanned(text)
     }
 
@@ -384,11 +384,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     return
                 }
                 if (!hasWifiPermission()) {
-                    pendingScan = text
+                    pendingWifiScan = text
                     notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join the other phone")
                     val ask = requestWifiPermission
                     if (ask != null) ask() else {
-                        pendingScan = null
+                        pendingWifiScan = null
                         notice("Grant Nearby Wi-Fi devices in Settings to use a hotspot code")
                     }
                     return
@@ -426,7 +426,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             is com.loopjet.app.platform.net.ScannedCode.PairingCode -> pairWithCode(parsed.digits)
             is com.loopjet.app.platform.net.ScannedCode.WifiOnly -> {
                 if (!hasWifiPermission()) {
-                    pendingScan = text
+                    pendingWifiScan = text
                     notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join this network")
                     requestWifiPermission?.invoke()
                     return
