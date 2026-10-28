@@ -133,9 +133,26 @@ jobs:
           rm -rf dist/unsigned dist/unit-test-report
           mkdir -p dist/unsigned
           BT=$ANDROID_HOME/build-tools/36.0.0
-          UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          # AGP has moved the release APK between app/build/outputs/apk/release and
+          # .../apk/release/<variant>/ across versions; a hard-coded path silently produced
+          # "no release apk produced" while the build itself succeeded. Search the whole tree,
+          # prefer the largest non-unaligned file, and print the tree when nothing is found.
+          find app/build/outputs -name "*.apk" 2>/dev/null | sed 's/^/apk candidate: /'
+          UNSIGNED=$(find app/build/outputs -name "*.apk" ! -name "*unaligned*" -printf "%s %p\n" 2>/dev/null \
+            | sort -rn | head -1 | cut -d' ' -f2-)
           echo "unsigned apk: $UNSIGNED"
-          if [ -z "$UNSIGNED" ]; then echo "no release apk produced" > dist/SIGNING-REPORT.txt; exit 0; fi
+          if [ -z "$UNSIGNED" ]; then
+            {
+              echo "no release apk produced"
+              echo
+              echo "== app/build/outputs =="
+              find app/build/outputs -maxdepth 4 2>/dev/null | head -40
+              echo
+              echo "== release task output =="
+              grep -E "packageRelease|assembleRelease|BUILD" ci/build-release.log | tail -10
+            } > dist/SIGNING-REPORT.txt
+            exit 0
+          fi
           ALIGNED=dist/unsigned/LoopJet-1.0.0-release-aligned.apk
           $BT/zipalign -p -f 4 "$UNSIGNED" "$ALIGNED" || cp "$UNSIGNED" "$ALIGNED"
           sha256sum "$ALIGNED" > dist/unsigned/SHA256.txt
