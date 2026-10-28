@@ -629,7 +629,7 @@ class TransferService : Service() {
             SessionMode.IDLE -> "LoopJet"
         }
         val text = when (ui.state) {
-            TransferState.TRANSFERRING -> "${Fmt.rate(ui.instantBps)} · ${Fmt.bytes(ui.doneBytes)} / ${Fmt.bytes(ui.totalBytes)}"
+            TransferState.TRANSFERRING -> "${Fmt.rate(ui.instantBps.toDouble())} · ${Fmt.bytes(ui.doneBytes)} / ${Fmt.bytes(ui.totalBytes)}"
             TransferState.PAUSED -> "Paused · ${Fmt.bytes(ui.doneBytes)}"
             TransferState.DONE -> "Complete · ${Fmt.bytes(ui.doneBytes)}"
             TransferState.FAILED -> "Failed · ${ui.message}"

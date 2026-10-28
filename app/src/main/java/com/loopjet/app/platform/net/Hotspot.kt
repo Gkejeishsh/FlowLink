@@ -172,11 +172,16 @@ class HotspotController(private val context: Context) {
 
 /** Builds the Wi-Fi QR payload the other phone can scan with its system camera. */
 object WifiQr {
+    private fun escapeWifi(value: String): String = value
+        .replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace(":", "\\:")
+
     fun payload(ssid: String, passphrase: String?, hidden: Boolean = false): String {
         val type = if (passphrase.isNullOrBlank()) "nopass" else "WPA"
-        val escaped = ssid.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace(":", "\\:")
-        val pass = passphrase?.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
-            ?.replace(":", "\\:") ?: ""
+        val escaped = escapeWifi(ssid)
+        val pass = passphrase?.let { escapeWifi(it) } ?: ""
         val hiddenPart = if (hidden) "H:true;" else ""
         return if (type == "nopass") {
             "WIFI:T:nopass;S:$escaped;$hiddenPart;"

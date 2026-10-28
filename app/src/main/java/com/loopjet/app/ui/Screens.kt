@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.sp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.loopjet.app.core.FileResult
 import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.TransferState
@@ -1379,4 +1380,4 @@ fun AboutScreen(vm: AppViewModel) {
 
 @Composable
 fun <T> StateFlow<T>.collectAsStateSafe(): androidx.compose.runtime.State<T> =
-    androidx.lifecycle.compose.collectAsStateWithLifecycle()
+    collectAsStateWithLifecycle()

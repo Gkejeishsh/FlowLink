@@ -147,7 +147,7 @@ class WebService : Service() {
             expiresAt = expiresAt
         )
         val webServer = WebServer(config, object : WebServerEvents {
-            override fun onLog(message: String) = Log.d(TAG, message)
+            override fun onLog(message: String) { Log.d(TAG, message) }
             override fun onDownload(name: String, sent: Long, total: Long) {
                 WebHub.update { it.copy(bytesServed = it.bytesServed + 0) }
             }

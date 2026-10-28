@@ -334,7 +334,7 @@ class WebServer(
         header.append("Connection: close\r\n\r\n")
         output.write(header.toString().toByteArray(Charsets.ISO_8859_1))
         if (request.method == "HEAD") return
-        ZipOutputStream(output, 256 * 1024).use { zip ->
+        ZipOutputStream(java.io.BufferedOutputStream(output, 256 * 1024)).use { zip ->
             zip.setMethod(ZipOutputStream.STORED)
             for (file in files) {
                 if (!running.get()) break

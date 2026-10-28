@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 import kotlin.math.min
 
@@ -80,6 +81,10 @@ internal fun readFully(input: InputStream, dst: ByteArray, off: Int, len: Int) {
         if (n < 0) throw EOFException("stream closed")
         done += n
     }
+}
+
+internal fun ServerSocket.shutDownQuietly() {
+    runCatching { close() }
 }
 
 internal fun Socket.shutDownQuietly() {

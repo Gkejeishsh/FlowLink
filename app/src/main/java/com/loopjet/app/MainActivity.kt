@@ -93,6 +93,7 @@ class MainActivity : ComponentActivity() {
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val activity = this
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         incomingUris = extractUris(intent)
@@ -135,7 +136,7 @@ class MainActivity : ComponentActivity() {
                                 state = state,
                                 onRequestPermissions = { requestPermissions(receive = true) },
                                 onPickSaveFolder = { folderLauncher.launch(null) },
-                                onBatterySettings = { runCatching { settingsLauncher.launch(Perms.batteryIntent(this)) } }
+                                onBatterySettings = { runCatching { settingsLauncher.launch(Perms.batteryIntent(activity)) } }
                             )
                             Screen.Home -> HomeScreen(
                                 vm, state,
@@ -156,9 +157,9 @@ class MainActivity : ComponentActivity() {
                                 PermissionsCard(
                                     onGrant = { requestPermissions(receive = false) },
                                     onPickFolder = { folderLauncher.launch(null) },
-                                    onBattery = { runCatching { settingsLauncher.launch(Perms.batteryIntent(this)) } },
-                                    onAllFiles = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(this)) } },
-                                    onInstallApps = { runCatching { settingsLauncher.launch(Perms.installIntent(this)) } }
+                                    onBattery = { runCatching { settingsLauncher.launch(Perms.batteryIntent(activity)) } },
+                                    onAllFiles = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
+                                    onInstallApps = { runCatching { settingsLauncher.launch(Perms.installIntent(activity)) } }
                                 )
                             }
                             Screen.About -> AboutScreen(vm)

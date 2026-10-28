@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
+import com.loopjet.app.platform.LoopJetApp
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
@@ -439,8 +440,8 @@ class P2pController(private val context: Context) {
         val m = manager ?: return
         val c = channel ?: return
         runCatching { m.discoverPeers(c, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() = Log.d("LoopJetP2p", "peer discovery started")
-            override fun onFailure(reason: Int) = Log.d("LoopJetP2p", "peer discovery failed: $reason")
+            override fun onSuccess() { Log.d("LoopJetP2p", "peer discovery started") }
+            override fun onFailure(reason: Int) { Log.d("LoopJetP2p", "peer discovery failed: $reason") }
         }) }
     }
 
@@ -540,7 +541,7 @@ class P2pController(private val context: Context) {
         val m = manager ?: return onResult(false, "Wi-Fi Direct is not available")
         val c = channel ?: return onResult(false, "Wi-Fi Direct is not available")
         val config = if (Build.VERSION.SDK_INT >= 29) {
-            val builder = WifiP2pConfig.Builder().setDeviceAddress(deviceAddress)
+            val builder = WifiP2pConfig.Builder().setDeviceAddress(android.net.MacAddress.fromString(deviceAddress))
             when (preferBand) {
                 BAND_5 -> builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
                 BAND_6 -> if (Build.VERSION.SDK_INT >= 36) builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_6GHZ) else builder.setGroupOperatingBand(WifiP2pConfig.GROUP_OWNER_BAND_5GHZ)
@@ -629,7 +630,7 @@ class BleBeacon(private val context: Context) {
             .setTimeout(0)
             .build()
         val callback = object : AdvertiseCallback() {
-            override fun onStartFailure(errorCode: Int) = Log.d("LoopJetBle", "advertise failed $errorCode")
+            override fun onStartFailure(errorCode: Int) { Log.d("LoopJetBle", "advertise failed $errorCode") }
         }
         runCatching { advertiser.startAdvertising(settings, data, callback) }
         advertiseCallback = callback

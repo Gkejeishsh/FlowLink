@@ -60,15 +60,15 @@ class AppRepository(private val context: Context) {
                 InstalledApp(
                     packageName = packageName,
                     label = pm.getApplicationLabel(info).toString(),
-                    versionName = runCatching { pm.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "",
+                    versionName = runCatching<String?> { pm.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "",
                     versionCode = packageVersionCode(pm, packageName),
                     size = totalSize,
                     apkPaths = paths,
                     minSdk = if (Build.VERSION.SDK_INT >= 24) info.minSdkVersion else 0,
                     targetSdk = info.targetSdkVersion,
-                    nativeAbis = runCatching {
-                        pm.getPackageInfo(packageName, 0).applicationInfo?.primaryCpuAbi?.let { listOf(it) }
-                            ?: emptyList()
+                    nativeAbis = runCatching<List<String>> {
+                        val libDir = info.nativeLibraryDir
+                        if (libDir.isNullOrBlank()) emptyList() else listOf(libDir.substringAfterLast('/'))
                     }.getOrDefault(emptyList()),
                     system = system,
                     icon = runCatching { pm.getApplicationIcon(packageName) }.getOrNull()
