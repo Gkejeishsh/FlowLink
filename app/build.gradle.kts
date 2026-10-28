@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -15,14 +17,13 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
-        resourceConfigurations += listOf("en")
         vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
-        if (releaseKeystore != null && java.io.File(releaseKeystore).exists()) {
+        if (releaseKeystore != null && File(releaseKeystore).exists()) {
             create("release") {
-                storeFile = java.io.File(releaseKeystore)
+                storeFile = File(releaseKeystore)
                 storePassword = System.getenv("LJ_STORE_PASS")
                 keyAlias = System.getenv("LJ_KEY_ALIAS") ?: "loopjet"
                 keyPassword = System.getenv("LJ_KEY_PASS")
