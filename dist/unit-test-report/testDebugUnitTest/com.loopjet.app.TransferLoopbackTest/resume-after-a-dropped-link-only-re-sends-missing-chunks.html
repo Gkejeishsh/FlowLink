@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - resume after a dropped link only re-sends missing chunks</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<div class="breadcrumbs">
+<a class="breadcrumb" href="../index.html">all</a> &gt; 
+<a class="breadcrumb" href="index.html">com.loopjet.app.TransferLoopbackTest</a> &gt; 
+<span class="breadcrumb">resume after a dropped link only re-sends missing chunks</span>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="failureGroup" href="#">Gradle Test Run :app:testDebugUnitTest</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Gradle Test Run :app:testDebugUnitTest</h2>
+<h1>resume after a dropped link only re-sends missing chunks</h1>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">summary</a>
+</li>
+<li>
+<a class="" href="#">standard output</a>
+</li>
+<li>
+<a class="" href="#">error output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>summary</h2>
+<div>
+<div class="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">1</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>skipped</p>
+</div>
+</td>
+<td>
+<div class="infoBox duration">
+<div class="counter">9.097s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox failures successRate">
+<div class="percent">0%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="result-details">
+<h3>Failure details</h3>
+<span class="code">
+<pre id="root-0-test-failure-resume after a dropped link only re-sends missing chunks">java.lang.AssertionError: resume failed: Interrupted — 1 file(s) can resume
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.loopjet.app.TransferLoopbackTest.resume after a dropped link only re-sends missing chunks(TransferLoopbackTest.kt:327)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.runRequest(JUnitTestExecutor.java:175)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.accept(JUnitTestExecutor.java:84)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.accept(JUnitTestExecutor.java:47)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestDefinitionProcessor.processTestDefinition(AbstractJUnitTestDefinitionProcessor.java:65)
+	at org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor.processTestDefinition(SuiteTestDefinitionProcessor.java:53)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.gradle.internal.dispatch.MethodInvocation.invokeOn(MethodInvocation.java:77)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:28)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:19)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:88)
+	at jdk.proxy1/jdk.proxy1.$Proxy4.processTestDefinition(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:178)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:126)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:122)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-failure-resume after a dropped link only re-sends missing chunks">Copy</button>
+</span>
+</div>
+</div>
+</div>
+<div class="tab">
+<h2>standard output</h2>
+<span class="code">
+<pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=false msg=send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed; send failed: stream closed bytes=0 files=0 chunks=0/96
+[sender-failed] --- engine log (420 lines) ---
+[sender-failed] R: sender Test Phone connected, code 476698
+[sender-failed] S: handshake complete with Receiver, code 116818
+[sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] R: stalled for 2001ms, ending session
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 3: stream closed (attempt 1)
+[sender-failed] S: stream 0: stream closed (attempt 1)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 1)
+[sender-failed] S: stream 1: stream closed (attempt 1)
+[sender-failed] S: stream 3: stream closed (attempt 2)
+[sender-failed] S: stream 0: stream closed (attempt 2)
+[sender-failed] S: stream 2: stream closed (attempt 2)
+[sender-failed] S: stream 1: stream closed (attempt 2)
+[sender-failed] S: stream 3: stream closed (attempt 3)
+[sender-failed] S: stream 0: stream closed (attempt 3)
+[sender-failed] S: stream 2: stream closed (attempt 3)
+[sender-failed] S: stream 1: stream closed (attempt 3)
+[loopback] first attempt: sent=0 B receiver=Interrupted — 1 file(s) can resume
+[sender] ok=false msg=send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: arraycopy: last destination index 262193 out of bounds for byte[262144]; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused; send failed: Connection refused bytes=0 files=0 chunks=0/96
+[sender-failed] --- engine log (492 lines) ---
+[sender-failed] S: handshake complete with Receiver, code 324027
+[sender-failed] R: sender Test Phone connected, code 985093
+[sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 3)
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 1)
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
+[sender-failed] S: data stream 0 open
+[sender-failed] S: data stream 1 open
+[sender-failed] S: stream 2: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 0: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 3: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] S: stream 1: arraycopy: last destination index 262193 out of bounds for byte[262144] (attempt 2)
+[sender-failed] R: stalled for 3001ms, ending session
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[sender-failed] S: stream 2: Connection refused (attempt 1)
+[sender-failed] S: stream 3: Connection refused (attempt 1)
+[sender-failed] S: stream 0: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 1)
+[sender-failed] S: stream 1: Connection refused (attempt 2)
+[sender-failed] S: stream 0: Connection refused (attempt 2)
+[sender-failed] S: stream 3: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 2)
+[sender-failed] S: stream 2: Connection refused (attempt 3)
+[sender-failed] S: stream 0: Connection refused (attempt 3)
+[sender-failed] S: stream 3: Connection refused (attempt 3)
+[sender-failed] S: stream 1: Connection refused (attempt 3)
+[loopback] resume: sender=0 B receiver ok=false
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">Copy</button>
+</span>
+</div>
+<div class="tab">
+<h2>error output</h2>
+<span class="code">
+<pre id="root-0-test-stderr-resume after a dropped link only re-sends missing chunks">Exception in thread &quot;lj-recv-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:882)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:567)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-recv-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:882)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:567)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-resume after a dropped link only re-sends missing chunks">Copy</button>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 28, 2026, 5:44:25 AM</p>
+</div>
+</div>
+</body>
+</html>
