@@ -127,6 +127,11 @@ jobs:
         run: |
           mkdir -p dist ci dist/unsigned
           set +e
+          # Only clear artifacts this job owns. A signed APK committed by an earlier run used to stay
+          # in dist/, so the report below described the OLD file as if this run had produced it.
+          rm -f dist/LoopJet-1.0.0-release.apk dist/SIGNING-REPORT.txt dist/lint-report.html
+          rm -rf dist/unsigned dist/unit-test-report
+          mkdir -p dist/unsigned
           BT=$ANDROID_HOME/build-tools/36.0.0
           UNSIGNED=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "unsigned apk: $UNSIGNED"
