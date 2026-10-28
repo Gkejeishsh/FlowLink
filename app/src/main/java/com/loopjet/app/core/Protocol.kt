@@ -75,8 +75,11 @@ object ProtocolLimits {
 
     const val PROTOCOL_VERSION: Int = 1
 
-    /** Default control port; both sides probe it. */
-    const val DEFAULT_PORT: Int = 43119
+    /** Default control port. Data uses +1, the discovery beacon lives on [BEACON_PORT]. */
+    const val DEFAULT_PORT: Int = 43130
+
+    /** Fixed LAN discovery beacon port so a subnet scan needs no prior knowledge. */
+    const val BEACON_PORT: Int = 43121
 
     /** TLS-free, but every record is AES-256-GCM sealed. */
     const val SAS_DIGITS: Int = 6
