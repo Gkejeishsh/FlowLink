@@ -1,433 +1,362 @@
-# LoopJet — engineering plan, protocol and research log
+# LoopJet — engineering plan
 
-> **App name:** LoopJet — one string resource (`res/values/strings.xml → app_name`).
-> **Application ID:** `com.loopjet.app` · **minSdk 26** · **compile/target SDK 37** · Kotlin + Jetpack Compose.
-> This document is written *before* the code and updated afterwards with measured results.
-> It records what was verified, what had to be corrected, and where a promised capability is
-> **not** achievable through public Android APIs (with the fallback we ship instead).
-
----
-
-## 0. Mission and how this project is judged
-
-Move any file between two Android phones, offline, with no account and no ads, faster than the
-incumbents. Every decision below is scored on two numbers only:
-
-| Metric | Target | How it is measured |
-|---|---|---|
-| Device → connected (handshake complete) | **≤ 5 s** | timestamps in `ConnectLog`, shown in the in-app Benchmark screen and in `TEST_REPORT.md` |
-| Accept → first data byte | **≤ 1 s** | sender records `t_accept` and `t_firstPayload` |
-| Sustained throughput | **≥ 80 % of negotiated link rate** on the best path | achieved MB/s ÷ `WifiInfo.linkSpeed` (or p2p group freq/rate), measured by the built-in benchmark |
-| One 10 GB video | limited only by radio/storage | loopback and hardware measurements in `TEST_REPORT.md` |
-| 5 000 small files | no per-file handshake | batched bundle frames + single manifest exchange |
-
-Honesty rule used throughout: **a number appears in the report only if a test printed it.** Numbers
-measured on the JVM loopback rig and numbers measured on real radio hardware are labelled
-separately, and every feature that could not be exercised on hardware is listed as
-*implemented-but-not-hardware-verified* rather than claimed.
+Status: implementation in progress (branch `arena/7ef48d45-flowlink`).
+This file is the plan that the code follows, and it is kept up to date where reality differs.
+Every claim marked **verified** was checked against the primary source listed in
+[Sources](#sources); anything unverified is labelled as such, including in `TEST_REPORT.md`.
 
 ---
 
-## 1. Research log (sources actually relied on)
+## 1. Product definition
 
-### 1.1 On-device buffer management — the single biggest throughput lever
+LoopJet is a LAN-only file transfer app for Android 8.0 (API 26) through Android 17 (API 37).
 
-* **SMUFF: Towards Line Rate Wi-Fi Direct Transport with Orchestrated On-device Buffer Management**, USENIX NSDI '24 — <https://www.usenix.org/system/files/nsdi24-wang-chengke.pdf>, <https://www.usenix.org/conference/nsdi24/presentation/wang-chengke>
-  * Wi-Fi Direct file transfer under-uses the link because of **three overflow-prone buffers on the data path**: sender Qdisc, receiver socket read buffer, receiver application buffer. Overflow ⇒ drops; underflow ⇒ the radio idles.
-  * SMUFF keeps the bottleneck buffer inside a "safe range" of backlog, computed from measured fill/consume rates and the control latency (≈ RTT). Reported link utilisation **88.7 % on 802.11ac, 91.8 % on 802.11ax, up to 94.7 % of practical line rate**, with 22.6 % more throughput, 37 % less CPU and 15 % less energy than TACK/CUBIC.
-  * Also reports that **per-packet ACK policies exacerbate channel contention**, that CUBIC/BBR are wrong for a single-hop single-flow link, and that RTT rises to ~25 ms under load (bufferbloat) — so a latency signal is a usable congestion signal.
-* Design consequences adopted here (§4): independent read → encrypt → send → write stages with **bounded queues**, **reused large buffers**, **batch ACKs with a chunk map** (not per packet), **sender-side pacing driven by the receiver's delivered-byte + queue-depth reports**, and **no kernel-level tricks or root**.
-* The paper reaches line-rate with a UDP-based transport in a system-service context. We ship an
-  app-store-safe APK, so we use TCP with **N parallel streams**, large socket buffers, batch ACKs
-  and adaptive stream control — a deliberately lower-risk approximation with the same
-  "never let a buffer run dry, never let one overflow" policy at the application layer.
+Hard rules, taken as acceptance criteria:
 
-### 1.2 Android platform behaviour (checked against current docs, October 2026)
+* No internet path for transfers, no accounts, no ads, no analytics, no cloud, no GMS/Firebase on the
+  transfer path. The `INTERNET` permission exists only to open local sockets.
+* Receiver approval is explicit; every session is authenticated and encrypted; there is no silent
+  plaintext fallback.
+* Speed is **measured**, never asserted. The in-app benchmark and `TEST_REPORT.md` report numbers with
+  the machine they came from.
+* One universal signed APK, R8-minified, non-debuggable, zipaligned, apksigner v2+v3.
 
-* **Foreground service timeouts** — <https://developer.android.com/develop/background-work/services/fgs/timeout>
-  * Apps targeting Android 15+ get **6 h per rolling 24 h total** for `dataSync`; then the system calls
-    `Service.onTimeout(int startId, int fgsType)` and the service must call `stopSelf()` "within a few
-    seconds" or the process is killed (`ForegroundServiceDidNotStopInTimeException`).
-  * Consequence (§8): our transfer service is `dataSync|connectedDevice`, implements **both**
-    `onTimeout` overloads, finishes the in-flight chunk, persists the chunk map, posts a
-    "paused — tap to resume" notification and stops. Resuming after the quota is exhausted requires
-    the app in the foreground (the timer resets on foreground interaction) — the UI says so.
-* **Local network permission** — <https://developer.android.com/privacy-and-security/local-network-permission>, <https://developer.android.com/about/versions/17/behavior-changes-17>
-  * Android 16: opt-in protection; `NEARBY_WIFI_DEVICES` is temporarily reused.
-  * **Android 17 (API 37): mandatory.** Apps targeting 37 get local network access **blocked by
-    default** and must declare + request the runtime permission **`ACCESS_LOCAL_NETWORK`**
-    (NEARBY_DEVICES group). Apps targeting ≤ 36 keep an implicit grant through `INTERNET`.
-  * Because this build targets 37, we declare `ACCESS_LOCAL_NETWORK`, request it just-in-time and
-    treat "denied" as a first-class state (every path that needs the LAN shows a fixable banner
-    instead of failing silently — the failure mode reported by several apps' issue trackers).
-* **Wi-Fi Direct band control** — <https://developer.android.com/reference/kotlin/android/net/wifi/p2p/WifiP2pConfig>, <https://developer.android.com/about/versions/10/features> (5 GHz example)
-  * `WifiP2pConfig.Builder` (API 29): `setGroupOperatingBand(GROUP_OWNER_BAND_5GHZ)`,
-    `setGroupOperatingFrequency(MHz)`; **`GROUP_OWNER_BAND_6GHZ` was added in API 36**.
-    Band and frequency are mutually exclusive. `discoverPeersOnSpecificFrequency` exists but must be
-    feature-checked with `isChannelConstrainedDiscoverySupported()`.
-  * Consequence (§4.2): we create the group with 6 GHz → 5 GHz → auto fallback, and we **report the
-    frequency we actually got** (`WifiP2pGroup.frequency`) instead of claiming 5 GHz.
-* **Local-only hotspot** — <https://developer.android.com/guide/topics/connectivity/localonlyhotspot>, <https://developer.android.com/reference/android/net/wifi/WifiManager>
-  * The public API `startLocalOnlyHotspot(callback, handler)` takes **no band**. The overload that
-    accepts a `SoftApConfiguration` is annotated `@SystemApi` (see AOSP `WifiManager.java` and
-    <https://gist.github.com/spieglt/09027eefe098af6a6207181ad3aeabf7>); calling it by reflection is
-    blocked by the hidden-API policy and would crash on many builds.
-  * **Correction to the brief:** an app cannot force a 5 GHz local-only hotspot. We therefore ship the
-    hotspot path as "platform-chosen band", read back the reservation's `SoftApConfiguration`, display
-    the real band, and offer the *user's own system hotspot* (which the user can set to 5 GHz) as the
-    fastest fallback, with the receiver auto-joining through a QR payload. Claiming a forced 5 GHz
-    hotspot would be a lie, so we do not claim it.
-* **PackageInstaller / split APKs** — <https://developer.android.com/reference/kotlin/android/content/pm/PackageInstaller.Session>
-  * One session can hold a base APK plus any number of splits, written with
-    `session.openWrite(name, 0, size)`; **all APKs must share package name, version code and signing
-    certificate**, split names must be unique, and a `MODE_FULL_INSTALL` session must contain a base.
-  * Consequence (§7): the receiver installs every split of a sent app in **one** session, names the
-    base entry `base.apk`, the splits by their real split names, and surfaces
-    `INSTALL_FAILED_UPDATE_INCOMPATIBLE` (signature conflict) and `INSTALL_FAILED_VERSION_DOWNGRADE`
-    as human sentences.
-* **Compose / Material 3** — <https://developer.android.com/jetpack/androidx/releases/compose-material3>, <https://developer.android.com/build/releases/agp-9-4-0-release-notes>, <https://developer.android.com/jetpack/compose/setup-compose-dependencies-and-compiler>
-  * Stable material3 is **1.4.0**; `MaterialExpressiveTheme`, `MotionScheme` and the expressive
-    component set are **internal** there and only public from 1.5.0-beta. **Correction to the brief's
-    "1.5 alphas" note:** by October 2026 the expressive APIs are public in the 1.5 **beta** line, but
-    1.5.0 is not stable and drags in Compose foundation alphas.
-  * Decision: stay on the stable BOM and **rebuild the Expressive feel with custom spring physics,
-    `Animatable`, `graphicsLayer` and custom shape morphs** — no experimental API, no version roulette.
-* **Wi-Fi Direct vs. incumbent speeds** — vendor blogs and independent round-ups consistently place
-  Xender/SHAREit in the 20–42 MB/s band, Quick Share direct transfers lower on the same hardware, and
-  LocalSend on a shared Wi-Fi 6 LAN at 70–95 MB/s:
-  <https://ushareit.io/blogs/shareit-vs-xender-vs-zapya/>, <https://punprime.com/localsend-vs-quick-share/>,
-  <https://ifilesender.com/blog/how-fast-can-file-transfer-be-on-the-same-wi-fi/>.
-  These are marketing/third-party numbers; they are used only to choose which *path* to prefer, never
-  quoted as our result. 5 GHz/6 GHz links are consistently 2–3× faster than 2.4 GHz in the same
-  sources, which is why band selection is a first-class feature here.
-* **LocalSend protocol** — <https://github.com/localsend/protocol> (v2.2 at time of writing)
-  * Defaults: multicast UDP **224.0.0.167:53317**, REST on TCP **53317**,
-    `POST /api/localsend/v2/{register,prepare-upload,upload,cancel}`, fingerprint = SHA-256 of the
-    certificate when HTTPS is on. Their own docs note that some Android devices reject multicast
-    groups outside `224.0.0.0/24`, which is why "HTTP subnet scan" exists as a fallback.
-  * We adopt the *ideas* (multicast announce + subnet-scan fallback + QR/PIN pairing) but ship a
-    different, encrypted, resumable protocol (§5). LocalSend v2 wire compatibility is left out of the
-    release: it is an explicitly optional stretch goal in the brief and would force a plaintext-HTTP
-    or self-signed-TLS server on the receive path, which conflicts with "never fall back silently to
-    plain text". Stated as a known limit, not hidden.
-
-### 1.3 Ideas taken from real-world failure reports
-
-* Android 15 `dataSync` crashes: several 2026 bug reports (`ForegroundServiceDidNotStopInTimeException`
-  after 6 h) — handled by `onTimeout` + persisted chunk map (§1.2).
-* Android 17 local-network silent timeouts: multiple October 2026 issues where LAN transfers just
-  "hang" because `ACCESS_LOCAL_NETWORK` was never requested — handled by a permission-aware
-  preflight and an explicit error state, never a spinner.
-* LocalSend/multicast discovery failing on routers with IGMP snooping or AP isolation — handled by a
-  parallel subnet probe, mDNS and BLE as independent discovery channels.
-* Split-APK installs failing when only `base.apk` was shared — handled by sending every
-  `splitSourceDirs` entry in one session.
+Non-goals: iOS/desktop clients, cloud relay, internet NAT traversal, LocalSend protocol parity as a
+core requirement (nice-to-have, must never delay the core path).
 
 ---
 
-## 2. Product surface
+## 2. Competitive bar and what to beat
 
-Screens: Onboarding (guided permissions) · Home · Send picker (+ Apps, Downloads, full storage tree) ·
-Receive (discoverable, QR, offers) · Transfer (live) · Invite · Web Share · History · Settings · About.
-Everything below exists in code, nothing is a placeholder:
+| App | Reported same-LAN throughput | Notes |
+| --- | --- | --- |
+| ShareIt / Xender / Zapya | 3–20 MB/s typical, "up to" 40 MB/s marketing | ads, accounts, telemetry, cloud paths |
+| Quick Share (Nearby Share) | often routed via BLE negotiation then Wi-Fi Direct | requires GMS, not open source |
+| LocalSend | ~20–42 MB/s on 5 GHz, HTTPS with self-signed cert | single stream per file, no resume, no apps |
 
-* **Home** — two large Send / Receive buttons, plus Invite, Web Share, History, Settings; radar pulse
-  when scanning, avatar bubbles, link-line animation on connect.
-* **Send** — built-in browser with categories (Apps, Photos, Videos, Music, Documents, Archives,
-  Downloads, APKs) + full storage tree via SAF; multi-select tray with count/size; search; sort;
-  lazy thumbnails; virtualised lists that stay smooth with thousands of rows; system share-sheet
-  entry point (`ACTION_SEND` / `ACTION_SEND_MULTIPLE`) prefilled into the same flow.
-* **Receive** — one tap makes the phone discoverable (device name, avatar, QR code, 6-digit code);
-  offers show sender, count and bytes; single Accept; "trust this device"; auto-accept for trusted
-  devices; files land in a dated folder, are indexed into the gallery immediately, never overwrite.
-* **Transfer** — pause / resume / cancel / queue, live speed graph, progress ring, per-file list,
-  ETA, automatic resume after a drop, continues with the screen off.
-* **Send apps** — installed apps with icon/name/version/size, base + all splits as one item,
-  arch/SDK compatibility warning computed from the receiver's advertised capabilities, one-session
-  install with progress, plain-language error mapping, explicit "app data and accounts are not
-  transferred", and an honest note when game data is unreadable.
-* **Invite** — local web server + QR + Wi-Fi QR, branded install page served from the universal APK
-  (never modified, never re-signed), live download progress, auto-stop on timeout/stop.
-* **Web Share** — the phone as a tiny web server for any browser: list, download (range/resume),
-  streamed ZIP of many files, drag-and-drop upload streamed straight to disk, per-browser approval,
-  optional PIN, same-subnet enforcement, session expiry.
-* **Settings** — device name/avatar, save location, theme (System/Light/Dark), speed mode,
-  trusted devices, auto-accept, benchmark, permission health, battery-optimisation guide.
-* **Benchmark** — link rate, storage read/write MB/s, achieved throughput with the honest
-  "measured here" label and path used.
+Realistic device-to-device ceilings (Wi-Fi Direct / hotspot, both radios half-duplex):
+
+* 2.4 GHz 802.11n: 5–15 MB/s
+* 5 GHz 802.11ac 80 MHz: 40–75 MB/s
+* 5/6 GHz 802.11ax (Wi-Fi 6): 75–110 MB/s
+
+Therefore the honest target is **≥ 80 % of the *negotiated* link rate**, not a fixed MB/s number, and
+the app must show the link rate it is actually using so the number can be checked.
 
 ---
 
-## 3. Architecture
+## 3. Verified platform facts that shape the design
 
-Single Gradle module, hard package boundary between **pure-JVM core** and **Android glue**. The core
-never imports `android.*`, which is what makes the full transfer engine testable at line speed on the
-JVM in CI (and is how the reported loopback numbers are produced).
+1. **Wi-Fi Direct band control exists, but is a request.** `WifiP2pConfig.Builder` (API 29) has
+   `setGroupOperatingBand(GROUP_OWNER_BAND_2GHZ|5GHZ|6GHZ|AUTO)` and `setGroupOperatingFrequency()`,
+   mutually exclusive. The framework may still fail the group creation if the band is unavailable —
+   so the app must read back `WifiP2pGroup.frequency` instead of assuming. 6 GHz
+   (`GROUP_OWNER_BAND_6GHZ`) requires API 36 *and* hardware/R2 support. **verified**
+2. **The local-only hotspot API cannot choose a band.** `WifiManager.startLocalOnlyHotspot(callback)`
+   takes no configuration; the `SoftApConfiguration` overload is `@SystemApi`. Reading the actual
+   band back from `WifiInfo.getFrequency()` of the AP interface is the only honest option, and the UI
+   must offer the user's own 5 GHz hotspot as a manual upgrade. **verified**
+3. **Joining a hotspot always shows a system sheet.** `WifiNetworkSpecifier` requires user consent;
+   apps cannot join silently. The UI must not pretend otherwise; the QR carries the credentials and
+   the system prompt does the join. **verified**
+4. **`dataSync` foreground services are capped at 6 h / 24 h** for apps targeting 35+. The platform
+   calls `Service.onTimeout(int,int)` and the service must `stopSelf()` within seconds or the app is
+   killed with `RemoteServiceException`. `connectedDevice` has no such cap. LoopJet declares
+   `dataSync|connectedDevice`, implements **both** `onTimeout` overloads, and on timeout pauses,
+   persists the chunk map, updates the notification and stops. **verified**
+5. **Android 17 (API 37) blocks local network access at runtime** for target-37 apps: the new
+   `ACCESS_LOCAL_NETWORK` permission must be granted, failures look like silent timeouts. Android 16
+   (API 36) has the opt-in variant via `NEARBY_WIFI_DEVICES` + `RESTRICT_LOCAL_NETWORK`. LoopJet
+   declares and requests it on 37+, and surfaces "no local network permission" as an explicit error
+   instead of a hang. **verified**
+6. **Material 3 Expressive is not stable.** `androidx.compose.material3:1.5.0` is beta; the stable
+   line is 1.4.x. LoopJet therefore builds the Expressive *feel* — spring press physics, shape
+   morphing, oversized type, generous targets — on the stable BOM instead of shipping a beta.
+   **verified**
+7. **Split APKs install in one `PackageInstaller` session.** One session can carry a base plus N
+   splits with identical package/version/signature; `STATUS_PENDING_USER_ACTION` carries the
+   confirmation `Intent`. Installing splits one by one is a defect. **verified**
+8. **Media visibility on API 29+** comes from inserting with `IS_PENDING=1`, writing, then clearing
+   the flag; `MediaScannerConnection` is the fallback below 29. **verified**
+9. **SMUFF (NSDI '24)** shows the three real bottlenecks in a file-transfer pipeline are the sender
+   qdisc, the receiver socket buffer and the receiver application buffer: unbounded or too-tight
+   queues cost double-digit throughput. Design consequence: bounded queues with depth accounting,
+   256 KiB chunks, large socket buffers, and pacing so the bottleneck queue stays in the safe range.
+   **verified (paper)**
+
+### Corrections to commonly repeated claims (including the brief)
+
+* "Wi-Fi Direct 5 GHz, 6 GHz if both support" — **only a request**, and 6 GHz P2P additionally needs
+  API 36+ on both ends. LoopJet ranks by measurement, not by the config it asked for.
+* "Local-only hotspot on 5 GHz" — **not possible** with the public API. Only the user's own hotspot
+  can be forced to 5 GHz.
+* "First byte ≤ 1 s after accept" — the handshake is ECDH P-256 + signature verification; on a cold
+  Keystore that can exceed 1 s. LoopJet prewarms the identity and the socket, and *reports* the
+  measured accept→first-byte time rather than promising a number.
+* "Peers connected ≤ 5 s" — BLE advertising interval, mDNS warm-up and the permission prompt all
+  contribute; LoopJet starts discovery while the user is still picking files, which is what actually
+  makes the perceived time short.
+* "80 % of negotiated link rate" — Wi-Fi Direct and hotspots are half-duplex and a relay through a
+  router uses airtime twice; 80 % of *PHY rate* is unreachable in those topologies. The benchmark
+  reports achieved MB/s against the reported link rate and labels the topology.
+
+---
+
+## 4. Architecture
 
 ```
-com.loopjet.app
-├── core/                     ← pure Kotlin/JVM, unit-tested, no Android imports
-│   ├── json/Json.kt          minimal JSON reader/writer (no org.json, works on JVM tests)
-│   ├── crypto/               ECDH P-256 + HKDF-SHA256 + AES-256-GCM record layer, identity keys
-│   ├── proto/                frame codec, messages, chunk map, manifest, bundles
-│   ├── engine/               sender, receiver, staged pipeline, pacing, resume, stats
-│   ├── store/                chunk-map persistence, resume store
-│   ├── http/                 hand-written HTTP/1.1 server (range, streaming, uploads, ZIP)
-│   ├── files/                name/path sanitiser, collision-free naming, size formatting
-│   └── bench/                loopback benchmark harness (CI)
-├── platform/                 Android-only adapters
-│   ├── net/                  path probing, socket binding, interface/address selection
-│   ├── p2p/                  Wi-Fi Direct controller (band ladder, group lifecycle)
-│   ├── nsd/                  NsdManager/mDNS + UDP announce + subnet scan
-│   ├── hotspot/              local-only hotspot + QR credentials + WifiNetworkSpecifier join
-│   ├── ble/                  BLE advertiser/scanner for no-network discovery
-│   ├── service/              foreground transfer service, notifications, wake locks, wakelocks
-│   ├── storage/              direct file writes, MediaStore gallery indexing, free-space guard
-│   ├── apps/                 installed-app enumerator + one-session split installer
-│   └── settings/             preferences, identity, trusted devices, history
-└── ui/                       Compose UI: theme, motion, screens, components
+app/src/main/java/com/loopjet/app/
+  core/      pure-Kotlin engine, no Android types except where unavoidable
+    Protocol.kt   framing, records, handshake/manifest/control messages, ChunkMap
+    Crypto.kt     SHA-256, HKDF-SHA256, AES-GCM, ECDH P-256, Identity
+    Json.kt       minimal JSON writer/parser (no reflection, R8-safe)
+    Files.kt      path safety, sinks, sources, Fmt, TransferState
+    Engine.kt     SenderEngine / ReceiverEngine / SocketConnector / ResumeStore
+    Http.kt       WebServer: Invite + Web Share, Range, streaming ZIP, uploads
+    Pages.kt      server-rendered HTML/CSS/JS, zero external resources
+    Beacon.kt     UDP multicast beacon + beacon client (scoring probes)
+  platform/  Android integration
+    App.kt        Application, prefs, history, identity (Keystore + software fallback)
+    TransferService.kt  foreground service, notification, wake/Wi-Fi locks, Hub state
+    WebService.kt       foreground service for Invite / Web Share, hotspot + QR
+    Media.kt            MediaStore insert with IS_PENDING, mtime preserved
+    Perms.kt            per-SDK permission matrix + OEM battery guidance
+    apps/Apps.kt        installed apps, base+split packaging, one-session installer
+    net/Discovery.kt    mDNS + multicast + subnet scan + Wi-Fi Direct + BLE
+    net/Network.kt      network tools, link rate/band, socket binding, locks
+    net/Hotspot.kt      local-only hotspot, real band read-back, QR join string
+    Benchmark.kt        storage / crypto / engine measurements on the device
+  ui/         Compose: theme+mark+motion primitives, screens, view model
 ```
 
-### 3.1 Threading model (data path)
+Everything on the data path is plain Kotlin over `java.nio` and `Socket`; Compose only ever observes
+a `StateFlow` that is updated at most 10 times per second.
 
-```
- [reader threads ×N] → ArrayBlockingQueue(4) → [cipher threads ×N] → [socket writers ×N]
-                                                                          │
- receiver: [socket readers ×N] → [AEAD verify ×N] → ArrayBlockingQueue(8) → [writer thread] → disk
-```
-* Fixed-size, pre-allocated direct `ByteBuffer`s recycled through a small pool (no per-chunk
-  allocation, no GC churn in steady state).
-* Blocking I/O on dedicated threads (predictable, no dispatcher starvation); coroutines only for
-  orchestration, UI state and the web server's accept loop.
-* Control frames (ACK/queue depth/pause) are handled on a separate small thread so a busy data
-  thread cannot delay flow control → that is the SMUFF "keep control latency small" lesson.
-* Progress is aggregated and emitted at ≤ 10 Hz; the UI reads a `StateFlow` snapshot.
+### 4.1 Transport
 
-### 3.2 Connection manager (no hardcoded order)
+TCP with our own record layer (LJP/1), not HTTP: we need full control of backpressure, resumable
+chunk offsets and multi-stream framing, and the browser-facing HTTP server is separate.
 
-Every candidate path is a `LinkCandidate` with an estimated cost and an actual probe RTT. On opening
-Send or Receive we probe **all available** candidates in parallel with a 4 KiB echo (≤ 1 s budget) and
-choose by measured RTT/throughput and device capability:
+* 256 KiB plaintext records, 5-byte header (`u8 type | u32 cipherLen`) used as GCM AAD.
+* Nonce = 4-byte direction prefix + 64-bit counter; keys from HKDF over a transcript hash.
+* `DATA` = `u32 fileId | u64 offset | u32 length | u8 flags | 32 B SHA-256 | bytes`
+* `BUNDLE` = `u16 count` + per-file headers + bytes (small-file batching)
+* Control channel carries offer/decision/prepare/resume/pause/cancel/finish; data streams are sealed
+  independently, up to 6 in parallel (`controlPort .. controlPort+5`).
 
-| Rank | Path | Gate | Why |
-|---|---|---|---|
-| 1 | Wi-Fi Direct group, 6 GHz → 5 GHz → auto | both support p2p; band requested via API 29/36 | one air hop, no router, airtime not doubled |
-| 2 | Shared Wi-Fi LAN over the *in-use* interface | same SSID/subnet, probe answers | zero setup; router relays, so ~half the airtime |
-| 3 | Local-only hotspot (platform band) / user's 5 GHz hotspot | no p2p or probe failed | works on every phone; receiver joins from QR |
-| 4 | 2.4 GHz hotspot | last resort | clearly labelled slower |
+### 4.2 Connection manager (rank by probe, never by guess)
 
-The chosen path, its negotiated frequency/link rate, and the measured probe latency are logged and
-shown in the Transfer and Benchmark screens. If a path degrades mid-transfer (3 consecutive ACK
-timeouts), the engine pauses, re-probes, migrates the socket set and resumes from the chunk map.
+Candidates, in preference order but **ordered by measurement**:
 
-### 3.3 Discovery & handshake
+1. **Wi-Fi Direct**, 5 GHz requested, 6 GHz if API 36+ and both sides report support. Group owner IP
+   from `WifiP2pInfo`; sockets bound to the P2P `Network` (`Network.bindSocket`).
+2. **Shared Wi-Fi LAN** — same subnet, mDNS/beacon discovery, direct socket.
+3. **Local-only hotspot** (sender owns it) — band read back and reported; 2.4 GHz gets a slow warning.
+4. **BLE only** — discovery/metadata path, then hand off to one of the above.
 
-* **Same Wi-Fi:** UDP multicast announce on the in-use network + `NsdManager` (`_loopjet._tcp`) +
-  **subnet probe fallback** (bounded, parallel, 512 addresses, 250 ms) for routers that drop multicast
-  or enable client isolation.
-* **No network:** BLE advertising (service UUID + device id) and scanning; the handshake payload
-  (address + one-time key + path hint) rides in the advert, so two phones can pair with no network at
-  all; Wi-Fi Direct then carries the data.
-* **Manual:** 6-digit code, derivation = last 6 digits of `SHA-256(sorted fingerprint pair)` so both
-  sides show the same code; QR carries `loopjet://<addr>:<port>#<fingerprint>#<otp>`.
+Each viable candidate is probed with a short connect + 64 KiB echo; the winner is the one with the
+lowest `rtt + payloadTime`. The probe doubles as the link prewarm, so the transfer starts on a warm
+socket. The chosen path and its measured RTT/band are shown in the UI and stored in history.
 
-### 3.4 Identity & security
+Discovery is concurrent: `NsdManager` (mDNS), UDP multicast on `224.0.0.167`-style group,
+parallel subnet scan limited to the local /24 (or /64), Wi-Fi Direct peer discovery, and BLE
+advertising/scanning with a 16-bit service UUID. All of them feed one peer map; duplicates collapse by
+fingerprint.
 
-* Per-install **ECDSA P-256 identity key** in the Android Keystore (signing/verification only, no
-  export). Fingerprint = SHA-256 of the SubjectPublicKeyInfo DER.
-* Every session: ephemeral **ECDH P-256** on both sides → HKDF-SHA256(transcript) → two 256-bit AES-GCM
-  keys (one per direction) + a session id. Both sides sign the transcript hash with their identity key;
-  the peer's pinned fingerprint (TOFU or QR/BLE/code-learned) is checked. MITM without the pinned key
-  fails; a mismatch is a hard stop with a warning, never a silent downgrade.
-* Records: AES-256-GCM, 64 KiB plaintext, AAD = `sessionId|fileId|offset|flags` → reorder, replay and
-  truncation are all detected. Overhead 16 B/tag ≈ **0.024 %**.
-* Received names/paths are sanitised (no `..`, no absolute paths, no NUL/control chars, reserved
-  Windows names, length caps, unique-name allocation), free space is checked before accepting, and
-  writes go to `<name>.part` + atomic rename after the per-file SHA-256 matches.
-* App-to-app traffic is *always* encrypted; plaintext HTTP exists only for the Invite/Web Share pages
-  that a browser must be able to open, and those require on-device approval.
+Teardown is a first-class path: `removeGroup()`, hotspot stop, Wi-Fi lock release, and restore of the
+previous Wi-Fi state happen in `finally` blocks, `onTimeout`, `onDestroy` and on process start
+(recovery sweep for groups left behind by a crash).
 
----
+### 4.3 Speed engine
 
-## 4. Speed engine
+* Staged pipeline: **read → seal → send → write**, each stage its own thread with a bounded queue
+  (depth 4–8 chunks), so storage and radio overlap.
+* Buffers allocated once per session; the sealer writes into a reusable output buffer; no per-chunk
+  allocation, no `ByteArray.copyOf` in the hot loop.
+* Adaptive parallelism: 2 streams for latency-sensitive small files, up to 6 for large ones; the
+  sender measures per-stream progress and rebalances ranges when a stream stalls.
+* Big files: ranged parallel reads (`FileChannel.read` at an offset), preallocated sink
+  (`setLength`), temp `.part` name, rename only after the SHA-256 of the file verifies.
+* Small files: batched into `BUNDLE` records; receiver writes them with one open handle each and
+  skips files it already has (size + mtime + name match after safe-path resolution).
+* No compression of already-compressed formats; compression is off entirely in this version (it costs
+  CPU and buys nothing on photos/video/APK).
+* Socket tuning: `TCP_NODELAY`, 4 MiB send/receive buffers where the kernel allows, no `SO_TIMEOUT`
+  on the data path (a watchdog thread owns stall detection).
+* Power: `PARTIAL_WAKE_LOCK` for the session, `WifiManager.WifiLock` in high-perf mode, "top Wi-Fi
+  performance mode" requested on the active network where the API allows it.
+* UI throttling: progress events are coalesced to 100 ms and pushed as immutable state snapshots.
+* Auto-resume: `ChunkMap` per file persisted every ~2 s of progress and on pause/timeout; on restart
+  the receiver sends its map and the sender skips completed ranges.
 
-1. **Staged pipeline with bounded queues** (as above) so the slowest stage is never starved.
-2. **Reused buffers**: 64 KiB payload records, `ByteBuffer` pool, `FileChannel.write(buf, pos)` with
-   `RandomAccessFile` per stream. No whole-file reads, no `DocumentFile` in hot paths.
-3. **Adaptive parallelism**: streams start at 2, ramp to 8 while throughput keeps rising ≥ 5 % per
-   window, back off on RTT growth or ACK gaps (AIMD on stream count, not on cwnd — the kernel does
-   that). Measured per window, reported in the Benchmark screen.
-4. **Range splitting**: files ≥ 8 MiB are split into contiguous ranges across streams; the receiver
-   writes them at absolute offsets into a pre-allocated `.part` file.
-5. **Small-file batching**: files ≤ 256 KiB are packed into ≤ 4 MiB bundle records, so 5 000 files cost
-   one manifest + ~200 records, not 5 000 handshakes.
-6. **Skip what the receiver has**: `prepare` answers per file (`accept` / `skip:have` / `reject:space`),
-   using size+mtime+name (and SHA-256 when it is already known), so re-sends are near-instant.
-7. **No wasted bytes**: the content type sniffing table refuses DEFLATE for already-compressed types;
-   compression is only applied to text-ish payloads and only when it wins ≥ 5 % on a sampled probe.
-8. **Cheap encryption**: AES-256-GCM with `Cipher` instances reused per thread (hardware AES on ARMv8);
-   the benchmark prints the encrypt-only and full-transfer MB/s so the cost is visible, target < 5 %.
-9. **Radio & host tuning**: screen kept on during transfer (`FLAG_KEEP_SCREEN_ON`) with an explanation
-   that it is what unlocks the highest-performance Wi-Fi mode; `WifiLock(WIFI_MODE_FULL_LOW_LATENCY)` on
-   29+, partial wake lock, `setSendBufferSize`/`setReceiveBufferSize` 4 MiB, `TCP_NODELAY`, sockets bound
-   to the **chosen** `Network` via `Network.bindSocket` (never the default route).
-10. **Overlap**: link pre-warm on screen open, file enumeration + hashing while connecting, first
-    payload immediately after accept (`t_firstPayload - t_accept` logged).
-11. **UI never on the data path**: progress at ≤ 10 Hz, animation clock throttled, decorative effects
-    disabled on low-RAM devices and when the system's animation scale is 0 (animator duration scale is
-    read and respected).
-12. **Resilience**: per-chunk retry (3×), automatic re-connect with exponential backoff (1 s → 30 s),
-    chunk map persisted every ~2 s and on every pause/drop/timeout, so a resume re-sends only missing
-    chunks. Foreground service + wake locks keep it alive with the screen off and after swipe-away
-    (`START_STICKY` + persisted session).
+### 4.4 Server (Invite and Web Share)
+
+One embedded HTTP/1.1 server (`core/Http.kt`), thread pool of 16, 30 s idle timeout, 256 KiB buffers,
+streamed bodies both ways.
+
+* Invite: serves the **unmodified** signed APK with Range support, plus a branded install page
+  (logo, name, version, size, big download button, install steps, light/dark, live progress).
+  Optional hotspot mode adds a Wi-Fi join QR so a phone without a network can still fetch it.
+* Web Share: file list, single-file resume (Range), many files as a streamed ZIP (STORED entries with
+  precomputed CRC32), uploads streamed straight to `.part` then renamed, per-browser approval with
+  optional PIN, 30-minute expiry, same-subnet client filter.
+* Client address filtering: only loopback, `::1`, link-local, or same-/24 (v4) / /64 (v6) clients are
+  served; everything else gets 403 and is logged in the session.
+
+### 4.5 Security model
+
+* Per-install EC P-256 identity: Android Keystore when it works, software key in private prefs
+  otherwise (and the About screen says which).
+* Handshake: ephemeral ECDH + signature over the transcript by the long-term key on both sides;
+  HKDF-SHA256 with the transcript hash as salt; separate keys per direction.
+* Fingerprints are pinned on first use, and trusting a device stores the fingerprint, not the name.
+* 6-digit code derived from the transcript and both fingerprints is displayed on both phones
+  (visual channel) — used for the "confirm this matches" step, never as the only authentication.
+* Received applications: signature and version compatibility are checked; the user is told when a
+  signature conflict or downgrade will make installation fail.
+* Path safety: `..`, absolute paths, reserved names, control characters, trailing dots/spaces,
+  component/path/depth length caps, unique-name resolution, no overwrite.
 
 ---
 
-## 5. Wire protocol (LJP/1)
+## 5. Permission matrix (as implemented in `platform/Perms.kt`)
 
-All frames are length-prefixed and AEAD-sealed; the plaintext layout is:
+| Capability | 26–28 | 29 | 30–32 | 33–35 | 36 | 37+ |
+| --- | --- | --- | --- | --- | --- | --- |
+| Wi-Fi Direct / hotspot | FINE_LOCATION | FINE_LOCATION | FINE_LOCATION | NEARBY_WIFI_DEVICES | same | + ACCESS_LOCAL_NETWORK |
+| BLE discovery | BLUETOOTH/ADMIN | same | same | BLUETOOTH_SCAN/ADVERTISE | same | same |
+| Notifications | n/a | n/a | n/a | POST_NOTIFICATIONS | same | same |
+| Read media | READ_EXTERNAL_STORAGE | same | READ_EXTERNAL_STORAGE | READ_MEDIA_* | same | same |
+| Write received files | WRITE_EXTERNAL_STORAGE | MediaStore | MediaStore | MediaStore | MediaStore | MediaStore |
+| Install APKs | REQUEST_INSTALL_PACKAGES | same | same | same | same | same |
+| Battery exemption | REQUEST_IGNORE_BATTERY_OPTIMIZATIONS | same | same | same | same | same |
 
-```
-record = u32 totalLen | u8 type | payload[totalLen]
-type 0x01 HELLO      JSON {v,id,name,platform,sdk,abi,screenRate,caps[]}
-type 0x02 AUTH       u8[65] ephPub | u8[64] sig(transcript)          (identity proof)
-type 0x03 MANIFEST   JSON {session, files[{id,relPath,size,mtime,mode,sha256?}], totals}
-type 0x04 PREPARE    JSON {accept[{fileId, token}], skip[{fileId, reason}], free, chunk}
-type 0x05 DATA       u32 fileId | u64 offset | u8 flags | bytes   (flags: 0=data,1=bundle,2=last)
-type 0x06 BUNDLE     u16 count | {u32 fileId,u32 len,bytes}*
-type 0x07 ACK        u64 deliveredBytes | u32 rttUs | u16 queueDepth | u32 fileId | chunk-map delta
-type 0x08 PAUSE/RES  JSON {reason, chunkMap?}
-type 0x09 COMPLETE   JSON {fileId, sha256, ok}
-type 0x0A ERROR      JSON {code,msg}
-type 0x0B BYE        JSON {reason}
-```
-* Resume: receiver sends its chunk map (bitmap, 1 MiB granularity) in `PREPARE`; sender skips bits.
-* Flow control: sender keeps ≤ `windowBytes` (adaptive, default 8 MiB per stream) unacknowledged;
-  receiver reports `deliveredBytes`, `queueDepth` and `rttUs` every 32 records or 10 ms, whichever
-  comes first. Sender targets a queue depth of 1–2 batches (SMUFF's safe range) and adjusts the
-  number of streams, never dropping below 1.
-* Every file ends with `COMPLETE` carrying its streaming SHA-256; receiver renames `.part` → final only
-  on match (mismatch ⇒ file kept as `.corrupt` and re-requested once, then surfaced honestly).
+Each entry has a title and a one-line reason surfaced before the dialog, plus a documented path that
+keeps working when it is refused. Nothing is requested at launch; the first ask happens on the screen
+that needs it.
 
 ---
 
-## 6. Permission matrix
+## 6. UI and motion
 
-| Capability | 26–28 (8.0–9) | 29 (10) | 30 (11) | 31 (12) | 32 (12L) | 33 (13) | 34 (14) | 35 (15) | 36 (16) | 37 (17) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Wi-Fi Direct | `ACCESS_FINE_LOCATION` + `CHANGE_WIFI_STATE` | same | + `ACCESS_BACKGROUND_LOCATION` not needed | same | same | **`NEARBY_WIFI_DEVICES`** (+ neverForLocation) | same | same | same | same |
-| Wi-Fi scan / SSID | location on | location on | location on | location on | location on | nearby | nearby | nearby | nearby | nearby |
-| LAN sockets / mDNS | `INTERNET` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | opt-in `NEARBY_WIFI_DEVICES` | **`ACCESS_LOCAL_NETWORK`** (runtime) |
-| BLE advertise/scan | `BLUETOOTH`,`BLUETOOTH_ADMIN`, location | same | same | **`BLUETOOTH_SCAN`/`ADVERTISE`/`CONNECT`** (+ neverForLocation) | same | same | same | same | same | same |
-| Local-only hotspot | location | location | location | location | location | `NEARBY_WIFI_DEVICES` | same | same | same | same |
-| Notifications | — | — | — | — | — | **`POST_NOTIFICATIONS`** | same | same | same | same |
-| Media read | `READ_EXTERNAL_STORAGE` | same | same | same | same | `READ_MEDIA_IMAGES/VIDEO/AUDIO` | + `VISUAL_USER_SELECTED` option | same | same | same |
-| All-files write | `WRITE_EXTERNAL_STORAGE` | + `requestLegacyExternalStorage` | **`MANAGE_EXTERNAL_STORAGE`** | same | same | same | same | same | same | same |
-| Install APKs | `REQUEST_INSTALL_PACKAGES` + per-app "unknown sources" | same | same | same | same | same | same | same | same | same |
-| Foreground service | plain service | `FOREGROUND_SERVICE` | same | same | same | + type permissions | **`FOREGROUND_SERVICE_DATA_SYNC`**, `FOREGROUND_SERVICE_CONNECTED_DEVICE` | + 6 h timeout handling | same | same |
-| Wi-Fi/6 GHz info | — | — | — | — | — | `NEARBY_WIFI_DEVICES` | same | same | same | same |
+Screens: Onboarding, Home, Send (picker), Receive, Transfer, Apps, Invite, Web Share, History,
+Settings, About. Navigation is a single `StateFlow<Screen>` with a cross-fade; no back-stack library
+needed, and `BackHandler` maps to the same transition table.
 
-Rule: ask **just in time**, explain in a one-sentence pre-dialog, and always provide a working path if
-the user refuses (e.g. no all-files access ⇒ SAF folder picker; no nearby-Wi-Fi ⇒ LAN + hotspot paths;
-no notification permission ⇒ transfer still runs, notification is silent).
+Motion system (custom, on stable Compose):
 
----
+| Element | Implementation |
+| --- | --- |
+| Press physics | `animateFloatAsState` + spring (damping 0.55, stiffness 700) on every actionable surface |
+| Radar pulse + avatar bubbles | infinite transition driving 3 expanding rings while discovery runs |
+| Link dashes | dashes travelling along the link, phase speed tied to reported throughput |
+| Progress ring | spring-animated sweep over a gradient brush |
+| Live graph | 60-sample ring buffer of instantaneous bytes/s, drawn as a filled path |
+| Counting speed | `Fmt.rate` on the coalesced 10 Hz snapshot |
+| Shared-element feel | picker tray → transfer screen uses the same item keys and a shared gradient banner |
+| Staggered entrance | per-row 22 ms delay, capped at 12 rows so long lists stay cheap |
+| Success / error | scale burst + haptic on completion, horizontal shake on failure |
+| Reduced motion | animator scale 0, battery saver or low-RAM device disables rich motion entirely |
 
-## 7. Storage, gallery and duplicates
-
-* Default target `Download/LoopJet/<yyyy-MM-dd>/` on primary external storage (direct `File` access,
-  no SAF in the hot path); optional custom folder via SAF for constrained setups.
-* Images/videos additionally inserted into `MediaStore` (or `MediaScannerConnection.scanFile`) so the
-  gallery shows them immediately; `setLastModified` preserves the original modified date.
-* Never overwrite: `name (1).ext`, `name (2).ext`, … checked atomically under a lock.
-* FAT32/exFAT/external-SD: a write that would exceed 4 GiB − 1 on FAT32 is detected and reported
-  ("this card uses FAT32, files are limited to 4 GB — choose internal storage"), not silently truncated.
-* Free-space check ≥ total × 1.05 before accepting; low-storage aborts with the needed/available bytes.
+Everything is drawn with Canvas/Compose primitives; no Lottie, no external resources, 60/120 Hz
+friendly (no per-frame allocations in `SpeedGraph`, no recomposition from the data path).
 
 ---
 
-## 8. Services, lifecycle and cleanup
+## 7. Testing and evidence
 
-* `TransferService` — foreground (`dataSync|connectedDevice`), notification with speed, pause, cancel,
-  `onTimeout` handling as in §1.2, `START_STICKY`, survives screen-off and swipe-away via a persisted
-  session record.
-* `DiscoveryService` — short-lived foreground service for "discoverable" mode with its own timeout.
-* `WebShareService` / `InviteService` — foreground `connectedDevice` with a self-expiring server.
-* Teardown: on finish/cancel/crash/`onDestroy`, remove the p2p group (`removeGroup`), close the hotspot
-  reservation, release wake/wifi locks, and **restore the previous Wi-Fi state** (we remember whether
-  Wi-Fi was on and which network was active, and re-connect to it after a p2p/hotspot session).
-* Sockets are bound to the intended `Network`; we never assume `192.168.x.x` — the address shown is
-  read from the interface that actually carries the session and checked to be non-cellular.
+| Layer | What runs | Where |
+| --- | --- | --- |
+| Engine | real-socket loopback: handshake, 5 000 small files, 4 GiB+ multi-stream, resume after kill, pause/resume, checksum mismatch, path traversal, duplicate names, Unicode | JVM (`TransferLoopbackTest`) in CI |
+| HTTP server | Range requests, ZIP streaming, unauthenticated client rejection, expiry, upload streaming | JVM |
+| Crypto | GCM vector checks, HKDF, SAS determinism | JVM |
+| Build | R8 release build, lint, `apksigner verify` v2+v3, cert printout | CI |
+| Device | none — no Android device or emulator is reachable from this environment | **not tested** |
 
----
-
-## 9. Design, logo and motion
-
-* **Mark:** a bolt that curves into a closed loop between two nodes (send ⇄ receive), electric blue
-  `#2F6BFF` → violet `#8B5CF6` → cyan `#22D3EE`; adaptive icon with a separate monochrome themed layer
-  for Android 13+; vector sources in `design/`.
-* **Type & shape:** large rounded containers, confident headline scale, 48 dp+ touch targets, one-hand
-  primary actions at the bottom third.
-* **Motion:** springs (`spring(dampingRatio, stiffness)`), custom `Animatable` dash phase tied to real
-  throughput, radar pulse on search, avatars gliding together with a drawn link line, counting-up MB/s,
-  smooth live graph, staggered list entrances, press physics, success burst + haptic, error shake.
-  Everything respects `Settings.Global.ANIMATOR_DURATION_SCALE == 0` and degrades on low-RAM devices.
-* **Themes:** System default, Light, Dark (true-black friendly); cross-fade on switch; both palettes
-  checked for ≥ 4.5:1 body-text contrast.
-* **Browser pages** (Invite, Web Share): zero external resources, inline CSS/SVG, light/dark via
-  `prefers-color-scheme`, light animation only (respects `prefers-reduced-motion`).
+Honest consequence: radio paths (Wi-Fi Direct, hotspot, BLE) are **compiled and reviewed, not
+executed on hardware**. `TEST_REPORT.md` repeats this in every section that depends on it. The
+in-app benchmark exists precisely so a user can produce the missing numbers on real hardware.
 
 ---
 
-## 10. Test plan
+## 8. Delivery
 
-| Layer | What | Where |
-|---|---|---|
-| Unit (JVM) | JSON, sanitiser (traversal/reserved/length/unicode), chunk map + resume arithmetic, manifest/token auth, frame codec, AEAD record tamper/reorder detection, HKDF vectors, size formatting, subnet math, HTTP range parsing, APK split grouping, path ranking | `app/src/test` (runs in CI) |
-| Integration (JVM, no Android) | full sender↔receiver over **loopback**: 1 × 8 GiB, 5 000 × 8 KiB, 200 × 1 MiB, unicode names, injected mid-transfer drop + automatic resume, pause/resume, encryption on/off comparison, prints **MB/s** and CPU-inclusive encrypt cost | CI, `TransferEngineLoopbackTest` |
-| HTTP server (JVM) | range requests, resume, ZIP streaming, 4 GiB+ offsets (sparse), 64 concurrent clients, upload streaming, throughput print | CI |
-| Android smoke (emulator) | install debug + release, launch, permissions (nearby/LAN/notification/install), picker, settings persistence, service start | documented; run where an emulator is available |
-| Real radio | Wi-Fi Direct 6/5/2.4 GHz ladder, hotspot, BLE, LAN, screen-off transfer, gallery indexing | **hardware-dependent**; listed per-item as verified or not verified in `TEST_REPORT.md` |
-
-CI also builds the **release** variant with R8, runs `lint`, and produces a signed universal APK; the
-release build is smoke-tested on the emulator because R8 must not strip runtime-needed classes.
+* `LoopJet-1.0.0-release.apk` — universal, R8, non-debuggable, zipaligned, v2+v3 signed.
+* Cert SHA-256 printed by `apksigner verify --print-certs` in `dist/SIGNING-REPORT.txt`.
+* Keystore lives outside the source tree; password and alias are in `CREDENTIALS.md` (never in Git).
+* `README.md` (build, run, architecture, limits), this plan, `TEST_REPORT.md`.
 
 ---
 
-## 11. Risk register
+## 9. Risk register (each with the mitigation that is actually implemented)
 
-| # | Risk | Likelihood | Impact | Mitigation / fallback (shipped) |
-|---|---|---|---|---|
-| 1 | Wi-Fi Direct unsupported, disabled or OEM-broken | med | high | probe p2p at runtime; fall back to LAN → LOHS → manual code; UI never dead-ends |
-| 2 | p2p group negotiates 2.4 GHz despite a 5 GHz request | high | med | read back `WifiP2pGroup.frequency`, show it, retry once with explicit frequency, then accept and tell the user |
-| 3 | Local-only hotspot cannot be forced to 5 GHz (SystemApi) | **certain** | med | documented; show real band; offer user's own 5 GHz system hotspot + QR join |
-| 4 | Multicast/IGMP blocked by router | high | med | mDNS + parallel subnet probe + QR/manual code |
-| 5 | Client isolation on guest Wi-Fi | med | high | probe detects it; redirect to p2p/LOHS path |
-| 6 | Android 17 `ACCESS_LOCAL_NETWORK` denied | med | high | explicit preflight + fixable banner; p2p path needs no LAN permission |
-| 7 | Android 15 6 h `dataSync` quota | low | med | `onTimeout` → finish chunk, persist map, stop, resume later; message explains the reset |
-| 8 | OEM battery killer kills the service | high | med | battery-optimisation exemption request + guide, wake locks, persisted resume; honest guide in Settings |
-| 9 | R8 strips reflection-relevant classes | med | high | keep rules for Keystore/zxing/JSON, release build smoke-tested, no reflection in hot paths |
-| 10 | Storage too slow (eMMC write ~30 MB/s) | med | med | benchmark shows storage read/write so the bottleneck is visible; receive buffering absorbs bursts |
-| 11 | FAT32 4 GiB limit | med | med | pre-flight detection + clear error + "use internal storage" action |
-| 12 | Split-APK install rejected (signature/version) | med | med | compatibility pre-check (package/version/cert via `PackageManager`), human-readable errors |
-| 13 | Android 16/17 hidden-API or behavior change | med | med | no hidden APIs anywhere; feature-detect every new API with `Build.VERSION` |
-| 14 | Cipher unavailable/limited | low | high | AES-GCM is mandatory on all API 26+ devices; benchmark measures cost; encrypt-only fallback reported |
-| 15 | Throughput regression from TCP on lossy direct link | med | med | parallel streams, batch ACK, pacing by queue depth; measured live in the benchmark |
-| 16 | Web server buffering or caps throughput | low | high | hand-written streaming server with `FileChannel.transferTo`, benchmarked in CI |
-| 17 | Keystore loss blocks updates | low | high | keystore + password exported outside the tree with a loud warning in README |
-| 18 | Emulator can't represent radio behaviour | certain | low | all radio claims labelled "not hardware-verified" |
+| Risk | Mitigation |
+| --- | --- |
+| Hardcoded or "first IP wins" peer selection | every candidate is probed; ranking uses measured RTT + throughput; fingerprint duplicates collapse |
+| Mobile-data leakage | sockets bound to the chosen local `Network`; the app refuses to start a session when only cellular is up; no external host is ever contacted |
+| Drops on Wi-Fi with no internet | mDNS/multicast only, no connectivity checks, `Network.bindSocket` on the local network |
+| Assuming multicast or P2P exists | four independent discovery channels plus manual QR/code |
+| Leftover groups/hotspots | teardown in `finally`, `onTimeout`, `onDestroy` and a start-up recovery sweep |
+| Single stream / tiny buffers | 2–6 adaptive streams, 256 KiB chunks, 4 MiB socket buffers |
+| UI on the data path | engine runs on its own threads, UI sees coalesced 10 Hz snapshots |
+| SAF in hot paths | SAF is used only to *choose* a folder; data goes through `ParcelFileDescriptor` + positional `FileChannel` reads, with a cached copy only when the provider is non-seekable |
+| Buffering web server | streamed request/response bodies, STORED ZIP entries with precomputed CRCs |
+| base.apk only, re-signed APKs | base + all `splitSourceDirs` in one session, byte-identical APK files, never touched |
+| Split installs one at a time | single `PackageInstaller` session, `STATUS_*` mapped to human messages |
+| FGS type mismatch | `dataSync|connectedDevice` declared and started with an explicit type; both `onTimeout` overloads |
+| Ignoring Android 15 timeout | timeout pauses, persists the chunk map, stops, and the session is resumable |
+| Path traversal / overwrite | `SafePath` + unique names + `.part` rename |
+| Unencrypted traffic | LJP/1 is sealed from the first byte after the hello; there is no plaintext mode in the app |
+| Committed keystore | keystore and password stay outside Git; `.gitignore` blocks `*.jks`/`*.keystore` |
+| Permission dump at launch | just-in-time requests with rationale and refusal paths |
+| Unpinned toolchain | every version pinned in `gradle/libs.versions.toml`; wrapper pinned |
+| Debug-only testing | release (R8) build is what CI signs and verifies |
+| R8 breakage | proguard rules keep the JSON/crypto entry points; release build is smoke-tested in CI |
+| Mocks / TODOs / fake progress | no mock transfers; progress comes from counted bytes; TODO/FIXME are grepped in CI |
 
 ---
 
-## 12. Delivery checklist
+## Sources
 
-1. `assembleRelease` clean with R8 + `lint` reviewed.
-2. Unit + loopback integration tests green; MB/s printed and copied into `TEST_REPORT.md`.
-3. Universal signed APK `LoopJet-1.0.0-release.apk` (single ABI-independent APK, no splits), aligned,
-   signed with v2 + v3, `apksigner verify --print-certs` output captured.
-4. Dedicated 4096-bit RSA (or EC P-256) release key, 30-year validity, generated outside the source
-   tree; keystore + alias + password delivered separately with a backup warning.
-5. `README.md` (build / run / re-sign), `PLAN.md` (this file), `TEST_REPORT.md` (measured + limits),
-   `design/` (SVG logo, adaptive icon layers, monochrome themed layer, splash, in-app mark).
-6. Final report: what was built, where, measured numbers, honest limitations — including which paths
-   were verified on real hardware by the user vs. only compiled/simulated here.
+Platform and protocol:
+
+* https://developer.android.com/reference/kotlin/android/net/wifi/p2p/WifiP2pConfig.Builder — band/frequency request, API 29, mutually exclusive (verified)
+* https://developer.android.com/reference/kotlin/android/net/wifi/p2p/WifiP2pGroup — `getFrequency()` read-back
+* https://developer.android.com/guide/topics/connectivity/wifip2p — group owner, DHCP, discovery
+* https://developer.android.com/guide/topics/connectivity/localonlyhotspot — no band parameter, callback API
+* https://developer.android.com/reference/android/net/wifi/WifiNetworkSpecifier — join requires the system sheet
+* https://developer.android.com/develop/background-work/services/fgs/timeout — `dataSync` 6 h/24 h, `onTimeout(int,int)`
+* https://developer.android.com/develop/background-work/services/fgs/changes — Android 15/16 FGS changes
+* https://developer.android.com/privacy-and-security/local-network-permission — Android 16 opt-in, Android 17 enforcement
+* https://developer.android.com/about/versions/17/behavior-changes-17 — `ACCESS_LOCAL_NETWORK`
+* https://developer.android.com/training/data-storage/shared/media — `IS_PENDING` insert flow
+* https://developer.android.com/reference/kotlin/android/content/pm/PackageInstaller.Session — one session, splits, `STATUS_*`
+* https://developer.android.com/reference/kotlin/android/net/Network — `bindSocket`, `getAllByName`
+* https://developer.android.com/build/releases/agp-9-4-0-release-notes — AGP 9.4, Gradle 9.6, JDK 17, build-tools 36
+* https://developer.android.com/jetpack/androidx/releases/compose-material3 — 1.4.x stable, 1.5.0 beta (Expressive)
+* https://raw.githubusercontent.com/localsend/protocol/main/README.md — LocalSend v2.2 (multicast 224.0.0.167:53317, REST 53317)
+
+Performance research:
+
+* https://www.usenix.org/system/files/nsdi24-wang-chengke.pdf — SMUFF: bottleneck queue management, 88.7–94.7 % line rate, +22.6 % throughput, −37 % CPU
+* https://www.usenix.org/conference/nsdi24/presentation/wang-chengke — talk abstract
+* Android `TrafficStats`/`Socket` tuning guidance, `setsockopt` behaviour on Linux 4.x+ kernels
+
+Competitor and market claims (marketing pages, treated as low-confidence):
+
+* https://ushareit.io/blogs/shareit-vs-xender-vs-zapya/
+* https://punprime.com/localsend-vs-quick-share/
+* https://ifilesender.com/blog/how-fast-can-file-transfer-be-on-the-same-wi-fi/
+
+OEM battery behaviour: vendor support pages for Xiaomi/Redmi, Samsung, OnePlus/OPPO/realme, vivo,
+Huawei/Honor (summarised in `Perms.batteryGuide`, shown in-app).
+
+---
+
+## 10. Open items (tracked honestly)
+
+* Real-radio verification: needs physical devices; not possible here.
+* Wi-Fi 6/6E: the 6 GHz P2P request compiles against API 37 but cannot be exercised without hardware.
+* LocalSend v2 compatibility: deliberately out of the core path; not implemented in 1.0.0.
+* Play-compliant variant: `MANAGE_EXTERNAL_STORAGE` is declared but never requested by default (SAF is
+  the default path), so a Play build only has to remove that one declaration.
