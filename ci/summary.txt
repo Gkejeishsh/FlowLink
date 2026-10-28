@@ -1,32 +1,29 @@
-compile=0 tests=1 debug=0 release=0 wrapper=0
+compile=0 tests=0 debug=0 release=0 wrapper=0
 
 == first compile errors ==
 
 == test failures ==
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-TransferLoopbackTest > single large file transfers and verifies FAILED
-        at org.junit.Assert.assertTrue(Assert.java:42)
-        at com.loopjet.app.TransferLoopbackTest.assertSameContent(TransferLoopbackTest.kt:202)
-> Task :app:testDebugUnitTest FAILED
-BUILD FAILED in 35s
 
 == benchmark lines ==
-    [loopback] 2000 small files: 5.8 MB in 1253 ms = 4.6 MB/s
-    [loopback] large file: 192.0 MB in 1180 ms = 162.7 MB/s
+    [loopback] 2000 small files: 5.8 MB in 1105 ms = 5.3 MB/s
+    [loopback] large file: 192.0 MB in 578 ms = 332.2 MB/s
 
 == last compile log lines ==
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
@@ -39,7 +36,6 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
-
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:245:21 Expression is unused.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
@@ -58,10 +54,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793167375313.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793167823277.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 43s
+BUILD SUCCESSFUL in 1m 12s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
