@@ -134,10 +134,8 @@ jobs:
             } > dist/SIGNING-REPORT.txt 2>&1
             cat dist/SIGNING-REPORT.txt
           else
-            cp "$ALIGNED" "${FINAL%.apk}-unsigned.apk"
             echo "Release build was not signed (no keystore supplied on this run)." > dist/SIGNING-REPORT.txt
           fi
-          cp app/build/outputs/apk/debug/*.apk dist/ 2>/dev/null
           cp -r app/build/reports/tests/testDebugUnitTest dist/unit-test-report 2>/dev/null
           cp -r app/build/reports/lint-results-release.html dist/lint-report.html 2>/dev/null
           exit 0

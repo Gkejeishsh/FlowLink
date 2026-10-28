@@ -87,7 +87,8 @@ class TransferLoopbackTest {
         val receiverListener: TransferListener = RecordingListener(),
         val stallTimeoutMs: Long = 3_000,
         val resumeStore: InMemoryResumeStore = InMemoryResumeStore(),
-        val connectorOverride: ((Int) -> SocketConnector)? = null
+        val connectorOverride: ((Int) -> SocketConnector)? = null,
+        val senderIdentity: Identity = SoftwareIdentity.generate()
     ) : Closeable {
         lateinit var receiver: ReceiverEngine
         var controlPort: Int = 0
@@ -100,7 +101,7 @@ class TransferLoopbackTest {
                 sinkFactory = LocalFileSinkFactory(destDir),
                 listener = receiverListener,
                 resumeStore = resumeStore,
-                requestedPort = 43119,
+                requestedPort = 43210,
                 stallTimeoutMs = stallTimeoutMs,
                 sessionLog = { }
             )
