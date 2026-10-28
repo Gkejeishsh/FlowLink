@@ -42,13 +42,19 @@ class ConnectCodeTest {
 
     @Test
     fun v1LinkStillParses() {
-        val parsed = ConnectCodes.parse("loopjet://10.0.0.5:45999#finger#print#device-9")
+        // Shape produced by the app: host:port#fingerprint. A trailing tail must be ignored, not
+        // merged into the device id (this test caught exactly that).
+        val parsed = ConnectCodes.parse("loopjet://10.0.0.5:45999#finger#device-9")
         assertTrue(parsed is ScannedCode.Direct)
         val c = (parsed as ScannedCode.Direct).code
         assertEquals("10.0.0.5", c.lanHost)
         assertEquals(45999, c.lanPort)
         assertEquals("finger", c.fingerprint)
-        assertEquals("device-9", c.deviceId)
+        assertEquals("", c.deviceId)
+        assertEquals(
+            "finger",
+            (ConnectCodes.parse("loopjet://10.0.0.5:45999#finger#tail#more") as ScannedCode.Direct).code.fingerprint
+        )
     }
 
     @Test

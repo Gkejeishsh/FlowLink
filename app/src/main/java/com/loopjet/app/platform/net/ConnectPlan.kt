@@ -163,10 +163,13 @@ object ConnectCodes {
             val host = hostPort.substringBefore(':').trim()
             val port = hostPort.substringAfter(':').substringBefore('/').toIntOrNull() ?: return ScannedCode.Unknown
             if (host.isBlank() || port !in 1..65535) return ScannedCode.Unknown
+            // v1 carries host, port and fingerprint only -- the same three fields the session parser
+            // reads. Anything after a second '#' is a display tail, not an identity: treating it as
+            // one handed the handshake a device id with the fingerprint glued on.
             val rest = if (body.contains('#')) body.substringAfter('#') else ""
             return ScannedCode.Direct(
                 ConnectCode(
-                    deviceId = rest.substringAfter('#', "").trim(),
+                    deviceId = "",
                     fingerprint = rest.substringBefore('#').trim(),
                     name = "LoopJet phone",
                     lanHost = host,
