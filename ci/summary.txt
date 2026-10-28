@@ -1,4 +1,4 @@
-compile=0 tests=0 debug=0 release=0 wrapper=0
+compile=0 tests=1 debug=0 release=0 wrapper=0
 
 == first compile errors ==
 
@@ -6,24 +6,25 @@ compile=0 tests=0 debug=0 release=0 wrapper=0
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+    Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
+WebServerTest > sharePageNeedsNoNetworkResourcesBeyondThePhone FAILED
+        at org.junit.Assert.assertTrue(Assert.java:42)
+> Task :app:testDebugUnitTest FAILED
+BUILD FAILED in 31s
 
 == benchmark lines ==
-    [loopback] 2000 small files: 5.8 MB in 1167 ms = 5.0 MB/s
-    [loopback] large file: 192.0 MB in 546 ms = 351.6 MB/s
+    [loopback] 2000 small files: 5.8 MB in 769 ms = 7.6 MB/s
+    [loopback] large file: 192.0 MB in 1119 ms = 171.6 MB/s
 
 == last compile log lines ==
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
@@ -36,28 +37,31 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
+
 > Task :app:compileDebugKotlin
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:245:21 Expression is unused.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:413:29 'when' expression over a subject of type 'SenderEngine.WorkItem?' is not exhaustive. Add a 'null' or 'else' branch.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Engine.kt:554:53 Elvis operator (?:) always returns the left operand of non-nullable type 'Boolean'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:323:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:174:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:342:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:521:136 Expression is unused.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:634:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:195:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:433:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:612:136 Expression is unused.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:105:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:120:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:190:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:214:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:379:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:736:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1082:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793173520567.json
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:121:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:191:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:215:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:380:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:760:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1208:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793175291224.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 45s
+BUILD SUCCESSFUL in 46s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
