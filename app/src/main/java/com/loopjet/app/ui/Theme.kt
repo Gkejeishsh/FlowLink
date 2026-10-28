@@ -242,8 +242,8 @@ fun rememberPressScale(): Pair<Modifier, MutableInteractionSource> {
 fun RadarPulse(active: Boolean, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.primary) {
     val motion = LocalMotion.current
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "radar")
-    val phase by if (active && motion.enabled) {
-        transition.animateFloat(
+    val phase = if (active && motion.enabled) {
+        val animated: Float by transition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = androidx.compose.animation.core.infiniteRepeatable(
@@ -252,8 +252,9 @@ fun RadarPulse(active: Boolean, modifier: Modifier = Modifier, color: Color = Ma
             ),
             label = "phase"
         )
+        animated
     } else {
-        androidx.compose.runtime.mutableStateOf(0f)
+        0f
     }
     Canvas(modifier) {
         val maxRadius = size.minDimension / 2f
@@ -275,8 +276,8 @@ fun RadarPulse(active: Boolean, modifier: Modifier = Modifier, color: Color = Ma
 fun LinkDashes(progress: Float, active: Boolean, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.primary) {
     val motion = LocalMotion.current
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "dashes")
-    val offset by if (active && motion.enabled) {
-        transition.animateFloat(
+    val offset = if (active && motion.enabled) {
+        val animated: Float by transition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = androidx.compose.animation.core.infiniteRepeatable(
@@ -284,8 +285,9 @@ fun LinkDashes(progress: Float, active: Boolean, modifier: Modifier = Modifier, 
             ),
             label = "dash"
         )
+        animated
     } else {
-        androidx.compose.runtime.mutableStateOf(0f)
+        0f
     }
     Canvas(modifier) {
         val y = size.height / 2f
@@ -416,8 +418,8 @@ fun Pill(text: String, modifier: Modifier = Modifier) {
 fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
     val motion = LocalMotion.current
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "empty")
-    val float by if (motion.enabled) {
-        transition.animateFloat(
+    val float = if (motion.enabled) {
+        val animated: Float by transition.animateFloat(
             initialValue = -6f,
             targetValue = 6f,
             animationSpec = androidx.compose.animation.core.infiniteRepeatable(
@@ -426,8 +428,9 @@ fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
             ),
             label = "float"
         )
+        animated
     } else {
-        androidx.compose.runtime.mutableStateOf(0f)
+        0f
     }
     Column(
         modifier.fillMaxWidth().padding(28.dp),
