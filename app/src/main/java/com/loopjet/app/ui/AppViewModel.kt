@@ -262,6 +262,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openPicker(webShare: Boolean = false) {
         SendQueue.clear()
+        // Start finding the other phone while the user is still choosing files: the link is warm by
+        // the time they tap a peer, which is most of the perceived "connects instantly" effect.
+        startDiscovery(advertise = false)
         _state.value = _state.value.copy(
             screen = Screen.Picker,
             picker = PickerState(category = PickCategory.Photos, webShareMode = webShare)

@@ -384,10 +384,29 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        var snippetDialog by remember { mutableStateOf(false) }
+        if (snippetDialog) {
+            TextSnippetDialog(
+                onDismiss = { snippetDialog = false },
+                onAdd = { text -> vm.addTextSnippet(text); snippetDialog = false }
+            )
+        }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            item {
+                Text(
+                    "Text / link",
+                    Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .clickable { snippetDialog = true }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
             items(PickCategory.entries) { category ->
                 val selected = category == picker.category
                 Text(
@@ -464,6 +483,32 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                     text = if (picker.webShareMode) "Share" else "Next",
                     modifier = Modifier.width(132.dp)
                 ) { vm.commitSelection() }
+            }
+        }
+    }
+}
+
+/** Sends a pasted snippet or link as a small text file, which every platform can open. */
+@Composable
+private fun TextSnippetDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(22.dp)) {
+                Text("Send text or a link", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth().height(140.dp),
+                    placeholder = { Text("Paste anything…") },
+                    shape = MaterialTheme.shapes.medium
+                )
+                Spacer(Modifier.height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text("Cancel") }
+                    PrimaryAction("Add", Modifier.weight(1f), enabled = text.isNotBlank()) { onAdd(text) }
+                }
             }
         }
     }

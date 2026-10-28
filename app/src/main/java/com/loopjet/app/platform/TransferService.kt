@@ -315,7 +315,41 @@ class TransferService : Service() {
         )
         sender = engine
         TransferHub.update { it.copy(sas = engine.confirmationCode) }
-        val result = engine.run()
+        // Auto-resume: a dropped link restarts the same session id, so the receiver's chunk map
+        // skips everything already on disk. Bounded, with backoff, and never after a cancel.
+        var result = engine.run()
+        var attempt = 1
+        while (!result.ok && !paused && attempt <= 2 &&
+            result.message !in setOf("Cancelled", "Declined", "Everything was already on the receiver")
+        ) {
+            val retryable = result.message.contains("closed", true) ||
+                result.message.contains("reset", true) ||
+                result.message.contains("refused", true) ||
+                result.message.contains("timed out", true) ||
+                result.message.contains("stall", true) ||
+                result.message.contains("resume", true) ||
+                result.message.contains("Interrupted", true)
+            if (!retryable) break
+            TransferHub.update {
+                it.copy(state = TransferState.CONNECTING, message = "Link dropped — resuming (attempt ${attempt + 1})")
+            }
+            updateNotification()
+            Thread.sleep(1200L * attempt)
+            val resumed = SenderEngine(
+                identity = app.identity,
+                manifest = manifest,
+                sourceFor = { file -> openSource(file) },
+                connector = connector,
+                controlPort = peer.controlPort,
+                listener = listener,
+                maxStreams = streamCount(app.prefs.speedMode),
+                expectedPeerFingerprint = peer.fingerprint.takeIf { it.isNotBlank() },
+                sessionLog = { Log.d(TAG, it) }
+            )
+            sender = resumed
+            result = resumed.run()
+            attempt++
+        }
         val trusted = peer.fingerprint.isNotBlank() && app.prefs.trustedDevices.contains(peer.fingerprint)
         if (result.ok && trusted) {
             app.prefs.trust(peer.fingerprint, peer.name)
