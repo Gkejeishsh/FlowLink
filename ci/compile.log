@@ -8,53 +8,28 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources
 > Task :app:parseDebugLocalResources
 > Task :app:generateDebugRFile
-
-> Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt:136:29 None of the following candidates is applicable:
-
-fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
-  Candidate 'fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-
-fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
-  Candidate 'fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-
-fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R:
-  Candidate 'fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-
-fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R:
-  Candidate 'fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:82:71 Unresolved reference 'LoopJetApp'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164115089.json
+> Task :app:compileDebugKotlin
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Http.kt:245:21 Expression is unused.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:323:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:174:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:342:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:519:136 Expression is unused.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:105:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:120:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:189:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:213:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:378:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:690:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1036:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793164452268.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: NONE_APPLICABLE
-       Kotlin compiler error
-         None of the following candidates is applicable:
-     
-         fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
-           Candidate 'fun <C : Array<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-     
-         fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R:
-           Candidate 'fun <C : Collection<*>, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-     
-         fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R:
-           Candidate 'fun <M : Map<*, *>, R, R> M.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-     
-         fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R:
-           Candidate 'fun <C : CharSequence, R, R> C.ifEmpty(defaultValue: () -> R): R' is inapplicable because of a receiver type mismatch.
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Crypto.kt line 136
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 52s
+BUILD SUCCESSFUL in 59s
 7 actionable tasks: 7 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
