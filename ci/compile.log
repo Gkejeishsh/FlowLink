@@ -10,29 +10,27 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugRFile
 
 > Task :app:compileDebugKotlin
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1261:52 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1269:47 @Composable invocations can only happen from the context of a @Composable function
-
-> Task :app:compileDebugKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793194582147.json
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/core/Json.kt:259:40 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/App.kt:331:35 Unchecked cast of 'Any?' to 'Map<String, Any?>'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/TransferService.kt:659:21 The corresponding parameter in the supertype 'TransferListener' is named 'app'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/apps/Apps.kt:195:51 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Discovery.kt:433:29 'fun resolveService(p0: NsdServiceInfo!, p1: NsdManager.ResolveListener!): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Hotspot.kt:105:48 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:32:37 'val allNetworks: Array<(out) Network!>' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:135:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:193:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:217:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:388:35 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:845:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1319:49 Unnecessary safe call on a non-null receiver of type 'FileResult'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1519:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793194845013.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: COMPOSABLE_INVOCATION
-       Kotlin compiler error
-         @Composable invocations can only happen from the context of a @Composable function
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt line 1261
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 43s
+BUILD SUCCESSFUL in 41s
 7 actionable tasks: 7 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
