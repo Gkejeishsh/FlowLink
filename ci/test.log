@@ -17,15 +17,15 @@ Daemon will be stopped at the end of the build
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
 > Task :app:processDebugMainManifest
+> Task :app:mergeDebugResources
 > Task :app:processDebugManifest
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
 > Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
-> Task :app:mergeDebugResources
 > Task :app:processDebugResources
-> Task :app:bundleDebugClassesToRuntimeJar
 > Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
 > Task :app:compileDebugUnitTestKotlin
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugUnitTestJavaRes
@@ -33,13 +33,13 @@ Daemon will be stopped at the end of the build
 > Task :app:testDebugUnitTest
 
 TransferLoopbackTest > many small files are bundled and verified STANDARD_ERROR
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:881)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:943)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:955)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:893)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -48,19 +48,19 @@ TransferLoopbackTest > many small files are bundled and verified STANDARD_ERROR
 
 TransferLoopbackTest > many small files are bundled and verified STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=6097000 files=0 chunks=2000/2000
-    [receiver] ok=true msg=Transfer complete bytes=6097000 files=2000 chunks=2000/2000 ms=1221 path=/tmp/loopjet-test-small-493863622894/dst
-    [loopback] 2000 small files: 5.8 MB in 1134 ms = 5.1 MB/s
+    [receiver] ok=true msg=Transfer complete bytes=6097000 files=2000 chunks=2000/2000 ms=1607 path=/tmp/loopjet-test-small-1520686832777/dst
+    [loopback] 2000 small files: 5.8 MB in 1507 ms = 3.9 MB/s
 
 TransferLoopbackTest > many small files are bundled and verified PASSED
 
 TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_ERROR
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:881)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:893)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:943)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:955)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -68,20 +68,20 @@ TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_ERROR
     	at java.base/java.lang.Thread.run(Thread.java:840)
 
 TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_OUT
-    [receiver] ok=true msg=Transfer complete bytes=67108864 files=1 chunks=256/256 ms=555 path=/tmp/loopjet-test-pause-496154089884/dst
+    [receiver] ok=true msg=Transfer complete bytes=67108864 files=1 chunks=256/256 ms=549 path=/tmp/loopjet-test-pause-1523329827825/dst
 
 TransferLoopbackTest > pause and resume keeps the transfer alive PASSED
 
 TransferLoopbackTest > receiver may decline an offer STANDARD_OUT
     [sender] ok=false msg=Declined bytes=0 files=0 chunks=0/0
     [sender-failed] --- engine log (3 lines) ---
-    [sender-failed] R: sender Test Phone connected, code 276016
-    [sender-failed] S: handshake complete with Receiver, code 276016
+    [sender-failed] S: handshake complete with Receiver, code 562005
+    [sender-failed] R: sender Test Phone connected, code 562005
     [sender-failed] S: sender stopped: Declined
-    [receiver] ok=false msg=Declined bytes=0 files=0 chunks=0/0 ms=126 path=
+    [receiver] ok=false msg=Declined bytes=0 files=0 chunks=0/0 ms=127 path=
     [receiver-failed] --- engine log (3 lines) ---
-    [receiver-failed] R: sender Test Phone connected, code 276016
-    [receiver-failed] S: handshake complete with Receiver, code 276016
+    [receiver-failed] S: handshake complete with Receiver, code 562005
+    [receiver-failed] R: sender Test Phone connected, code 562005
     [receiver-failed] S: sender stopped: Declined
 
 TransferLoopbackTest > receiver may decline an offer PASSED
@@ -89,11 +89,11 @@ TransferLoopbackTest > receiver may decline an offer PASSED
 TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:881)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:893)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:943)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:955)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -102,14 +102,14 @@ TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
 
 TransferLoopbackTest > unicode names and nested folders survive STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=15360 files=0 chunks=5/5
-    [receiver] ok=true msg=Transfer complete bytes=15360 files=5 chunks=5/5 ms=136 path=/tmp/loopjet-test-unicode-497121583611/dst
+    [receiver] ok=true msg=Transfer complete bytes=15360 files=5 chunks=5/5 ms=137 path=/tmp/loopjet-test-unicode-1524295533673/dst
 
 TransferLoopbackTest > unicode names and nested folders survive PASSED
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_ERROR
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:881)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:893)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -118,55 +118,167 @@ TransferLoopbackTest > resume after a dropped link only re-sends missing chunks 
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=25165824 files=0 chunks=96/96
-    [receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1310720 files=0 chunks=5/96 ms=2130 path=/tmp/loopjet-test-resume-497307037509/dst
+    [receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2130 path=/tmp/loopjet-test-resume-1524481646935/dst
     [receiver-failed] --- engine log (176 lines) ---
-    [receiver-failed] S: handshake complete with Receiver, code 085875
-    [receiver-failed] R: sender Test Phone connected, code 085875
+    [receiver-failed] S: handshake complete with Receiver, code 033623
+    [receiver-failed] R: sender Test Phone connected, code 033623
     [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+    [receiver-failed] S: data stream 0 open
     [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
     [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: data stream 0 open
     [receiver-failed] R: data stream ended: connection closed while reading DATA
-    [receiver-failed] R: data stream ended: connection closed while reading DATA
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
     [receiver-failed] R: data stream ended: connection closed while reading DATA
     [receiver-failed] R: data stream ended: connection closed while reading DATA
     [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 3 open
+    [receiver-failed] R: data stream ended: connection closed while reading DATA
     [receiver-failed] S: stream 1: Broken pipe (attempt 1)
     [receiver-failed] S: stream 2: Broken pipe (attempt 1)
     [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 3 open
     [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 0 open
     [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: data stream 1 open
     [receiver-failed] S: stream 2: Broken pipe (attempt 1)
     [receiver-failed] S: stream 1: Broken pipe (attempt 1)
     [receiver-failed] S: stream 0: Broken pipe (attempt 1)
     [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
+    [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
+    [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 3 open
+    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
+    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
     [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
     [receiver-failed] S: data stream 0 open
@@ -175,137 +287,25 @@ TransferLoopbackTest > resume after a dropped link only re-sends missing chunks 
     [receiver-failed] S: stream 2: Broken pipe (attempt 1)
     [receiver-failed] S: stream 0: Broken pipe (attempt 1)
     [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
+    [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 0 open
     [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
     [receiver-failed] S: stream 2: Broken pipe (attempt 1)
     [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
     [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 1: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 3: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] S: data stream 1 open
-    [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: stream 0: Broken pipe (attempt 1)
-    [receiver-failed] S: stream 2: Broken pipe (attempt 1)
-    [receiver-failed] S: data stream 0 open
-    [receiver-failed] S: data stream 2 open
-    [receiver-failed] R: stalled for 1992ms, ending session
+    [receiver-failed] R: stalled for 1990ms, ending session
     [loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_ERROR
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:943)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:881)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$3(Engine.kt:893)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$10(Engine.kt:955)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -313,15 +313,16 @@ TransferLoopbackTest > resume after a dropped link only re-sends missing chunks 
     	at java.base/java.lang.Thread.run(Thread.java:840)
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
-    [sender] ok=true msg=Transfer complete bytes=25165824 files=0 chunks=96/96
-    [receiver] ok=true msg=Transfer complete bytes=25165824 files=1 chunks=96/96 ms=332 path=/tmp/loopjet-test-resume-497307037509/dst
-    [loopback] resume: sender re-sent 25165824 bytes of 25165824, receiver has 25165824 bytes, ok=true
+    [sender] ok=true msg=Transfer complete bytes=23330816 files=0 chunks=96/96
+    [receiver] ok=true msg=Transfer complete bytes=23330816 files=1 chunks=96/96 ms=252 path=/tmp/loopjet-test-resume-1524481646935/dst
+    [loopback] resume: sender re-sent 23330816 bytes of 25165824, receiver has 23330816 bytes, ok=true
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks FAILED
-    java.lang.AssertionError: resume re-sent everything (25165824 bytes); nothing was skipped
+    java.lang.AssertionError: receiver must still end up with the whole file expected:<25165824> but was:<23330816>
         at org.junit.Assert.fail(Assert.java:89)
-        at org.junit.Assert.assertTrue(Assert.java:42)
-        at com.loopjet.app.TransferLoopbackTest.resume after a dropped link only re-sends missing chunks(TransferLoopbackTest.kt:342)
+        at org.junit.Assert.failNotEquals(Assert.java:835)
+        at org.junit.Assert.assertEquals(Assert.java:647)
+        at com.loopjet.app.TransferLoopbackTest.resume after a dropped link only re-sends missing chunks(TransferLoopbackTest.kt:346)
 
 TransferLoopbackTest > single large file transfers and verifies STANDARD_ERROR
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
@@ -331,8 +332,8 @@ TransferLoopbackTest > single large file transfers and verifies STANDARD_ERROR
 
 TransferLoopbackTest > single large file transfers and verifies STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=201326592 files=0 chunks=768/768
-    [receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=1236 path=/tmp/loopjet-test-large-499855968297/dst
-    [loopback] large file: 192.0 MB in 1149 ms = 167.1 MB/s
+    [receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=1232 path=/tmp/loopjet-test-large-1526987135006/dst
+    [loopback] large file: 192.0 MB in 1100 ms = 174.5 MB/s
     [loopback] sender ok=true bytes=201326592 msg=Transfer complete
     [loopback] receiver ok=true files=1 msg=Transfer complete
 
@@ -341,7 +342,7 @@ TransferLoopbackTest > single large file transfers and verifies PASSED
 6 tests completed, 1 failed
 
 > Task :app:testDebugUnitTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793170945405.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793171346493.json
 
 FAILURE: Build failed with an exception.
 
@@ -352,5 +353,5 @@ Execution failed for task ':app:testDebugUnitTest'.
 * Try:
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
-BUILD FAILED in 37s
+BUILD FAILED in 38s
 26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
