@@ -68,7 +68,7 @@ jobs:
           gradle-version: '9.6.0'
 
       - name: Prepare signing material
-        if: ${{ inputs.sign == true && inputs.keystore_b64 != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.sign == true && inputs.keystore_b64 != '' }}
         env:
           KS: ${{ inputs.keystore_b64 }}
           SP: ${{ inputs.store_pass }}
@@ -80,6 +80,7 @@ jobs:
           echo "LJ_STORE_PASS=$SP" >> $GITHUB_ENV
           echo "LJ_KEY_PASS=$KP" >> $GITHUB_ENV
           echo "LJ_KEY_ALIAS=$AL" >> $GITHUB_ENV
+          echo "LJ_SIGNING=1" >> $GITHUB_ENV
 
       - name: Compile, test, package
         run: |
@@ -87,7 +88,7 @@ jobs:
           set +e
           gradle --no-daemon --console=plain wrapper --gradle-version 9.6.0 > ci/wrapper.log 2>&1
           echo "WRAPPER_RC=$?" >> $GITHUB_ENV
-          gradle --no-daemon --console=plain :app:compileDebugKotlin > ci/compile.log 2>&1
+          gradle --no-daemon --console=plain :app:compileDebugKotlin --continue > ci/compile.log 2>&1
           echo "COMPILE_RC=$?" >> $GITHUB_ENV
           tail -80 ci/compile.log
           gradle --no-daemon --console=plain :app:testDebugUnitTest > ci/test.log 2>&1
@@ -160,7 +161,7 @@ jobs:
             grep "MB/s" ci/test.log | head -40
             echo
             echo "== last compile log lines =="
-            tail -40 ci/compile.log
+            tail -120 ci/compile.log
           } > ci/summary.txt
           cat ci/summary.txt
           ls -la ci dist
