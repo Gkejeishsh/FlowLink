@@ -1,0 +1,684 @@
+package com.loopjet.app.ui
+
+import android.app.Application
+import android.content.ContentUris
+import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.loopjet.app.core.Fmt
+import com.loopjet.app.core.Json
+import com.loopjet.app.platform.Benchmark
+import com.loopjet.app.platform.HistoryEntry
+import com.loopjet.app.platform.LoopJetApp
+import com.loopjet.app.platform.SendItem
+import com.loopjet.app.platform.SendQueue
+import com.loopjet.app.platform.TransferHub
+import com.loopjet.app.platform.TransferService
+import com.loopjet.app.platform.WebHub
+import com.loopjet.app.platform.WebService
+import com.loopjet.app.platform.WebShareQueue
+import com.loopjet.app.platform.apps.AppRepository
+import com.loopjet.app.platform.apps.InstalledApp
+import com.loopjet.app.platform.net.DiscoveredPeer
+import com.loopjet.app.platform.net.DiscoveryEngine
+import com.loopjet.app.platform.net.DiscoveryListener
+import com.loopjet.app.platform.net.NetworkTools
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+
+enum class Screen { Home, Picker, Nearby, Receive, Transfer, Invite, WebShare, History, Settings, About, Onboarding }
+
+enum class PickCategory(val label: String) {
+    Apps("Apps"),
+    Photos("Photos"),
+    Videos("Videos"),
+    Music("Music"),
+    Documents("Documents"),
+    Archives("Archives"),
+    Downloads("Downloads"),
+    Apks("APKs"),
+    Folders("Folders")
+}
+
+enum class SortOrder(val label: String) { Newest("Newest"), Largest("Largest"), Name("Name") }
+
+data class PickItem(
+    val key: String,
+    val name: String,
+    val relativePath: String,
+    val size: Long,
+    val mtime: Long,
+    val mime: String,
+    val uri: String? = null,
+    val filePath: String? = null,
+    val isFolder: Boolean = false,
+    val folderUri: String? = null
+)
+
+data class PickerState(
+    val category: PickCategory = PickCategory.Photos,
+    val query: String = "",
+    val sort: SortOrder = SortOrder.Newest,
+    val loading: Boolean = false,
+    val items: List<PickItem> = emptyList(),
+    val selection: Map<String, PickItem> = emptyMap(),
+    val apps: List<InstalledApp> = emptyList(),
+    val folderStack: List<Pair<String, String>> = emptyList(),
+    val error: String? = null,
+    val webShareMode: Boolean = false
+) {
+    val selectedBytes: Long get() = selection.values.sumOf { it.size }
+}
+
+data class DiscoveryState(
+    val active: Boolean = false,
+    val peers: List<DiscoveredPeer> = emptyList(),
+    val log: String = "",
+    val error: String? = null
+)
+
+data class AppState(
+    val screen: Screen = Screen.Home,
+    val dark: Boolean = false,
+    val themeMode: String = "system",
+    val picker: PickerState = PickerState(),
+    val discovery: DiscoveryState = DiscoveryState(),
+    val benchmark: String? = null,
+    val benchRunning: Boolean = false,
+    val deviceName: String = "",
+    val avatar: String = "🚀",
+    val trustedCount: Int = 0,
+    val freeSpace: String = "",
+    val notice: String? = null,
+    val selectedPeerName: String = ""
+)
+
+class AppViewModel(application: Application) : AndroidViewModel(application) {
+    private val app = application as LoopJetApp
+    private val prefs = app.prefs
+    private val tools = NetworkTools(application)
+    private val appRepo = AppRepository(application)
+
+    private val _state = MutableStateFlow(
+        AppState(
+            screen = if (prefs.onboardingDone) Screen.Home else Screen.Onboarding,
+            themeMode = prefs.theme,
+            deviceName = prefs.deviceName,
+            avatar = prefs.avatar,
+            trustedCount = prefs.trustedDevices.size,
+            freeSpace = Fmt.bytes(application.filesDir.usableSpace)
+        )
+    )
+    val state: StateFlow<AppState> = _state
+
+    private var discovery: DiscoveryEngine? = null
+    private var pendingScan = false
+
+    val session get() = TransferHub.session
+    val web get() = WebHub.state
+    val sendItems get() = SendQueue.items
+
+    // --- navigation ------------------------------------------------------------------------------
+
+    fun go(screen: Screen) {
+        _state.value = _state.value.copy(screen = screen)
+        if (screen == Screen.Nearby) startDiscovery(advertise = false)
+        if (screen != Screen.Nearby) stopDiscovery()
+        if (screen == Screen.Receive) {
+            TransferService.startReceive(getApplication())
+        }
+    }
+
+    fun back(): Screen {
+        val current = _state.value.screen
+        val next = when (current) {
+            Screen.Picker, Screen.Settings, Screen.History, Screen.Invite, Screen.WebShare, Screen.Nearby,
+            Screen.Receive, Screen.About -> Screen.Home
+            else -> Screen.Home
+        }
+        if (current == Screen.Receive || current == Screen.Transfer) {
+            // Leaving the receive screen stops an idle server; an active transfer keeps running in the
+            // foreground service and stays reachable from the notification.
+            if (TransferHub.session.value.mode == com.loopjet.app.platform.SessionMode.RECEIVE &&
+                TransferHub.session.value.state != com.loopjet.app.core.TransferState.TRANSFERRING
+            ) {
+                TransferService.stop(getApplication())
+            }
+        }
+        stopDiscovery()
+        _state.value = _state.value.copy(screen = next)
+        return next
+    }
+
+    fun toggleTheme() {
+        val next = when (prefs.theme) {
+            "system" -> if (_state.value.dark) "light" else "dark"
+            "light" -> "dark"
+            else -> "system"
+        }
+        setTheme(next)
+    }
+
+    fun setTheme(mode: String) {
+        prefs.theme = mode
+        _state.value = _state.value.copy(themeMode = mode)
+    }
+
+    fun setDark(dark: Boolean) {
+        _state.value = _state.value.copy(dark = dark)
+    }
+
+    fun setDeviceName(name: String) {
+        prefs.deviceName = name
+        _state.value = _state.value.copy(deviceName = prefs.deviceName)
+    }
+
+    fun setAvatar(avatar: String) {
+        prefs.avatar = avatar.take(2)
+        _state.value = _state.value.copy(avatar = prefs.avatar)
+    }
+
+    fun notice(message: String?) {
+        _state.value = _state.value.copy(notice = message)
+    }
+
+    // --- discovery -------------------------------------------------------------------------------
+
+    fun startDiscovery(advertise: Boolean) {
+        if (discovery != null) return
+        val engine = DiscoveryEngine(getApplication(), prefs, tools, object : DiscoveryListener {
+            override fun onPeersChanged(peers: List<DiscoveredPeer>) {
+                _state.value = _state.value.copy(
+                    discovery = _state.value.discovery.copy(active = true, peers = peers)
+                )
+            }
+
+            override fun onDiscoveryLog(message: String) {
+                _state.value = _state.value.copy(
+                    discovery = _state.value.discovery.copy(log = message)
+                )
+            }
+        })
+        discovery = engine
+        engine.start(advertise = advertise, controlPort = com.loopjet.app.core.ProtocolLimits.DEFAULT_PORT, beaconPort = com.loopjet.app.core.ProtocolLimits.BEACON_PORT)
+        _state.value = _state.value.copy(discovery = DiscoveryState(active = true))
+    }
+
+    fun stopDiscovery() {
+        discovery?.stop()
+        discovery = null
+        _state.value = _state.value.copy(discovery = DiscoveryState(active = false))
+    }
+
+    fun sendTo(peer: DiscoveredPeer) {
+        val items = SendQueue.snapshot
+        if (items.isEmpty()) {
+            notice("Pick at least one file first")
+            return
+        }
+        _state.value = _state.value.copy(selectedPeerName = peer.name)
+        TransferService.startSend(getApplication(), peer)
+        _state.value = _state.value.copy(screen = Screen.Transfer)
+    }
+
+    fun cancelTransfer() {
+        TransferService.stop(getApplication())
+    }
+
+    fun pauseTransfer() = TransferService.pause(getApplication())
+
+    fun resumeTransfer() = TransferService.resume(getApplication())
+
+    fun answerOffer(accepted: Boolean, trust: Boolean) {
+        TransferHub.answerOffer(accepted, trust)
+        if (trust) {
+            _state.value = _state.value.copy(trustedCount = prefs.trustedDevices.size)
+        }
+    }
+
+    // --- picker ----------------------------------------------------------------------------------
+
+    fun setCategory(category: PickCategory) {
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(category = category, items = emptyList(), folderStack = emptyList()))
+        loadCategory()
+    }
+
+    fun setQuery(query: String) {
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(query = query))
+        loadCategory()
+    }
+
+    fun setSort(sort: SortOrder) {
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(sort = sort))
+        loadCategory()
+    }
+
+    fun openPicker(webShare: Boolean = false) {
+        SendQueue.clear()
+        _state.value = _state.value.copy(
+            screen = Screen.Picker,
+            picker = PickerState(category = PickCategory.Photos, webShareMode = webShare)
+        )
+        loadCategory()
+        loadApps()
+    }
+
+    fun loadApps() {
+        viewModelScope.launch {
+            val apps = appRepo.load(includeSystem = false)
+            _state.value = _state.value.copy(picker = _state.value.picker.copy(apps = apps))
+        }
+    }
+
+    fun loadCategory() {
+        viewModelScope.launch {
+            val picker = _state.value.picker
+            _state.value = _state.value.copy(picker = picker.copy(loading = true, error = null))
+            val items = withContext(Dispatchers.IO) { queryCategory(picker) }
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(loading = false, items = items, error = null)
+            )
+        }
+    }
+
+    private fun queryCategory(picker: PickerState): List<PickItem> {
+        val resolver = getApplication<Application>().contentResolver
+        val query = picker.query.trim().lowercase()
+        val sortColumn = when (picker.sort) {
+            SortOrder.Newest -> MediaStore.MediaColumns.DATE_MODIFIED
+            SortOrder.Largest -> MediaStore.MediaColumns.SIZE
+            SortOrder.Name -> MediaStore.MediaColumns.DISPLAY_NAME
+        }
+        val order = if (picker.sort == SortOrder.Name) "ASC" else "DESC"
+        val result = ArrayList<PickItem>()
+        val projections = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DATE_MODIFIED,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.RELATIVE_PATH
+        )
+        val collection = when (picker.category) {
+            PickCategory.Photos -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            PickCategory.Videos -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            PickCategory.Music -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            else -> MediaStore.Files.getContentUri("external")
+        }
+        val selection: String?
+        val args: Array<String>?
+        when (picker.category) {
+            PickCategory.Documents -> {
+                selection = "(LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.pdf' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.doc%' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.xls%' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.ppt%' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.txt' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.csv' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.md')"
+                args = null
+            }
+            PickCategory.Archives -> {
+                selection = "(LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.zip' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.rar' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.7z' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.tar' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.gz')"
+                args = null
+            }
+            PickCategory.Apks -> {
+                selection = "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.apk' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.apks' OR " +
+                    "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.xapk'"
+                args = null
+            }
+            PickCategory.Downloads -> {
+                selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?"
+                args = arrayOf("%Download%")
+            }
+            else -> {
+                selection = null
+                args = null
+            }
+        }
+        runCatching {
+            resolver.query(collection, projections, selection, args, "$sortColumn $order")?.use { cursor ->
+                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+                val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+                val dateIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
+                val mimeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+                val pathIndex = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                var count = 0
+                while (cursor.moveToNext() && count < 5000) {
+                    val name = cursor.getString(nameIndex) ?: continue
+                    if (query.isNotEmpty() && !name.lowercase().contains(query)) continue
+                    val size = cursor.getLong(sizeIndex)
+                    if (size <= 0) continue
+                    val id = cursor.getLong(idIndex)
+                    val uri = ContentUris.withAppendedId(collection, id)
+                    val relative = if (pathIndex >= 0) cursor.getString(pathIndex) ?: "" else ""
+                    val mime = cursor.getString(mimeIndex) ?: "application/octet-stream"
+                    result.add(
+                        PickItem(
+                            key = uri.toString(),
+                            name = name,
+                            relativePath = picker.category.label + "/" + name,
+                            size = size,
+                            mtime = cursor.getLong(dateIndex) * 1000,
+                            mime = mime,
+                            uri = uri.toString()
+                        )
+                    )
+                    count++
+                }
+            }
+        }
+        return result
+    }
+
+    fun toggleSelection(item: PickItem) {
+        val current = _state.value.picker.selection.toMutableMap()
+        if (current.containsKey(item.key)) current.remove(item.key) else current[item.key] = item
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(selection = current))
+    }
+
+    fun selectAllVisible() {
+        val current = _state.value.picker.selection.toMutableMap()
+        _state.value.picker.items.take(500).forEach { current[it.key] = it }
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(selection = current))
+    }
+
+    fun clearSelection() {
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(selection = emptyMap()))
+    }
+
+    fun addApp(app: InstalledApp) {
+        val items = appRepo.toSendItems(app)
+        SendQueue.add(items)
+        _state.value = _state.value.copy(notice = "${app.label}: ${items.size} APK part(s) queued")
+    }
+
+    fun commitSelection() {
+        val picker = _state.value.picker
+        val items = picker.selection.values.map { pick ->
+            SendItem(
+                key = pick.key,
+                displayName = pick.name,
+                relativePath = pick.relativePath,
+                size = pick.size,
+                mtime = pick.mtime,
+                mime = pick.mime,
+                uri = pick.uri,
+                filePath = pick.filePath
+            )
+        }
+        SendQueue.add(items)
+        _state.value = _state.value.copy(
+            picker = picker.copy(selection = emptyMap()),
+            screen = if (picker.webShareMode) Screen.WebShare else Screen.Nearby,
+            notice = "${items.size} item(s) queued"
+        )
+        if (picker.webShareMode) {
+            WebShareQueue.set(SendQueue.snapshot)
+            WebService.startShare(getApplication())
+            _state.value = _state.value.copy(screen = Screen.WebShare)
+        } else {
+            startDiscovery(advertise = false)
+        }
+    }
+
+    fun clearQueue() {
+        SendQueue.clear()
+    }
+
+    fun removeQueued(key: String) {
+        SendQueue.remove(key)
+    }
+
+    fun addTextSnippet(text: String) {
+        val file = File(getApplication<Application>().cacheDir, "LoopJet note ${System.currentTimeMillis()}.txt")
+        runCatching { file.writeText(text) }
+        SendQueue.add(
+            listOf(
+                SendItem(
+                    key = "text:${file.absolutePath}",
+                    displayName = file.name,
+                    relativePath = "Text/${file.name}",
+                    size = file.length(),
+                    mtime = file.lastModified(),
+                    mime = "text/plain",
+                    filePath = file.absolutePath
+                )
+            )
+        )
+        _state.value = _state.value.copy(notice = "Text added to the queue")
+    }
+
+    /** Adds files handed to us by the system share sheet. */
+    fun addSharedUris(uris: List<Uri>) {
+        viewModelScope.launch {
+            val items = withContext(Dispatchers.IO) {
+                uris.mapNotNull { uri ->
+                    runCatching {
+                        val resolver = getApplication<Application>().contentResolver
+                        var name = "shared_file"
+                        var size = 0L
+                        var mime = "application/octet-stream"
+                        resolver.query(uri, null, null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME).takeIf { it >= 0 }?.let {
+                                    name = cursor.getString(it) ?: name
+                                }
+                                cursor.getColumnIndex(MediaStore.MediaColumns.SIZE).takeIf { it >= 0 }?.let {
+                                    size = cursor.getLong(it)
+                                }
+                                cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE).takeIf { it >= 0 }?.let {
+                                    mime = cursor.getString(it) ?: mime
+                                }
+                            }
+                        }
+                        if (size == 0L) {
+                            resolver.openAssetFileDescriptor(uri, "r")?.use { size = it.length }
+                        }
+                        PickItem(
+                            key = uri.toString(),
+                            name = name,
+                            relativePath = "Shared/$name",
+                            size = size,
+                            mtime = System.currentTimeMillis(),
+                            mime = mime,
+                            uri = uri.toString()
+                        )
+                    }.getOrNull()
+                }
+            }
+            val selection = items.associateBy { it.key }
+            _state.value = _state.value.copy(
+                screen = Screen.Picker,
+                picker = _state.value.picker.copy(selection = selection, category = PickCategory.Downloads),
+                notice = "Shared ${items.size} file(s) — pick who receives them"
+            )
+            loadCategory()
+        }
+    }
+
+    // --- folders (SAF) ---------------------------------------------------------------------------
+
+    fun openFolderTree(uri: Uri) {
+        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        runCatching {
+            getApplication<Application>().contentResolver.takePersistableUriPermission(uri, takeFlags)
+        }
+        browseFolder(uri.toString(), uri.toString().substringAfterLast('/').ifBlank { "Storage" })
+    }
+
+    fun browseFolder(uri: String, label: String) {
+        viewModelScope.launch {
+            val items = withContext(Dispatchers.IO) { listDocuments(Uri.parse(uri)) }
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(
+                    category = PickCategory.Folders,
+                    items = items,
+                    folderStack = _state.value.picker.folderStack + (uri to label),
+                    loading = false
+                )
+            )
+        }
+    }
+
+    fun goUpFolder() {
+        val stack = _state.value.picker.folderStack
+        if (stack.size <= 1) {
+            _state.value = _state.value.copy(picker = _state.value.picker.copy(folderStack = emptyList(), items = emptyList()))
+            return
+        }
+        val parent = stack.dropLast(1)
+        val (uri, label) = parent.last()
+        browseFolder(uri, label)
+    }
+
+    private fun listDocuments(treeUri: Uri): List<PickItem> {
+        val resolver = getApplication<Application>().contentResolver
+        val document = androidx.documentfile.provider.DocumentFile.fromTreeUri(getApplication(), treeUri)
+            ?: return emptyList()
+        val out = ArrayList<PickItem>()
+        document.listFiles().forEach { file ->
+            val name = file.name ?: return@forEach
+            out.add(
+                PickItem(
+                    key = file.uri.toString(),
+                    name = name,
+                    relativePath = name,
+                    size = file.length(),
+                    mtime = file.lastModified(),
+                    mime = file.type ?: if (file.isDirectory) "inode/directory" else "application/octet-stream",
+                    uri = if (file.isDirectory) null else file.uri.toString(),
+                    isFolder = file.isDirectory,
+                    folderUri = if (file.isDirectory) file.uri.toString() else null
+                )
+            )
+        }
+        return out.sortedWith(compareByDescending<PickItem> { it.isFolder }.thenBy { it.name.lowercase() })
+    }
+
+    // --- web / invite ----------------------------------------------------------------------------
+
+    fun startInvite(useHotspot: Boolean) {
+        WebService.startInvite(getApplication(), useHotspot)
+        _state.value = _state.value.copy(screen = Screen.Invite)
+    }
+
+    fun startWebShare() {
+        if (SendQueue.snapshot.isEmpty()) {
+            openPicker(webShare = true)
+        } else {
+            WebShareQueue.set(SendQueue.snapshot)
+            WebService.startShare(getApplication())
+            _state.value = _state.value.copy(screen = Screen.WebShare)
+        }
+    }
+
+    fun stopWeb() {
+        WebService.stop(getApplication())
+        _state.value = _state.value.copy(screen = Screen.Home)
+    }
+
+    // --- history / settings ----------------------------------------------------------------------
+
+    fun history(): List<HistoryEntry> = app.history.all().sortedByDescending { it.startedAt }
+
+    fun clearHistory() = app.history.clear()
+
+    fun resend(entry: HistoryEntry) {
+        notice("Re-send opens the picker: ${entry.fileNames.firstOrNull() ?: entry.peerName}")
+        openPicker()
+    }
+
+    fun trustedDevices(): Map<String, String> = prefs.trustedNames()
+
+    fun untrust(fingerprint: String) {
+        prefs.untrust(fingerprint)
+        _state.value = _state.value.copy(trustedCount = prefs.trustedDevices.size)
+    }
+
+    fun setAutoAccept(value: Boolean) {
+        prefs.autoAcceptTrusted = value
+        _state.value = _state.value.copy()
+    }
+
+    fun autoAccept(): Boolean = prefs.autoAcceptTrusted
+
+    fun setSpeedMode(mode: String) {
+        prefs.speedMode = mode
+        _state.value = _state.value.copy()
+    }
+
+    fun speedMode(): String = prefs.speedMode
+
+    fun setSaveFolder(name: String) {
+        prefs.saveFolderName = name
+        _state.value = _state.value.copy()
+    }
+
+    fun saveFolder(): String = prefs.saveFolderName
+
+    fun setVerifyAfter(value: Boolean) {
+        prefs.verifyAfterTransfer = value
+        _state.value = _state.value.copy()
+    }
+
+    fun verifyAfter(): Boolean = prefs.verifyAfterTransfer
+
+    fun setWebPin(pin: String, require: Boolean) {
+        prefs.webPin = pin
+        prefs.webRequirePin = require
+        _state.value = _state.value.copy()
+    }
+
+    fun webPin(): String = prefs.webPin
+
+    fun webRequirePin(): Boolean = prefs.webRequirePin
+
+    fun runBenchmark() {
+        if (_state.value.benchRunning) return
+        _state.value = _state.value.copy(benchRunning = true, benchmark = "Running…")
+        viewModelScope.launch {
+            val result = runCatching { Benchmark(getApplication()).run { stage ->
+                _state.value = _state.value.copy(benchmark = stage)
+            } }.getOrNull()
+            val text = if (result == null) {
+                "Benchmark failed"
+            } else {
+                Benchmark(getApplication()).format(result) + "\n" +
+                    result.notes.joinToString("\n") { "• $it" }
+            }
+            prefs.lastBenchmark = text
+            _state.value = _state.value.copy(benchRunning = false, benchmark = text)
+        }
+    }
+
+    fun deviceSummary(): String {
+        val band = tools.bandLabel()
+        val ssid = tools.ssid() ?: "not on Wi-Fi"
+        val p2p = if (tools.supportsWifiDirect()) "Wi-Fi Direct" else "no Wi-Fi Direct"
+        return "$ssid · $band · $p2p"
+    }
+
+    fun historyJson(): String = Json.stringify(history().take(20).map { it.toJson() })
+
+    override fun onCleared() {
+        stopDiscovery()
+        super.onCleared()
+    }
+}
+
+@androidx.compose.runtime.Composable
+fun appViewModel(): AppViewModel = viewModel()
