@@ -152,6 +152,9 @@ pinned in `gradle/libs.versions.toml`.
 ./gradlew lintRelease
 ```
 
+Building this repository on another machine or with another agent: `HANDOFF.md` has the complete
+runbook (both routes, the secret names, the acceptance checklist and the signing rules).
+
 `build-apk.sh` is the exact sequence CI runs, kept runnable on a normal machine so the shipped file
 can be reproduced: it checks JDK 21 and an SDK with platform 37 + build-tools 36, runs Gradle, aligns
 the payload with `zipalign -p 4`, signs with `apksigner` v2+v3 (password passed via `env:`, never on

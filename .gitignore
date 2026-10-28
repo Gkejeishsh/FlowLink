@@ -2,8 +2,12 @@
 *.jks
 *.keystore
 *.p12
+*.p12.b64
+keys/
 keystore.properties
 local.properties
+loopjet-credentials.txt
+*credentials*.txt
 
 # Gradle / IDE / build output
 .gradle/
