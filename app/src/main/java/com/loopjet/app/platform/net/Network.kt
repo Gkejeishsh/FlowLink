@@ -72,7 +72,16 @@ class NetworkTools(private val context: Context) {
             }
         }
         // p2p / hotspot interfaces are not always reported as a "Network" with Wi-Fi transport.
-        for (iface in wifiLikeInterfaces()) {
+        // Order matters: p2p0 (192.168.49.1) is a dead end for a peer on the same Wi-Fi, so a real
+        // wlan interface is always tried first.
+        val ordered = wifiLikeInterfaces().sortedBy {
+            when {
+                it.name?.startsWith("p2p") == true -> 2
+                it.name?.startsWith("ap") == true || it.name?.startsWith("swlan") == true -> 1
+                else -> 0
+            }
+        }
+        for (iface in ordered) {
             val address = firstIpv4(iface.inetAddresses.toList())
             if (address != null) {
                 val name = iface.name ?: "wlan"

@@ -228,6 +228,7 @@ class TransferService : Service() {
     private val running = AtomicBoolean(false)
     private var hotspot: HotspotController? = null
     private var hotspotInfo: HotspotController.HotspotInfo? = null
+    private var addressWatch: Thread? = null
     private val worker = AtomicReference<Thread?>(null)
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
@@ -841,6 +842,12 @@ class TransferService : Service() {
             }
         }
         updateNotification()
+        // The code is built from whatever address existed in the first second of the session. A very
+        // common order of events is: open Receive, then join the Wi-Fi. The code on screen then points
+        // at "0.0.0.0" (or at a hotspot that is no longer needed) and every scan fails. Re-check the
+        // address while nothing is connected and republish when it changes -- only while idle, so a
+        // running transfer is never overwritten.
+        startAddressWatch()
         startWorker {
             while (running.get()) {
                 TransferHub.update {
@@ -857,6 +864,37 @@ class TransferService : Service() {
                 }
             }
         }
+    }
+
+    /**
+     * Keeps the advertised address honest while the receiver waits. Stops with the session, and does
+     * nothing at all once a peer is connected (hub state is no longer IDLE).
+     */
+    private fun startAddressWatch() {
+        val thread = Thread({
+            var advertised = ""
+            while (running.get() && receiver != null) {
+                runCatching { Thread.sleep(3000) }
+                if (!running.get() || receiver == null) break
+                if (TransferHub.session.value.state != TransferState.IDLE) continue
+                val binding = runCatching { NetworkTools(this).sessionBinding() }.getOrNull() ?: continue
+                val address = binding.address?.hostAddress ?: continue
+                if (address == advertised) continue
+                val engineNow = receiver ?: break
+                val link = ReceiveCodes.lanLink(
+                    host = address,
+                    port = engineNow.controlPort,
+                    fingerprint = LoopJetApp.instance.identity.fingerprintHex,
+                    deviceId = LoopJetApp.instance.prefs.deviceId()
+                )
+                if (link.isBlank()) continue
+                Log.d(TAG, "receive address changed to $address; republishing the code")
+                advertised = address
+                publishReceiveCode(link, address)
+            }
+        }, "loopjet-address-watch").apply { isDaemon = true }
+        addressWatch = thread
+        thread.start()
     }
 
     /** Publishes the code the Receive screen renders, plus the one-line explanation of the path. */
@@ -1041,6 +1079,8 @@ class TransferService : Service() {
         runCatching { hotspot?.stop() }
         hotspot = null
         hotspotInfo = null
+        addressWatch?.interrupt()
+        addressWatch = null
         // A joined network is released only when the session is over: unregistering the callback
         // earlier tears the network down mid-transfer.
         runCatching { HotspotController.of(this).releaseJoin() }
