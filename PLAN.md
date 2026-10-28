@@ -1,6 +1,6 @@
 # LoopJet — engineering plan
 
-Status: implementation in progress (branch `arena/7ef48d45-flowlink`).
+Status: 1.0.0 implemented, built, signed and verified (branch `arena/7ef48d45-flowlink`).
 This file is the plan that the code follows, and it is kept up to date where reality differs.
 Every claim marked **verified** was checked against the primary source listed in
 [Sources](#sources); anything unverified is labelled as such, including in `TEST_REPORT.md`.
@@ -267,11 +267,13 @@ friendly (no per-frame allocations in `SpeedGraph`, no recomposition from the da
 
 | Layer | What runs | Where |
 | --- | --- | --- |
-| Engine | real-socket loopback: handshake, 5 000 small files, 4 GiB+ multi-stream, resume after kill, pause/resume, checksum mismatch, path traversal, duplicate names, Unicode | JVM (`TransferLoopbackTest`) in CI |
-| HTTP server | Range requests, ZIP streaming, unauthenticated client rejection, expiry, upload streaming | JVM |
-| Crypto | GCM vector checks, HKDF, SAS determinism | JVM |
-| Build | R8 release build, lint, `apksigner verify` v2+v3, cert printout | CI |
-| Device | none — no Android device or emulator is reachable from this environment | **not tested** |
+| Engine | real-socket loopback: mutual authentication, 192 MiB single file through 4 sealed streams, 2 000 bundled small files, Unicode + nested paths, resume after a dropped link, pause/resume, declined offer | JVM (`TransferLoopbackTest`, 6 tests) in CI |
+| Packaging | R8 release build, lint, `zipalign -c`, `aapt2 badging`, `apksigner verify --verbose --print-certs` v2+v3 | CI (`dist/SIGNING-REPORT.txt`) |
+| Device | none — no phone or emulator is reachable from this environment | **not tested** |
+
+Not yet covered by automated tests, and listed as such in `TEST_REPORT.md`: the HTTP server routes,
+crypto known-answer vectors, a >4 GiB transfer (offset math is 64-bit throughout but no 5 GiB run was
+performed — disk bound), APK installs, and every radio path.
 
 Honest consequence: radio paths (Wi-Fi Direct, hotspot, BLE) are **compiled and reviewed, not
 executed on hardware**. `TEST_REPORT.md` repeats this in every section that depends on it. The
@@ -283,7 +285,9 @@ in-app benchmark exists precisely so a user can produce the missing numbers on r
 
 * `LoopJet-1.0.0-release.apk` — universal, R8, non-debuggable, zipaligned, v2+v3 signed.
 * Cert SHA-256 printed by `apksigner verify --print-certs` in `dist/SIGNING-REPORT.txt`.
-* Keystore lives outside the source tree; password and alias are in `CREDENTIALS.md` (never in Git).
+* Keystore lives outside the source tree (`/home/user/deliverables/loopjet-release.jks`); the alias,
+  password, certificate fingerprints and a backup warning are in a separate file outside the
+  repository (`/home/user/loopjet-credentials.md`). `.gitignore` blocks `*.jks`/`*.keystore`.
 * `README.md` (build, run, architecture, limits), this plan, `TEST_REPORT.md`.
 
 ---
@@ -352,6 +356,17 @@ OEM battery behaviour: vendor support pages for Xiaomi/Redmi, Samsung, OnePlus/O
 Huawei/Honor (summarised in `Perms.batteryGuide`, shown in-app).
 
 ---
+
+## 9a. Results that changed the plan (measured, see `TEST_REPORT.md`)
+
+* One pipeline flaw was found by measurement rather than review: the receiver persisted chunk maps only
+  for *completed* files, so "resume" re-sent everything. Fixed; a regression assertion now fails if a
+  resumed session re-sends the whole file.
+* Loopback throughput (192 MiB, 4 streams): 155–371 MB/s depending on CI CPU. The small-file path
+  (2 000 files, 5.8 MB) runs at ~4.9–5.3 MB/s, i.e. ~2 100 files/s including per-file digest and rename.
+  Both numbers come from the pipeline, not from any radio; see the honesty table in `TEST_REPORT.md`.
+* The APK signing step needed three fixes against AOSP's `apksig` sources before `apksigner` accepted
+  the output (record framing, then attribute framing). They are documented in `tools/sign_apk.py`.
 
 ## 10. Open items (tracked honestly)
 

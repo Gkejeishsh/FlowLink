@@ -1,0 +1,23 @@
+# Signing material must never enter the repository.
+*.jks
+*.keystore
+*.p12
+keystore.properties
+local.properties
+
+# Gradle / IDE / build output
+.gradle/
+build/
+app/build/
+.idea/
+*.iml
+captures/
+.cxx/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Local signing scratch
+/tmp/
+tools/out/
