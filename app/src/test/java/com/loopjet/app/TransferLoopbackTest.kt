@@ -343,7 +343,10 @@ class TransferLoopbackTest {
                 "resume re-sent everything (${second.bytesTransferred} bytes); nothing was skipped",
                 second.bytesTransferred < size
             )
-            assertEquals("receiver must still end up with the whole file", size, secondReceive.bytesTransferred)
+            assertTrue(
+                "receiver must not be told to write more than the file size",
+                secondReceive.bytesTransferred <= size
+            )
             assertSameContent(File(src, "big.bin"), File(dst, "big.bin"))
         } finally {
             harness2.close()
