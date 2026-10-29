@@ -21,6 +21,7 @@ Daemon will be stopped at the end of the build
 > Task :app:checkDebugDuplicateClasses
 > Task :app:checkDebugAarMetadata UP-TO-DATE
 > Task :app:mergeDebugJavaResource
+> Task :app:mergeExtDexDebug
 > Task :app:mapDebugSourceSetPaths UP-TO-DATE
 > Task :app:compileDebugNavigationResources UP-TO-DATE
 > Task :app:mergeLibDexDebug
@@ -30,7 +31,6 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugMainManifest UP-TO-DATE
 > Task :app:processDebugManifest UP-TO-DATE
 > Task :app:processDebugManifestForPackage UP-TO-DATE
-> Task :app:mergeExtDexDebug
 > Task :app:processDebugResources UP-TO-DATE
 > Task :app:dexBuilderDebug
 > Task :app:mergeDebugJniLibFolders
@@ -46,8 +46,8 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793255049780.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793255443810.json
 
-BUILD SUCCESSFUL in 46s
+BUILD SUCCESSFUL in 53s
 38 actionable tasks: 18 executed, 20 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
