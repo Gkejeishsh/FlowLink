@@ -41,6 +41,31 @@ class NetworkTools(private val context: Context) {
         return null
     }
 
+    /**
+     * The Wi-Fi network that can actually reach [peerAddress].
+     *
+     * A phone can be associated with two Wi-Fi networks at once -- its own home network and a
+     * hotspot it just joined -- and `activeWifiNetwork()` returns whichever the system lists first.
+     * Binding a socket to the wrong one sends the connection out of an interface that cannot see the
+     * other phone, so the dial times out even though both phones are "connected". This picks by
+     * address: the network whose own IPv4 address shares the peer's /24.
+     */
+    fun wifiNetworkFor(peerAddress: String): Network? {
+        val prefix = peerAddress.substringBeforeLast('.', "")
+        if (prefix.isEmpty()) return null
+        for (network in connectivity.allNetworks) {
+            val caps = connectivity.getNetworkCapabilities(network) ?: continue
+            if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) continue
+            val link = connectivity.getLinkProperties(network) ?: continue
+            val matches = link.linkAddresses.any { addr ->
+                val host = addr.address.hostAddress ?: return@any false
+                host.substringBeforeLast('.', "") == prefix
+            }
+            if (matches) return network
+        }
+        return null
+    }
+
     fun wifiEnabled(): Boolean = runCatching { wifiManager?.isWifiEnabled == true }.getOrDefault(false)
 
     fun ssid(): String? {

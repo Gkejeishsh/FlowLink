@@ -379,6 +379,11 @@ class MainActivity : ComponentActivity() {
             // Returning from the system permission dialog or settings: refresh, never re-prompt from
             // here (that would loop on a refusal). The explicit button on the prompt does the asking.
             if (vm.state.value.screen == Screen.Picker) vm.refreshPicker()
+            // The user may have just joined the other phone's hotspot from system settings. The
+            // network this phone is on has changed, so discovery is restarted on the new one.
+            if (vm.state.value.screen == Screen.Nearby || vm.state.value.screen == Screen.Scanner) {
+                vm.restartDiscovery(advertise = false)
+            }
             // Coming back from the all-files screen must open the file tree, not leave the user
             // staring at "Allow all files" after they already allowed it.
             if (vm.state.value.screen == Screen.Picker &&

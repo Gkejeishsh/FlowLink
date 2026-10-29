@@ -803,3 +803,48 @@ Receive and no connection was made" report, and it also explains why only one or
 
 CI on this commit: compile, 48 unit tests, debug, release, loopback benchmark all green; the 192 MB
 loopback run reports 176.8 MB/s, inside the runner's usual 160–400 MB/s noise band.
+
+---
+
+# 1.0.2 — hotspot first, Wi-Fi by choice
+
+Built to the user's proposal: the phones should default to the hotspot, offer a Wi-Fi button for
+people who know they share a network, and show the OS-generated hotspot name and password under the
+QR code. All three are in, plus one fix that is probably the reason hotspot attempts failed before.
+
+## The bug that made hotspot mode fail
+
+`activeWifiNetwork()` returned the *first* Wi-Fi network the system listed. A phone that has just
+joined the other phone's hotspot is usually still associated with its own home network too, so the
+sender bound its socket to the interface that cannot reach the peer, and every dial timed out while
+both phones showed "connected". `NetworkTools.wifiNetworkFor(peerAddress)` now picks the network whose
+own IPv4 address shares the peer's /24 — chosen by address, not by enumeration order.
+
+## Hotspot first
+
+* `Prefs.connectMode` defaults to `"hotspot"`; the Connect screen is a two-chip choice
+  (Hotspot / Same Wi-Fi) with the hotspot route described in one line: *tap Receive on the other
+  phone, then join the hotspot it shows*.
+* The Receive screen publishes the access point the OS created: `hotspotSsid`, `hotspotPass`,
+  `hotspotAddress` in `SessionUi`, shown as a card under the QR with per-field copy and a
+  "copy name and password" button. This is the manual route into the AP when the camera is busy, the
+  other device is not an Android phone, or the system prompt refuses.
+* The sender can type the name and password (`joinHotspot`), which requests the network, binds to it
+  and starts discovery on it; if the OEM refuses the request, the app opens Wi-Fi settings instead of
+  leaving the user at a dead end. After a manual join the app restarts discovery on resume, so the
+  other phone appears in the list by itself.
+* Scanning the QR still works and still carries the network, so the one-tap path is unchanged.
+
+## Same Wi-Fi, chosen rather than assumed
+
+* The Wi-Fi chip runs the ordinary radar. Each peer now carries a verification: same /24 as one of
+  this phone's own addresses shows "Same Wi-Fi verified", otherwise "Different network" in the error
+  colour. The check lives in `net/Subnet.kt` (no Android types) and is covered by four unit tests,
+  including guest networks, 192.168.43.x hotspot addresses and malformed input.
+* Tapping a peer that is *not* verified is still allowed — routing can make it work — but the user
+  is no longer told a thing is fine when it is not.
+
+## Tests
+
+33 → 37 unit tests (contrast, motion tokens, session progress, subnet verification). CI on this
+commit builds debug and release and runs the loopback benchmark.

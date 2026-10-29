@@ -120,6 +120,10 @@ data class SessionUi(
     val linkLabel: String = "",
     val receiveReady: Boolean = false,
     val receiveQr: String = "",
+    /** The access point this phone is hosting while it receives, as the OS created it. */
+    val hotspotSsid: String = "",
+    val hotspotPass: String = "",
+    val hotspotAddress: String = "",
     val offer: IncomingOfferUi? = null,
     val deviceName: String = "",
     val receivedApps: List<ReceivedAppUi> = emptyList(),
@@ -464,7 +468,11 @@ class TransferService : Service() {
         val itemById = built.second
         // The joined network wins; the global "active Wi-Fi" is only a fallback for the same-network
         // case. Resolved before the UI is told which path this session uses.
-        val network = PendingPeer.network ?: tools.activeWifiNetwork()
+        // Prefer the interface that can actually reach this peer: after joining a hotspot the phone
+        // may still be "on" a second Wi-Fi network, and binding to that one times out.
+        val network = PendingPeer.network
+            ?: tools.wifiNetworkFor(peer.address)
+            ?: tools.activeWifiNetwork()
         val usingJoined = PendingPeer.network != null
         TransferHub.update {
             it.copy(
@@ -1036,6 +1044,17 @@ class TransferService : Service() {
                 return@start
             }
             hotspotInfo = info
+            // Publish the credentials the OS chose. Nobody can guess an OS-generated WPA2 key, and
+            // without it the only route into this access point is a QR scan — which is exactly the
+            // step that fails when the camera or the scanner is unavailable. Shown on the Receive
+            // screen so the other phone can join from its own Wi-Fi settings.
+            TransferHub.update {
+                it.copy(
+                    hotspotSsid = info.ssid,
+                    hotspotPass = info.passphrase.orEmpty(),
+                    hotspotAddress = info.address.orEmpty()
+                )
+            }
             val host = info.address
             val controlPort = receiver?.controlPort ?: ProtocolLimits.DEFAULT_PORT
             val app = FlowLinkApp.instance
@@ -1194,6 +1213,7 @@ class TransferService : Service() {
         runCatching { hotspot?.stop() }
         hotspot = null
         hotspotInfo = null
+        TransferHub.update { it.copy(hotspotSsid = "", hotspotPass = "", hotspotAddress = "") }
         addressWatch?.interrupt()
         addressWatch = null
         // A joined network is released only when the session is over: unregistering the callback

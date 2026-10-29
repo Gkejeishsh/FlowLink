@@ -182,7 +182,9 @@ data class AppState(
     /** Session count, cached: the count used to be a JSON file read inside composition. */
     val historyCount: Int = 0,
     val notice: String? = null,
-    val selectedPeerName: String = ""
+    val selectedPeerName: String = "",
+    /** "hotspot" (default) or "wifi": how this phone expects to reach the other one. */
+    val connectMode: String = "hotspot"
 )
 
 private const val PICKER_ROW_LIMIT = 20_000
@@ -212,7 +214,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             trustedCount = prefs.trustedDevices.size,
             freeSpace = Fmt.bytes(application.filesDir.usableSpace),
             historyCount = runCatching { app.history.all().size }.getOrDefault(0),
-            networkSummary = runCatching { deviceSummary() }.getOrDefault("")
+            networkSummary = runCatching { deviceSummary() }.getOrDefault(""),
+            connectMode = prefs.connectMode
         )
     )
     val state: StateFlow<AppState> = _state
@@ -1023,6 +1026,67 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
     }
+
+    // --- how we connect -------------------------------------------------------------------------
+
+    /**
+     * Hotspot and same-Wi-Fi are not two settings, they are two answers to "where is the other
+     * phone?". Hotspot is the default because it is the only one that does not assume anything
+     * about the Wi-Fi both phones happen to be on; same-Wi-Fi is faster when the user knows the two
+     * phones share a network, and it is now something they choose rather than something the app
+     * guesses.
+     */
+    fun setConnectMode(mode: String) {
+        prefs.connectMode = mode
+        _state.value = _state.value.copy(connectMode = mode)
+    }
+
+    /**
+     * Joins a hotspot whose name and password the user read off the other phone's screen.
+     *
+     * The system consent sheet is unavoidable for `requestNetwork`, so this is explicitly "join",
+     * not "connect": once the network is up the normal discovery runs on it and the other phone
+     * appears in the list like any other peer.
+     */
+    fun joinHotspot(ssid: String, password: String) {
+        val name = ssid.trim()
+        if (name.isEmpty()) {
+            notice("Type the hotspot name shown on the other phone")
+            return
+        }
+        val app = getApplication<Application>()
+        notice("Joining \"$name\" — confirm the Android prompt")
+        com.loopjet.app.platform.net.HotspotController.of(app)
+            .joinAp(name, password.trim().ifBlank { null }) { joined, message ->
+                if (joined == null) {
+                    notice("$message · you can still join it from Wi-Fi settings")
+                    openWifiSettings()
+                    return@joinAp
+                }
+                // Bind future sockets to the joined network and look for the other phone on it.
+                com.loopjet.app.platform.PendingPeer.network = joined
+                startDiscovery(advertise = false)
+                notice("Joined \"$name\" — looking for the other phone")
+            }
+    }
+
+    /** Wi-Fi settings, for the cases where the specifier join is refused by the OEM. */
+    fun openWifiSettings() {
+        val intent = android.content.Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { getApplication<Application>().startActivity(intent) }
+            .onFailure { notice("Open Wi-Fi settings and join the hotspot shown on the other phone") }
+    }
+
+    /**
+     * True when [address] is on the same /24 as one of this phone's own IPv4 addresses.
+     *
+     * This is the "verify they are really on the same network" check the Wi-Fi mode needs: two
+     * phones can both be "on Wi-Fi" and still be on different networks (a guest SSID, a router with
+     * client isolation, one phone on a hotspot), and then a LAN dial can only time out.
+     */
+    fun sameSubnet(address: String): Boolean =
+        com.loopjet.app.platform.net.Subnet.sharesNetwork(localIpv4Addresses(), address)
 
     fun refreshPicker() {
         val picker = _state.value.picker
