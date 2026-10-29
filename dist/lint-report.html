@@ -177,9 +177,9 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 19 errors and 84 warnings</span>
+      <span class="mdl-layout-title">Lint Report: 19 errors and 85 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 09:15:46 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 09:32:49 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -202,7 +202,7 @@ document.getElementById(id).style.display = 'none';
       <a class="mdl-navigation__link" href="#StaticFieldLeak"><i class="material-icons warning-icon">warning</i>Static Field Leaks (1)</a>
       <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (6)</a>
       <a class="mdl-navigation__link" href="#UsableSpace"><i class="material-icons warning-icon">warning</i>Using getUsableSpace() (3)</a>
-      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (30)</a>
+      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (31)</a>
     </nav>
   </div>
   <main class="mdl-layout__content">
@@ -272,7 +272,7 @@ document.getElementById(id).style.display = 'none';
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Productivity">Productivity</a>
 </td></tr>
 <tr>
-<td class="countColumn">30</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">31</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#UseKtx">UseKtx</a>: Use KTX extension function</td></tr>
 <tr><td></td><td class="categoryColumn"><a href="#ExtraIssues">Included Additional Checks (66)</a>
 </td></tr>
@@ -351,14 +351,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:496</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  493 </span>    private <span class="keyword">fun</span> hasWifiPermission(): Boolean {
-<span class="lineno">  494 </span>        <span class="keyword">val</span> ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = <span class="keyword">true</span>)
-<span class="lineno">  495 </span>            .filter {
-<span class="caretline"><span class="lineno">  496 </span>                it.permission == <span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span> ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  497 </span>                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
-<span class="lineno">  498 </span>            }
-<span class="lineno">  499 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:499</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
+<span class="lineno">  496 </span>    private <span class="keyword">fun</span> hasWifiPermission(): Boolean {
+<span class="lineno">  497 </span>        <span class="keyword">val</span> ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = <span class="keyword">true</span>)
+<span class="lineno">  498 </span>            .filter {
+<span class="caretline"><span class="lineno">  499 </span>                it.permission == <span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span> ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  500 </span>                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
+<span class="lineno">  501 </span>            }
+<span class="lineno">  502 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:107</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
@@ -1150,14 +1150,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:454</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
-<span class="lineno"> 451 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
-<span class="lineno"> 452 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
-<span class="lineno"> 453 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
-<span class="caretline"><span class="lineno"> 454 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 455 </span>  <span class="keyword">val</span> asked = FlowLinkApp.instance.prefs.askedPermissions
-<span class="lineno"> 456 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
-<span class="lineno"> 457 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:459</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
+<span class="lineno"> 456 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
+<span class="lineno"> 457 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
+<span class="lineno"> 458 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
+<span class="caretline"><span class="lineno"> 459 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 460 </span>  <span class="keyword">val</span> asked = FlowLinkApp.instance.prefs.askedPermissions
+<span class="lineno"> 461 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
+<span class="lineno"> 462 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
 </pre>
 
 </div>
@@ -1605,24 +1605,24 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:213</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno">  210 </span>            deviceName = prefs.deviceName,
-<span class="lineno">  211 </span>            avatar = prefs.avatar,
-<span class="lineno">  212 </span>            trustedCount = prefs.trustedDevices.size,
-<span class="caretline"><span class="lineno">  213 </span>            freeSpace = Fmt.bytes(application.filesDir.<span class="warning">usableSpace</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  214 </span>            historyCount = runCatching { app.history.all().size }.getOrDefault(<span class="number">0</span>),
-<span class="lineno">  215 </span>            networkSummary = runCatching { deviceSummary() }.getOrDefault(<span class="string">""</span>)
-<span class="lineno">  216 </span>        )
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:215</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
+<span class="lineno">  212 </span>            deviceName = prefs.deviceName,
+<span class="lineno">  213 </span>            avatar = prefs.avatar,
+<span class="lineno">  214 </span>            trustedCount = prefs.trustedDevices.size,
+<span class="caretline"><span class="lineno">  215 </span>            freeSpace = Fmt.bytes(application.filesDir.<span class="warning">usableSpace</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  216 </span>            historyCount = runCatching { app.history.all().size }.getOrDefault(<span class="number">0</span>),
+<span class="lineno">  217 </span>            networkSummary = runCatching { deviceSummary() }.getOrDefault(<span class="string">""</span>),
+<span class="lineno">  218 </span>            connectMode = prefs.connectMode
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:1022</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno"> 1019 </span>                networkSummary = summary,
-<span class="lineno"> 1020 </span>                historyCount = count,
-<span class="lineno"> 1021 </span>                trustedCount = prefs.trustedDevices.size,
-<span class="caretline"><span class="lineno"> 1022 </span>                freeSpace = Fmt.bytes(getApplication&lt;Application>().filesDir.<span class="warning">usableSpace</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 1023 </span>            )
-<span class="lineno"> 1024 </span>        }
-<span class="lineno"> 1025 </span>    }
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:1025</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
+<span class="lineno"> 1022 </span>                networkSummary = summary,
+<span class="lineno"> 1023 </span>                historyCount = count,
+<span class="lineno"> 1024 </span>                trustedCount = prefs.trustedDevices.size,
+<span class="caretline"><span class="lineno"> 1025 </span>                freeSpace = Fmt.bytes(getApplication&lt;Application>().filesDir.<span class="warning">usableSpace</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 1026 </span>            )
+<span class="lineno"> 1027 </span>        }
+<span class="lineno"> 1028 </span>    }
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/core/Files.kt">../../src/main/java/com/loopjet/app/core/Files.kt</a>:475</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
@@ -1714,161 +1714,171 @@ Dismiss</button>            </div>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:172</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
 <span class="lineno"> 169 </span>
-<span class="lineno"> 170 </span>    <span class="keyword">var</span> speedMode: String
-<span class="lineno"> 171 </span>        get() = prefs.getString(<span class="string">"speed"</span>, <span class="string">"fast"</span>) ?: <span class="string">"fast"</span>
-<span class="caretline"><span class="lineno"> 172 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"speed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 170 </span>  <span class="keyword">var</span> speedMode: String
+<span class="lineno"> 171 </span>      get() = prefs.getString(<span class="string">"speed"</span>, <span class="string">"fast"</span>) ?: <span class="string">"fast"</span>
+<span class="caretline"><span class="lineno"> 172 </span>      set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"speed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno"> 173 </span>
-<span class="lineno"> 174 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
-<span class="lineno"> 175 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
-</pre>
+<span class="lineno"> 174 </span>  <span class="javadoc">/**
+</span><span class="lineno"> 175 </span><span class="javadoc">   * How this phone expects to reach the other one: "hotspot" (this phone joins the other phone's
+</span></pre>
 
-<button class="mdl-button mdl-js-button mdl-button--primary" id="UseKtxDivLink" onclick="reveal('UseKtxDiv');" />+ 25 More Occurrences...</button>
+<button class="mdl-button mdl-js-button mdl-button--primary" id="UseKtxDivLink" onclick="reveal('UseKtxDiv');" />+ 26 More Occurrences...</button>
 <div id="UseKtxDiv" style="display: none">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:176</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 173 </span>
-<span class="lineno"> 174 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
-<span class="lineno"> 175 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 176 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"autoAccept"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 177 </span>
-<span class="lineno"> 178 </span>    <span class="keyword">var</span> saveFolderName: String
-<span class="lineno"> 179 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:180</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 177 </span>
-<span class="lineno"> 178 </span>    <span class="keyword">var</span> saveFolderName: String
-<span class="lineno"> 179 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span>
-<span class="caretline"><span class="lineno"> 180 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.folder"</span>, sanitizeFolder(value)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>    <span class="keyword">var</span> saveTreeUri: String?
-<span class="lineno"> 183 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:183</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 180 </span><span class="javadoc">     */</span>
+<span class="lineno"> 181 </span>    <span class="keyword">var</span> connectMode: String
+<span class="lineno"> 182 </span>        get() = prefs.getString(<span class="string">"connect.mode"</span>, <span class="string">"hotspot"</span>) ?: <span class="string">"hotspot"</span>
+<span class="caretline"><span class="lineno"> 183 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"connect.mode"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 184 </span>
+<span class="lineno"> 185 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
+<span class="lineno"> 186 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:184</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>    <span class="keyword">var</span> saveTreeUri: String?
-<span class="lineno"> 183 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
-<span class="caretline"><span class="lineno"> 184 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.tree"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 185 </span>
-<span class="lineno"> 186 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
-<span class="lineno"> 187 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:187</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 184 </span>
+<span class="lineno"> 185 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
+<span class="lineno"> 186 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno"> 187 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"autoAccept"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 188 </span>
+<span class="lineno"> 189 </span>    <span class="keyword">var</span> saveFolderName: String
+<span class="lineno"> 190 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span></pre>
+
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:191</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 188 </span>
+<span class="lineno"> 189 </span>    <span class="keyword">var</span> saveFolderName: String
+<span class="lineno"> 190 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span>
+<span class="caretline"><span class="lineno"> 191 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.folder"</span>, sanitizeFolder(value)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 192 </span>
+<span class="lineno"> 193 </span>    <span class="keyword">var</span> saveTreeUri: String?
+<span class="lineno"> 194 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:188</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 185 </span>
-<span class="lineno"> 186 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
-<span class="lineno"> 187 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
-<span class="caretline"><span class="lineno"> 188 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"verify.after"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 189 </span>
-<span class="lineno"> 190 </span>    <span class="keyword">var</span> onboardingDone: Boolean
-<span class="lineno"> 191 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:195</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 192 </span>
+<span class="lineno"> 193 </span>    <span class="keyword">var</span> saveTreeUri: String?
+<span class="lineno"> 194 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
+<span class="caretline"><span class="lineno"> 195 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.tree"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 196 </span>
+<span class="lineno"> 197 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
+<span class="lineno"> 198 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:192</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 189 </span>
-<span class="lineno"> 190 </span>    <span class="keyword">var</span> onboardingDone: Boolean
-<span class="lineno"> 191 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 192 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"onboarding.done"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 193 </span>
-<span class="lineno"> 194 </span>    <span class="keyword">var</span> webPin: String
-<span class="lineno"> 195 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:196</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 193 </span>
-<span class="lineno"> 194 </span>    <span class="keyword">var</span> webPin: String
-<span class="lineno"> 195 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span>
-<span class="caretline"><span class="lineno"> 196 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"web.pin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 197 </span>
-<span class="lineno"> 198 </span>    <span class="keyword">var</span> webRequirePin: Boolean
-<span class="lineno"> 199 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:199</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 196 </span>
+<span class="lineno"> 197 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
+<span class="lineno"> 198 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
+<span class="caretline"><span class="lineno"> 199 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"verify.after"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 200 </span>
+<span class="lineno"> 201 </span>    <span class="keyword">var</span> onboardingDone: Boolean
+<span class="lineno"> 202 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:200</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 197 </span>
-<span class="lineno"> 198 </span>    <span class="keyword">var</span> webRequirePin: Boolean
-<span class="lineno"> 199 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 200 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"web.requirePin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 201 </span>
-<span class="lineno"> 202 </span>    <span class="keyword">var</span> lastBenchmark: String?
-<span class="lineno"> 203 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:203</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 200 </span>
+<span class="lineno"> 201 </span>    <span class="keyword">var</span> onboardingDone: Boolean
+<span class="lineno"> 202 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno"> 203 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"onboarding.done"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 204 </span>
+<span class="lineno"> 205 </span>    <span class="keyword">var</span> webPin: String
+<span class="lineno"> 206 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span></pre>
+
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:207</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 204 </span>
+<span class="lineno"> 205 </span>    <span class="keyword">var</span> webPin: String
+<span class="lineno"> 206 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span>
+<span class="caretline"><span class="lineno"> 207 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"web.pin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 208 </span>
+<span class="lineno"> 209 </span>    <span class="keyword">var</span> webRequirePin: Boolean
+<span class="lineno"> 210 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:204</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 201 </span>
-<span class="lineno"> 202 </span>    <span class="keyword">var</span> lastBenchmark: String?
-<span class="lineno"> 203 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
-<span class="caretline"><span class="lineno"> 204 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"bench.last"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 205 </span>
-<span class="lineno"> 206 </span>    <span class="keyword">var</span> trustedDevices: Set&lt;String>
-<span class="lineno"> 207 </span>        get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:211</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 208 </span>
+<span class="lineno"> 209 </span>    <span class="keyword">var</span> webRequirePin: Boolean
+<span class="lineno"> 210 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno"> 211 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"web.requirePin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 212 </span>
+<span class="lineno"> 213 </span>    <span class="keyword">var</span> lastBenchmark: String?
+<span class="lineno"> 214 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:208</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 205 </span>
-<span class="lineno"> 206 </span>  <span class="keyword">var</span> trustedDevices: Set&lt;String>
-<span class="lineno"> 207 </span>      get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
-<span class="caretline"><span class="lineno"> 208 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"trusted"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 209 </span>
-<span class="lineno"> 210 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
-<span class="lineno"> 211 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:215</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 212 </span>
+<span class="lineno"> 213 </span>    <span class="keyword">var</span> lastBenchmark: String?
+<span class="lineno"> 214 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
+<span class="caretline"><span class="lineno"> 215 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"bench.last"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 216 </span>
+<span class="lineno"> 217 </span>    <span class="keyword">var</span> trustedDevices: Set&lt;String>
+<span class="lineno"> 218 </span>        get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:213</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 210 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
-<span class="lineno"> 211 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
-<span class="lineno"> 212 </span>      get() = prefs.getStringSet(<span class="string">"asked.perms"</span>, emptySet()) ?: emptySet()
-<span class="caretline"><span class="lineno"> 213 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"asked.perms"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 214 </span>
-<span class="lineno"> 215 </span>  <span class="keyword">var</span> bypassBatteryOpt: Boolean
-<span class="lineno"> 216 </span>      get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:219</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 216 </span>
+<span class="lineno"> 217 </span>  <span class="keyword">var</span> trustedDevices: Set&lt;String>
+<span class="lineno"> 218 </span>      get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
+<span class="caretline"><span class="lineno"> 219 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"trusted"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 220 </span>
+<span class="lineno"> 221 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
+<span class="lineno"> 222 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:217</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 214 </span>
-<span class="lineno"> 215 </span>    <span class="keyword">var</span> bypassBatteryOpt: Boolean
-<span class="lineno"> 216 </span>        get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 217 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"battery.bypass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 218 </span>
-<span class="lineno"> 219 </span>    <span class="keyword">fun</span> trustedNames(): Map&lt;String, String> {
-<span class="lineno"> 220 </span>        <span class="keyword">val</span> raw = prefs.getString(<span class="string">"trusted.names"</span>, <span class="keyword">null</span>) ?: <span class="keyword">return</span> emptyMap()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:224</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 221 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
+<span class="lineno"> 222 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
+<span class="lineno"> 223 </span>      get() = prefs.getStringSet(<span class="string">"asked.perms"</span>, emptySet()) ?: emptySet()
+<span class="caretline"><span class="lineno"> 224 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"asked.perms"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 225 </span>
+<span class="lineno"> 226 </span>  <span class="keyword">var</span> bypassBatteryOpt: Boolean
+<span class="lineno"> 227 </span>      get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:233</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 230 </span>        trustedDevices = trustedDevices + fingerprint
-<span class="lineno"> 231 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
-<span class="lineno"> 232 </span>        map[fingerprint] = name
-<span class="caretline"><span class="lineno"> 233 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 234 </span>    }
-<span class="lineno"> 235 </span>
-<span class="lineno"> 236 </span>    <span class="keyword">fun</span> untrust(fingerprint: String) {
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:228</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 225 </span>
+<span class="lineno"> 226 </span>    <span class="keyword">var</span> bypassBatteryOpt: Boolean
+<span class="lineno"> 227 </span>        get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno"> 228 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"battery.bypass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 229 </span>
+<span class="lineno"> 230 </span>    <span class="keyword">fun</span> trustedNames(): Map&lt;String, String> {
+<span class="lineno"> 231 </span>        <span class="keyword">val</span> raw = prefs.getString(<span class="string">"trusted.names"</span>, <span class="keyword">null</span>) ?: <span class="keyword">return</span> emptyMap()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:240</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 237 </span>        trustedDevices = trustedDevices - fingerprint
-<span class="lineno"> 238 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
-<span class="lineno"> 239 </span>        map.remove(fingerprint)
-<span class="caretline"><span class="lineno"> 240 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 241 </span>    }
-<span class="lineno"> 242 </span>
-<span class="lineno"> 243 </span>    private <span class="keyword">fun</span> defaultDeviceName(): String {
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:244</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 241 </span>        trustedDevices = trustedDevices + fingerprint
+<span class="lineno"> 242 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
+<span class="lineno"> 243 </span>        map[fingerprint] = name
+<span class="caretline"><span class="lineno"> 244 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 245 </span>    }
+<span class="lineno"> 246 </span>
+<span class="lineno"> 247 </span>    <span class="keyword">fun</span> untrust(fingerprint: String) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:259</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 256 </span>        <span class="keyword">val</span> existing = prefs.getString(<span class="string">"device.id"</span>, <span class="keyword">null</span>)
-<span class="lineno"> 257 </span>        <span class="keyword">if</span> (existing != <span class="keyword">null</span>) <span class="keyword">return</span> existing
-<span class="lineno"> 258 </span>        <span class="keyword">val</span> id = UUID.randomUUID().toString().replace(<span class="string">"-"</span>, <span class="string">""</span>).take(<span class="number">12</span>)
-<span class="caretline"><span class="lineno"> 259 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"device.id"</span>, id).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 260 </span>        <span class="keyword">return</span> id
-<span class="lineno"> 261 </span>    }
-<span class="lineno"> 262 </span>}
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:251</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 248 </span>        trustedDevices = trustedDevices - fingerprint
+<span class="lineno"> 249 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
+<span class="lineno"> 250 </span>        map.remove(fingerprint)
+<span class="caretline"><span class="lineno"> 251 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 252 </span>    }
+<span class="lineno"> 253 </span>
+<span class="lineno"> 254 </span>    private <span class="keyword">fun</span> defaultDeviceName(): String {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:324</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 321 </span>    }
-<span class="lineno"> 322 </span>
-<span class="lineno"> 323 </span>    private <span class="keyword">fun</span> save(list: List&lt;HistoryEntry>) {
-<span class="caretline"><span class="lineno"> 324 </span>        <span class="warning">prefsFile.edit()</span>.putString(<span class="string">"entries"</span>, Json.stringify(list.map { it.toJson() })).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 325 </span>    }
-<span class="lineno"> 326 </span>}
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:270</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 267 </span>        <span class="keyword">val</span> existing = prefs.getString(<span class="string">"device.id"</span>, <span class="keyword">null</span>)
+<span class="lineno"> 268 </span>        <span class="keyword">if</span> (existing != <span class="keyword">null</span>) <span class="keyword">return</span> existing
+<span class="lineno"> 269 </span>        <span class="keyword">val</span> id = UUID.randomUUID().toString().replace(<span class="string">"-"</span>, <span class="string">""</span>).take(<span class="number">12</span>)
+<span class="caretline"><span class="lineno"> 270 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"device.id"</span>, id).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 271 </span>        <span class="keyword">return</span> id
+<span class="lineno"> 272 </span>    }
+<span class="lineno"> 273 </span>}
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:335</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 332 </span>    }
+<span class="lineno"> 333 </span>
+<span class="lineno"> 334 </span>    private <span class="keyword">fun</span> save(list: List&lt;HistoryEntry>) {
+<span class="caretline"><span class="lineno"> 335 </span>        <span class="warning">prefsFile.edit()</span>.putString(<span class="string">"entries"</span>, Json.stringify(list.map { it.toJson() })).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 336 </span>    }
+<span class="lineno"> 337 </span>}
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/apps/Apps.kt">../../src/main/java/com/loopjet/app/platform/apps/Apps.kt</a>:256</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
@@ -1931,24 +1941,24 @@ Dismiss</button>            </div>
 <span class="lineno"> 187 </span>      androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:930</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  927 </span>    <span class="keyword">if</span> (drawable <span class="keyword">is</span> android.graphics.drawable.BitmapDrawable) <span class="keyword">return</span> drawable.bitmap
-<span class="lineno">  928 </span>    <span class="keyword">val</span> width = <span class="keyword">if</span> (drawable.intrinsicWidth > <span class="number">0</span>) drawable.intrinsicWidth <span class="keyword">else</span> <span class="number">96</span>
-<span class="lineno">  929 </span>    <span class="keyword">val</span> height = <span class="keyword">if</span> (drawable.intrinsicHeight > <span class="number">0</span>) drawable.intrinsicHeight <span class="keyword">else</span> <span class="number">96</span>
-<span class="caretline"><span class="lineno">  930 </span>    <span class="keyword">return</span> <span class="warning">Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)</span>.also {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  931 </span>        <span class="keyword">val</span> canvas = android.graphics.Canvas(it)
-<span class="lineno">  932 </span>        drawable.setBounds(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height)
-<span class="lineno">  933 </span>        drawable.draw(canvas)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:932</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  929 </span>    <span class="keyword">if</span> (drawable <span class="keyword">is</span> android.graphics.drawable.BitmapDrawable) <span class="keyword">return</span> drawable.bitmap
+<span class="lineno">  930 </span>    <span class="keyword">val</span> width = <span class="keyword">if</span> (drawable.intrinsicWidth > <span class="number">0</span>) drawable.intrinsicWidth <span class="keyword">else</span> <span class="number">96</span>
+<span class="lineno">  931 </span>    <span class="keyword">val</span> height = <span class="keyword">if</span> (drawable.intrinsicHeight > <span class="number">0</span>) drawable.intrinsicHeight <span class="keyword">else</span> <span class="number">96</span>
+<span class="caretline"><span class="lineno">  932 </span>    <span class="keyword">return</span> <span class="warning">Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)</span>.also {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  933 </span>        <span class="keyword">val</span> canvas = android.graphics.Canvas(it)
+<span class="lineno">  934 </span>        drawable.setBounds(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height)
+<span class="lineno">  935 </span>        drawable.draw(canvas)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:1297</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1294 </span>               pixels[y * matrix.width + x] = <span class="keyword">if</span> (matrix.get(x, y)) fg <span class="keyword">else</span> <span class="number">0xFFFFFFFF.</span>toInt()
-<span class="lineno"> 1295 </span>           }
-<span class="lineno"> 1296 </span>       }
-<span class="caretline"><span class="lineno"> 1297 </span>       <span class="warning">Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)</span>.apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 1298 </span>           setPixels(pixels, <span class="number">0</span>, matrix.width, <span class="number">0</span>, <span class="number">0</span>, matrix.width, matrix.height)
-<span class="lineno"> 1299 </span>       }
-<span class="lineno"> 1300 </span>   }.getOrNull()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:1496</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 1493 </span>               pixels[y * matrix.width + x] = <span class="keyword">if</span> (matrix.get(x, y)) fg <span class="keyword">else</span> <span class="number">0xFFFFFFFF.</span>toInt()
+<span class="lineno"> 1494 </span>           }
+<span class="lineno"> 1495 </span>       }
+<span class="caretline"><span class="lineno"> 1496 </span>       <span class="warning">Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)</span>.apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 1497 </span>           setPixels(pixels, <span class="number">0</span>, matrix.width, <span class="number">0</span>, <span class="number">0</span>, matrix.width, matrix.height)
+<span class="lineno"> 1498 </span>       }
+<span class="lineno"> 1499 </span>   }.getOrNull()
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Thumbnails.kt">../../src/main/java/com/loopjet/app/ui/Thumbnails.kt</a>:54</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
@@ -1961,14 +1971,14 @@ Dismiss</button>            </div>
 <span class="lineno">  57 </span>              context.contentResolver.loadThumbnail(parsed, android.util.Size(<span class="number">96</span>, <span class="number">96</span>), <span class="keyword">null</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1375</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1372 </span>
-<span class="lineno"> 1373 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
-<span class="lineno"> 1374 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
-<span class="caretline"><span class="lineno"> 1375 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
-<span class="lineno"> 1376 </span>          <span class="keyword">return</span> UriSource(FlowLinkApp.context, uri)
-<span class="lineno"> 1377 </span>      }
-<span class="lineno"> 1378 </span>  }
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1395</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 1392 </span>
+<span class="lineno"> 1393 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
+<span class="lineno"> 1394 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
+<span class="caretline"><span class="lineno"> 1395 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
+<span class="lineno"> 1396 </span>          <span class="keyword">return</span> UriSource(FlowLinkApp.context, uri)
+<span class="lineno"> 1397 </span>      }
+<span class="lineno"> 1398 </span>  }
 </pre>
 
 </div>
