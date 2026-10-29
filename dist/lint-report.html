@@ -179,7 +179,7 @@ document.getElementById(id).style.display = 'none';
     <div class="mdl-layout__header-row">
       <span class="mdl-layout-title">Lint Report: 19 errors and 74 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 05:32:42 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 05:42:10 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -1516,13 +1516,13 @@ Dismiss</button>            </div>
 <span class="lineno">  144 </span>    <span class="keyword">val</span> state: StateFlow&lt;AppState> = _state
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/core/Files.kt">../../src/main/java/com/loopjet/app/core/Files.kt</a>:465</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno"> 462 </span>    <span class="keyword">fun</span> usable(dir: File?): Long {
-<span class="lineno"> 463 </span>        <span class="keyword">var</span> probe = dir
-<span class="lineno"> 464 </span>        <span class="keyword">while</span> (probe != <span class="keyword">null</span> &amp;&amp; !probe.exists()) probe = probe.parentFile
-<span class="caretline"><span class="lineno"> 465 </span>        <span class="keyword">return</span> probe?.<span class="warning">usableSpace</span> ?: <span class="number">0L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 466 </span>    }
-<span class="lineno"> 467 </span>}
+<span class="location"><a href="../../src/main/java/com/loopjet/app/core/Files.kt">../../src/main/java/com/loopjet/app/core/Files.kt</a>:468</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
+<span class="lineno"> 465 </span>    <span class="keyword">fun</span> usable(dir: File?): Long {
+<span class="lineno"> 466 </span>        <span class="keyword">var</span> probe = dir
+<span class="lineno"> 467 </span>        <span class="keyword">while</span> (probe != <span class="keyword">null</span> &amp;&amp; !probe.exists()) probe = probe.parentFile
+<span class="caretline"><span class="lineno"> 468 </span>        <span class="keyword">return</span> probe?.<span class="warning">usableSpace</span> ?: <span class="number">0L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 469 </span>    }
+<span class="lineno"> 470 </span>}
 </pre>
 
 </div>

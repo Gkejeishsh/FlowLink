@@ -18,7 +18,7 @@
 <div class="tab-container">
 <ul class="tabLinks">
 <li>
-<a class="failureGroup" href="#">Gradle Test Run :app:testDebugUnitTest</a>
+<a class="successGroup" href="#">Gradle Test Run :app:testDebugUnitTest</a>
 </li>
 </ul>
 <div class="tab">
@@ -54,7 +54,7 @@
 </td>
 <td>
 <div class="infoBox">
-<div class="counter">1</div>
+<div class="counter">0</div>
 <p>failures</p>
 </div>
 </td>
@@ -66,7 +66,7 @@
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">0.478s</div>
+<div class="counter">1.248s</div>
 <p>duration</p>
 </div>
 </td>
@@ -75,85 +75,24 @@
 </div>
 </td>
 <td>
-<div class="infoBox failures successRate">
-<div class="percent">0%</div>
+<div class="infoBox success successRate">
+<div class="percent">100%</div>
 <p>successful</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="result-details">
-<h3>Failure details</h3>
-<span class="code">
-<pre id="root-0-test-failure-single large file transfers and verifies">java.lang.AssertionError: receiver failed: 1 file(s) did not complete: /tmp/loopjet-test-large-251747705969/dst/.loopjet-partial/movie.mp4 (No such file or directory)
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.assertTrue(Assert.java:42)
-	at com.loopjet.app.TransferLoopbackTest.single large file transfers and verifies(TransferLoopbackTest.kt:231)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
-	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
-	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
-	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
-	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
-	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.runRequest(JUnitTestExecutor.java:175)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.accept(JUnitTestExecutor.java:84)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.accept(JUnitTestExecutor.java:47)
-	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestDefinitionProcessor.processTestDefinition(AbstractJUnitTestDefinitionProcessor.java:65)
-	at org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor.processTestDefinition(SuiteTestDefinitionProcessor.java:53)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.gradle.internal.dispatch.MethodInvocation.invokeOn(MethodInvocation.java:77)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:28)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:19)
-	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
-	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:88)
-	at jdk.proxy1/jdk.proxy1.$Proxy4.processTestDefinition(Unknown Source)
-	at org.gradle.api.internal.tasks.testing.worker.TestWorker$2.run(TestWorker.java:178)
-	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:126)
-	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
-	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
-	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
-	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:122)
-	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
-	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
-	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-</pre>
-<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-failure-single large file transfers and verifies">Copy</button>
-</span>
-</div>
 </div>
 </div>
 <div class="tab">
 <h2>standard output</h2>
 <span class="code">
-<pre id="root-0-test-stdout-single large file transfers and verifies">[sender] ok=true msg=Everything was already on the receiver bytes=0 files=0 chunks=0/0
-[receiver] ok=false msg=1 file(s) did not complete: /tmp/loopjet-test-large-251747705969/dst/.loopjet-partial/movie.mp4 (No such file or directory) bytes=0 files=1 chunks=768/768 ms=131 path=/tmp/loopjet-test-large-251747705969/dst
-[receiver-failed] --- engine log (3 lines) ---
-[receiver-failed] R: sender Test Phone connected, code 141798
-[receiver-failed] S: handshake complete with Receiver, code 141798
-[receiver-failed] R: cannot create movie.mp4: /tmp/loopjet-test-large-251747705969/dst/.loopjet-partial/movie.mp4 (No such file or directory)
-[loopback] large file: 192.0 MB in 10 ms = 19200.0 MB/s
-[loopback] sender ok=true bytes=0 msg=Everything was already on the receiver
-[loopback] receiver ok=false files=1 msg=1 file(s) did not complete: /tmp/loopjet-test-large-251747705969/dst/.loopjet-partial/movie.mp4 (No such file or directory)
+<pre id="root-0-test-stdout-single large file transfers and verifies">[sender] ok=true msg=Transfer complete bytes=201326592 files=0 chunks=768/768
+[receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=596 path=/tmp/loopjet-test-large-235958299455/dst
+[loopback] large file: 192.0 MB in 504 ms = 381.0 MB/s
+[loopback] sender ok=true bytes=201326592 msg=Transfer complete
+[loopback] receiver ok=true files=1 msg=Transfer complete
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-single large file transfers and verifies">Copy</button>
 </span>
@@ -164,6 +103,14 @@
 <pre id="root-0-test-stderr-single large file transfers and verifies">Exception in thread &quot;lj-recv-progress&quot; java.lang.InterruptedException: sleep interrupted
 	at java.base/java.lang.Thread.sleep(Native Method)
 	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1024)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-recv-watchdog&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1095)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:656)
 	at java.base/java.lang.Thread.run(Thread.java:840)
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-single large file transfers and verifies">Copy</button>
@@ -179,7 +126,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 5:27:40 AM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 5:37:04 AM</p>
 </div>
 </div>
 </body>
