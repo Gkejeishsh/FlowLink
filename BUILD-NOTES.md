@@ -743,3 +743,63 @@ Also verified in this pass, with evidence rather than assertion:
   than its font size (the mid-word splitting came from the reverse);
 * the signing certificate is byte-identical to the keystore's, so this build installs over the
   previous one.
+
+---
+
+# 1.0.1 — the connection, the speed and the progress bar
+
+Three complaints from a real two-phone test: the connection was hard to get, the speed was poor,
+and the two phones reported different progress (16% against 0%). Each had a concrete cause.
+
+## 1. Progress: the receiving phone never knew the total
+
+`SessionUi.totalBytes` was only ever written by the sending phone. The receiver's progress listener
+copied bytes, speed and file counts but not the total, so its percentage divided by a floored zero:
+0% for the whole transfer, then a jump to 100% at the end. The two screens *could not* agree.
+
+* One shared fold, `SessionUi.absorbProgress()` in `platform/SessionProgress.kt`, used by both
+  listeners. The total only grows and always comes from the frame (which both engines fill from the
+  manifest), `doneBytes` never goes backwards when an out-of-order frame arrives, and `filesTotal`
+  takes the largest seen.
+* One shared `SessionUi.percent`, so the number is computed in one place.
+* The transfer screen now prints the percentage next to the byte counts as well as in the bar, and
+  names the link the bytes are crossing ("Same Wi-Fi · 192.168.1.7" or "Hotspot link") — the honest
+  answer to "why is it slow".
+* Six unit tests pin this down, including the exact 16%-vs-0 case and a late frame arriving with an
+  older count.
+
+## 2. Connection: a phone that had once scanned never announced itself
+
+`startDiscovery()` returned early whenever a discovery engine already existed, ignoring the role it
+was asked for. A phone that had opened Send (scanning, not advertising) and then opened Receive kept
+scanning — it never announced itself, so the other phone's list stayed empty. That is the "I pressed
+Receive and no connection was made" report, and it also explains why only one ordering worked.
+
+* A different role now restarts discovery; the same role is still a no-op.
+* The beacon advertises the port the receiving engine **actually bound** (`ReceiverPort`), not the
+  default: `bind()` walks a range, and after an interrupted session it can land on the next free
+  pair, leaving a beacon that points at a closed socket.
+* The receiving phone stays findable for the whole session (`openSessionIfRunning`, and leaving for
+  the transfer screen no longer stops it), so a failed first attempt can simply be retried.
+* Announcements every 900 ms instead of 1.5 s, subnet scans every 2.5 s instead of 6 s, so a peer
+  appears in the list in about a second rather than several.
+* A sighting that was verified by a beacon probe can no longer be overwritten by an unverified one
+  (BLE hands over whatever address the other phone put in its advert — often its hotspot address).
+* Every dial now re-probes on failure: first attempt 2.5 s, then a fresh beacon probe for the current
+  address and port, then one patient retry at the full timeout. Previously a stale endpoint cost six
+  seconds and reported failure.
+
+## 3. Speed
+
+* **Commits left the data path.** Finishing a file (fsync + full re-read to verify the hash + rename)
+  used to run on the data-stream thread, so the stream that delivered a large file's last chunk
+  stopped receiving while it hashed the whole file — the transfer visibly froze near the end. It now
+  runs on a two-thread commit pool.
+* **Source reads are positional and lock-free.** `FileSource` used one `RandomAccessFile` with a seek
+  under a lock, so six workers reading one large file took turns. `FileChannel.read(buf, position)`
+  removes the lock.
+* Max mode really opens eight streams (the worker count was capped at six), the receiving sockets go
+  from 4 MiB to 8 MiB to match the sender, and `SocketIo`/`AdapterIo` both keep TCP_NODELAY on.
+
+CI on this commit: compile, 48 unit tests, debug, release, loopback benchmark all green; the 192 MB
+loopback run reports 176.8 MB/s, inside the runner's usual 160–400 MB/s noise band.
