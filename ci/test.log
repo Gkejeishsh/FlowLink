@@ -16,16 +16,16 @@ Daemon will be stopped at the end of the build
 > Task :app:compileDebugNavigationResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
-> Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:mergeDebugResources
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
 > Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
 > Task :app:processDebugResources
-> Task :app:bundleDebugClassesToCompileJar
 > Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
 > Task :app:compileDebugUnitTestKotlin
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugUnitTestJavaRes
@@ -83,11 +83,7 @@ ReceiveLinkTest > subnetParsingIsStrict PASSED
 ReceiveLinkTest > aSenderDialingTheScannedLinkTransfers STANDARD_ERROR
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1105)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -102,14 +98,22 @@ ReceiveLinkTest > emptyOrPortlessLinksAreNeverAdvertised PASSED
 
 ReceiveLinkTest > publishedCodePointsAtThePortTheReceiverIsListeningOn PASSED
 
+SessionProgressTest > progressNeverGoesBackwards PASSED
+
+SessionProgressTest > doneBytesCannotOvershootTheTotal PASSED
+
+SessionProgressTest > theReceivingSideLearnsTheTotalFromTheFirstFrame PASSED
+
+SessionProgressTest > aDoneSessionIsOneHundredPercentEvenWithUnknownTotal PASSED
+
+SessionProgressTest > bothPhonesReportTheSamePercentageForTheSameBytes PASSED
+
+SessionProgressTest > theFileCountUsesTheLargestViewOfTheSession PASSED
+
 TransferLoopbackTest > many small files are bundled and verified STANDARD_ERROR
     Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1105)
     	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
@@ -118,51 +122,41 @@ TransferLoopbackTest > many small files are bundled and verified STANDARD_ERROR
 
 TransferLoopbackTest > many small files are bundled and verified STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=6097000 files=0 chunks=2000/2000
-    [receiver] ok=true msg=Transfer complete bytes=6097000 files=2000 chunks=2000/2000 ms=1136 path=/tmp/loopjet-test-small-210937165042/dst
-    [loopback] 2000 small files: 5.8 MB in 1038 ms = 5.6 MB/s
+    [receiver] ok=true msg=Transfer complete bytes=6097000 files=2000 chunks=2000/2000 ms=978 path=/tmp/loopjet-test-small-166602472061/dst
+    [loopback] 2000 small files: 5.8 MB in 883 ms = 6.6 MB/s
 
 TransferLoopbackTest > many small files are bundled and verified PASSED
 
 TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_ERROR
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1105)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
     	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
     	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
 
 TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_OUT
-    [receiver] ok=true msg=Transfer complete bytes=67108864 files=1 chunks=256/256 ms=654 path=/tmp/loopjet-test-pause-213189902614/dst
-
-TransferLoopbackTest > pause and resume keeps the transfer alive STANDARD_ERROR
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
+    [receiver] ok=true msg=Transfer complete bytes=67108864 files=1 chunks=256/256 ms=566 path=/tmp/loopjet-test-pause-168901945712/dst
 
 TransferLoopbackTest > pause and resume keeps the transfer alive PASSED
 
 TransferLoopbackTest > receiver may decline an offer STANDARD_OUT
     [sender] ok=false msg=Declined bytes=0 files=0 chunks=0/0
     [sender-failed] --- engine log (3 lines) ---
-    [sender-failed] R: sender Test Phone connected, code 565891
-    [sender-failed] S: handshake complete with Receiver, code 565891
+    [sender-failed] S: handshake complete with Receiver, code 999709
+    [sender-failed] R: sender Test Phone connected, code 999709
     [sender-failed] S: sender stopped: Declined
-    [receiver] ok=false msg=Declined bytes=0 files=0 chunks=0/0 ms=131 path=
+    [receiver] ok=false msg=Declined bytes=0 files=0 chunks=0/0 ms=126 path=
     [receiver-failed] --- engine log (3 lines) ---
-    [receiver-failed] R: sender Test Phone connected, code 565891
-    [receiver-failed] S: handshake complete with Receiver, code 565891
+    [receiver-failed] S: handshake complete with Receiver, code 999709
+    [receiver-failed] R: sender Test Phone connected, code 999709
     [receiver-failed] S: sender stopped: Declined
 
 TransferLoopbackTest > receiver may decline an offer PASSED
 
 TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
     	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
@@ -170,7 +164,19 @@ TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
 
 TransferLoopbackTest > unicode names and nested folders survive STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=15360 files=0 chunks=5/5
-    [receiver] ok=true msg=Transfer complete bytes=15360 files=5 chunks=5/5 ms=151 path=/tmp/loopjet-test-unicode-214214786860/dst
+
+TransferLoopbackTest > unicode names and nested folders survive STANDARD_ERROR
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1105)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
+
+TransferLoopbackTest > unicode names and nested folders survive STANDARD_OUT
+    [receiver] ok=true msg=Transfer complete bytes=15360 files=5 chunks=5/5 ms=154 path=/tmp/loopjet-test-unicode-169875993896/dst
 
 TransferLoopbackTest > unicode names and nested folders survive PASSED
 
@@ -187,27 +193,27 @@ TransferLoopbackTest > resume after a dropped link only re-sends missing chunks 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
     [sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=25165824 files=0 chunks=96/96
     [sender-failed] --- engine log (12 lines) ---
-    [sender-failed] S: handshake complete with Receiver, code 137612
-    [sender-failed] R: sender Test Phone connected, code 137612
+    [sender-failed] S: handshake complete with Receiver, code 849269
+    [sender-failed] R: sender Test Phone connected, code 849269
     [sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
     [sender-failed] S: data stream 0 open
+    [sender-failed] S: data stream 1 open
     [sender-failed] S: data stream 2 open
     [sender-failed] S: data stream 3 open
-    [sender-failed] S: data stream 1 open
     [sender-failed] R: data stream ended: connection closed while reading DATA
     [sender-failed] R: data stream ended: connection closed while reading DATA
     [sender-failed] R: data stream ended: connection closed while reading DATA
     [sender-failed] R: data stream ended: connection closed while reading DATA
     [sender-failed] R: stalled for 1988ms, ending session
-    [receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2135 path=/tmp/loopjet-test-resume-214399760185/dst
+    [receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2130 path=/tmp/loopjet-test-resume-170050352163/dst
     [receiver-failed] --- engine log (12 lines) ---
-    [receiver-failed] S: handshake complete with Receiver, code 137612
-    [receiver-failed] R: sender Test Phone connected, code 137612
+    [receiver-failed] S: handshake complete with Receiver, code 849269
+    [receiver-failed] R: sender Test Phone connected, code 849269
     [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
     [receiver-failed] S: data stream 0 open
+    [receiver-failed] S: data stream 1 open
     [receiver-failed] S: data stream 2 open
     [receiver-failed] S: data stream 3 open
-    [receiver-failed] S: data stream 1 open
     [receiver-failed] R: data stream ended: connection closed while reading DATA
     [receiver-failed] R: data stream ended: connection closed while reading DATA
     [receiver-failed] R: data stream ended: connection closed while reading DATA
@@ -216,35 +222,23 @@ TransferLoopbackTest > resume after a dropped link only re-sends missing chunks 
     [loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_ERROR
+    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
+    	at java.base/java.lang.Thread.sleep(Native Method)
+    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1105)
+    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
     	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
     	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=23330816 files=0 chunks=96/96
-    [receiver] ok=true msg=Transfer complete bytes=23330816 files=1 chunks=96/96 ms=176 path=/tmp/loopjet-test-resume-214399760185/dst
+    [receiver] ok=true msg=Transfer complete bytes=23330816 files=1 chunks=96/96 ms=253 path=/tmp/loopjet-test-resume-170050352163/dst
     [loopback] resume: sender re-sent 23330816 bytes of 25165824, receiver has 23330816 bytes, ok=true
 
 TransferLoopbackTest > resume after a dropped link only re-sends missing chunks PASSED
 
 TransferLoopbackTest > single large file transfers and verifies STANDARD_ERROR
-    Exception in thread "lj-recv-progress" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
-    Exception in thread "lj-recv-watchdog" java.lang.InterruptedException: sleep interrupted
-    	at java.base/java.lang.Thread.sleep(Native Method)
-    	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
-    	at java.base/java.lang.Thread.run(Thread.java:840)
     Exception in thread "lj-progress" java.lang.InterruptedException: sleep interrupted
     	at java.base/java.lang.Thread.sleep(Native Method)
     	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
@@ -252,8 +246,8 @@ TransferLoopbackTest > single large file transfers and verifies STANDARD_ERROR
 
 TransferLoopbackTest > single large file transfers and verifies STANDARD_OUT
     [sender] ok=true msg=Transfer complete bytes=201326592 files=0 chunks=768/768
-    [receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=588 path=/tmp/loopjet-test-large-216835064837/dst
-    [loopback] large file: 192.0 MB in 504 ms = 381.0 MB/s
+    [receiver] ok=true msg=Transfer complete bytes=201326592 files=1 chunks=768/768 ms=1207 path=/tmp/loopjet-test-large-172555954081/dst
+    [loopback] large file: 192.0 MB in 1086 ms = 176.8 MB/s
     [loopback] sender ok=true bytes=201326592 msg=Transfer complete
     [loopback] receiver ok=true files=1 msg=Transfer complete
 
@@ -274,8 +268,8 @@ WebServerTest > aFixedPortIsHonouredAndFallsBackOnlyWhenTaken PASSED
 WebServerTest > zipEntryNamesCannotEscapeTheExtractionFolder PASSED
 
 WebServerTest > uploadStreamsToDiskAndCannotWriteOutsideItsFolder PASSED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793262044594.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793263505066.json
 
-BUILD SUCCESSFUL in 50s
+BUILD SUCCESSFUL in 37s
 26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
