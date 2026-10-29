@@ -73,13 +73,31 @@ data class PickerState(
     val items: List<PickItem> = emptyList(),
     val selection: Map<String, PickItem> = emptyMap(),
     val apps: List<InstalledApp> = emptyList(),
+    /**
+     * Apps picked with the same tick circles as files. They used to be queued the instant they were
+     * tapped, in a separate place from the file selection, so "two photos + two apps, then send" was
+     * impossible -- the two halves of the tray never met.
+     */
+    val selectedApps: Set<String> = emptySet(),
+    /** Deepest-first chain of folders for the breadcrumb. */
     val folderStack: List<Pair<String, String>> = emptyList(),
+    /** Absolute path being browsed in the Folders category; null when a media category is shown. */
+    val browsePath: String? = null,
+    /** The Folders category needs "All files access" before it can show the real file tree. */
+    val needsAllFiles: Boolean = false,
     val error: String? = null,
     val webShareMode: Boolean = false,
     /** The category had more rows than the picker loads in one pass. */
     val truncated: Boolean = false
 ) {
     val selectedBytes: Long get() = selection.values.sumOf { it.size }
+
+    val selectedAppBytes: Long get() = apps.filter { it.packageName in selectedApps }.sumOf { it.size }
+
+    /** Everything that would be sent: picked files plus picked apps. */
+    val totalSelected: Int get() = selection.size + selectedApps.size
+
+    val totalBytes: Long get() = selectedBytes + selectedAppBytes
 }
 
 data class DiscoveryState(
@@ -102,6 +120,12 @@ data class AppState(
     val screen: Screen = Screen.Home,
     val dark: Boolean = false,
     val themeMode: String = "system",
+    /**
+     * Observed copy of the speed preference. Reading prefs directly from a composable is invisible to
+     * Compose, so picking Balanced/Fast/Max used to change nothing on screen until some unrelated
+     * state update happened to repaint.
+     */
+    val speedMode: String = "fast",
     val picker: PickerState = PickerState(),
     val discovery: DiscoveryState = DiscoveryState(),
     val benchmark: String? = null,
@@ -135,6 +159,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         AppState(
             screen = if (prefs.onboardingDone) Screen.Home else Screen.Onboarding,
             themeMode = prefs.theme,
+            speedMode = prefs.speedMode,
             deviceName = prefs.deviceName,
             avatar = prefs.avatar,
             trustedCount = prefs.trustedDevices.size,
@@ -583,19 +608,141 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // --- picker ----------------------------------------------------------------------------------
 
     fun setCategory(category: PickCategory) {
-        _state.value = _state.value.copy(picker = _state.value.picker.copy(category = category, items = emptyList(), folderStack = emptyList()))
-        loadCategory()
+        _state.value = _state.value.copy(
+            picker = _state.value.picker.copy(
+                category = category,
+                items = emptyList(),
+                folderStack = emptyList(),
+                browsePath = null,
+                needsAllFiles = false
+            )
+        )
+        if (category == PickCategory.Folders) {
+            openFolderRoot()
+        } else {
+            loadCategory()
+        }
     }
+
+    /**
+     * The primary shared storage. Browsing starts here instead of asking the user to hand LoopJet one
+     * folder through the system picker: the file manager is the tree, and it is already on the phone.
+     */
+    fun storageRoot(): File = android.os.Environment.getExternalStorageDirectory()
+
+    fun hasAllFilesAccess(): Boolean = com.loopjet.app.platform.Perms.hasAllFiles(app)
+
+    /** Opens the Folders category at the storage root (or asks for the one permission it needs). */
+    fun openFolderRoot() {
+        if (!hasAllFilesAccess()) {
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(
+                    category = PickCategory.Folders,
+                    browsePath = null,
+                    needsAllFiles = true,
+                    items = emptyList(),
+                    folderStack = emptyList(),
+                    loading = false
+                )
+            )
+            return
+        }
+        openFolder(storageRoot().absolutePath)
+    }
+
+    /** Navigates into [path] and lists it. Folders come first, then files, names case-insensitive. */
+    fun openFolder(path: String) {
+        val file = File(path)
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(
+                    category = PickCategory.Folders,
+                    needsAllFiles = false,
+                    loading = true,
+                    browsePath = file.absolutePath,
+                    error = null
+                )
+            )
+            val items = withContext(Dispatchers.IO) { listFolder(file) }
+            val stack = buildStack(file)
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(loading = false, items = items, folderStack = stack)
+            )
+        }
+    }
+
+    /** Root -> current folder, for the breadcrumb and for the Up button. */
+    private fun buildStack(dir: File): List<Pair<String, String>> {
+        val chain = ArrayList<Pair<String, String>>()
+        var cursor: File? = dir
+        val rootPath = storageRoot().absolutePath
+        while (cursor != null) {
+            val name = when {
+                cursor.absolutePath == rootPath -> "Internal storage"
+                cursor.absolutePath == File(rootPath).parent -> "Storage"
+                else -> cursor.name.ifBlank { cursor.absolutePath }
+            }
+            chain.add(0, cursor.absolutePath to name)
+            cursor = cursor.parentFile
+        }
+        return chain
+    }
+
+    private fun listFolder(dir: File): List<PickItem> {
+        val entries = runCatching { dir.listFiles() }.getOrNull() ?: return emptyList()
+        val query = _state.value.picker.query.trim().lowercase()
+        val sort = _state.value.picker.sort
+        val out = ArrayList<PickItem>()
+        for (entry in entries) {
+            val name = entry.name ?: continue
+            if (name.startsWith(".")) continue // keep hidden files out of the way
+            val folder = entry.isDirectory
+            if (!folder && entry.length() <= 0) continue
+            if (query.isNotEmpty() && !name.lowercase().contains(query)) continue
+            if (!folder && !entry.canRead()) continue
+            out.add(
+                PickItem(
+                    key = entry.absolutePath,
+                    name = name,
+                    relativePath = entry.absolutePath.removePrefix(storageRoot().absolutePath).trimStart('/'),
+                    size = if (folder) 0 else entry.length(),
+                    mtime = entry.lastModified(),
+                    mime = if (folder) "inode/directory" else mimeFor(name),
+                    uri = if (folder) null else android.net.Uri.fromFile(entry).toString(),
+                    filePath = if (folder) null else entry.absolutePath,
+                    isFolder = folder,
+                    folderUri = if (folder) entry.absolutePath else null
+                )
+            )
+        }
+        val sorted = when (sort) {
+            SortOrder.Name -> out.sortedBy { it.name.lowercase() }
+            SortOrder.Largest -> out.sortedByDescending { it.size }
+            SortOrder.Newest -> out.sortedByDescending { it.mtime }
+        }
+        // Folders first regardless of the sort, or navigation becomes guesswork.
+        return sorted.sortedByDescending { it.isFolder }
+    }
+
+    private fun mimeFor(name: String): String =
+        android.webkit.MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(name.substringAfterLast('.', "").lowercase())
+            ?: "application/octet-stream"
 
     private var queryJob: kotlinx.coroutines.Job? = null
 
     fun setQuery(query: String) {
         _state.value = _state.value.copy(picker = _state.value.picker.copy(query = query))
-        // Typing used to start a full MediaStore query per keystroke.
+        // Debounced, then a real query -- including inside a browsed folder.
         queryJob?.cancel()
         queryJob = viewModelScope.launch {
             kotlinx.coroutines.delay(220)
-            loadCategory()
+            val picker = _state.value.picker
+            if (picker.category == PickCategory.Folders && picker.browsePath != null) {
+                openFolder(picker.browsePath)
+            } else {
+                loadCategory()
+            }
         }
     }
 
@@ -666,8 +813,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             PickCategory.Music -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             else -> MediaStore.Files.getContentUri("external")
         }
-        val selection: String?
-        val args: Array<String>?
+        var selection: String?
+        var args: Array<String>?
         when (picker.category) {
             PickCategory.Documents -> {
                 selection = "(LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE '%.pdf' OR " +
@@ -701,6 +848,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 selection = null
                 args = null
             }
+        }
+        // The name filter used to be applied in memory *after* the cursor had already been limited to
+        // the first rows, so searching for an older file always came back empty. It belongs in the
+        // query, where MediaStore can use the index and search the whole collection.
+        if (query.isNotEmpty()) {
+            val nameFilter = "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE ?"
+            selection = if (selection.isNullOrBlank()) nameFilter else "($selection) AND $nameFilter"
+            args = (args ?: emptyArray()) + "%$query%"
         }
         var truncated = false
         runCatching {
@@ -765,14 +920,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(picker = _state.value.picker.copy(selection = emptyMap()))
     }
 
-    fun addApp(app: InstalledApp) {
-        val items = appRepo.toSendItems(app)
-        SendQueue.add(items)
-        _state.value = _state.value.copy(notice = "${app.label}: ${items.size} APK part(s) queued")
+    /** Apps are picked with the same tick as files and travel in the same tray. */
+    fun toggleApp(app: InstalledApp) {
+        val current = _state.value.picker.selectedApps.toMutableSet()
+        if (!current.add(app.packageName)) current.remove(app.packageName)
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(selectedApps = current))
     }
 
+    fun clearAll() {
+        _state.value = _state.value.copy(
+            picker = _state.value.picker.copy(selection = emptyMap(), selectedApps = emptySet())
+        )
+    }
+
+    /**
+     * "Send": everything picked in this screen goes out together -- files from any category, folders
+     * browsed in the file tree, apps, and anything added from the system gallery.
+     */
     fun commitSelection() {
         val picker = _state.value.picker
+        val appItems = picker.apps
+            .filter { it.packageName in picker.selectedApps }
+            .flatMap { appRepo.toSendItems(it) }
         val items = picker.selection.values.map { pick ->
             SendItem(
                 key = pick.key,
@@ -785,11 +954,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 filePath = pick.filePath
             )
         }
-        SendQueue.add(items)
+        SendQueue.add(items + appItems)
+        val total = items.size + picker.selectedApps.size
         _state.value = _state.value.copy(
-            picker = picker.copy(selection = emptyMap()),
+            picker = picker.copy(selection = emptyMap(), selectedApps = emptySet()),
             screen = if (picker.webShareMode) Screen.WebShare else Screen.Nearby,
-            notice = "${items.size} item(s) queued"
+            notice = if (total > 0) "$total item(s) queued" else "Nothing selected"
         )
         if (picker.webShareMode) {
             WebShareQueue.set(SendQueue.snapshot)
@@ -798,6 +968,56 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             startDiscovery(advertise = false)
         }
+    }
+
+    /**
+     * Files chosen in the system gallery/photo picker. They are resolved to the same [PickItem] shape
+     * as everything else and land in the same selection, so a gallery pick and a folder pick can be
+     * sent together.
+     */
+    fun addPickedUris(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        viewModelScope.launch {
+            val picked = withContext(Dispatchers.IO) { uris.mapNotNull { resolvePicked(it) } }
+            if (picked.isEmpty()) {
+                notice("Those files could not be read")
+                return@launch
+            }
+            val current = _state.value.picker.selection.toMutableMap()
+            picked.forEach { current[it.key] = it }
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(selection = current),
+                notice = "${picked.size} item(s) added"
+            )
+        }
+    }
+
+    private fun resolvePicked(uri: Uri): PickItem? {
+        val resolver = getApplication<Application>().contentResolver
+        val name = runCatching {
+            resolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        }.getOrNull() ?: uri.lastPathSegment ?: return null
+        var size = 0L
+        runCatching {
+            resolver.query(uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null)
+                ?.use { c -> if (c.moveToFirst() && !c.isNull(0)) size = c.getLong(0) }
+        }
+        if (size <= 0) {
+            size = runCatching { resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } }
+                .getOrNull() ?: 0L
+        }
+        val mime = resolver.getType(uri) ?: mimeFor(name)
+        val folder = "Gallery/"
+        return PickItem(
+            key = uri.toString(),
+            name = name,
+            relativePath = folder + name,
+            size = size,
+            mtime = System.currentTimeMillis(),
+            mime = mime,
+            uri = uri.toString()
+        )
     }
 
     fun clearQueue() {
@@ -896,61 +1116,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- folders (SAF) ---------------------------------------------------------------------------
 
+    /**
+     * The system folder picker, used only by Settings to choose the *name* of the save folder. It no
+     * longer gates the picker: browsing the phone's storage happens inside LoopJet.
+     */
     fun openFolderTree(uri: Uri) {
-        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        runCatching {
-            getApplication<Application>().contentResolver.takePersistableUriPermission(uri, takeFlags)
-        }
-        browseFolder(uri.toString(), uri.toString().substringAfterLast('/').ifBlank { "Storage" })
-    }
-
-    fun browseFolder(uri: String, label: String) {
-        viewModelScope.launch {
-            val items = withContext(Dispatchers.IO) { listDocuments(Uri.parse(uri)) }
-            _state.value = _state.value.copy(
-                picker = _state.value.picker.copy(
-                    category = PickCategory.Folders,
-                    items = items,
-                    folderStack = _state.value.picker.folderStack + (uri to label),
-                    loading = false
-                )
-            )
+        val resolver = getApplication<Application>().contentResolver
+        val label = runCatching {
+            androidx.documentfile.provider.DocumentFile.fromTreeUri(getApplication(), uri)?.name
+        }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast(':')?.ifBlank { null }
+        if (label != null) {
+            prefs.saveFolderName = com.loopjet.app.core.SafePath.sanitizeComponent(label) ?: prefs.saveFolderName
+            _state.value = _state.value.copy(notice = "Received files go to Downloads/${prefs.saveFolderName}")
         }
     }
 
     fun goUpFolder() {
-        val stack = _state.value.picker.folderStack
-        if (stack.size <= 1) {
-            _state.value = _state.value.copy(picker = _state.value.picker.copy(folderStack = emptyList(), items = emptyList()))
-            return
-        }
-        val parent = stack.dropLast(1)
-        val (uri, label) = parent.last()
-        browseFolder(uri, label)
-    }
-
-    private fun listDocuments(treeUri: Uri): List<PickItem> {
-        val resolver = getApplication<Application>().contentResolver
-        val document = androidx.documentfile.provider.DocumentFile.fromTreeUri(getApplication(), treeUri)
-            ?: return emptyList()
-        val out = ArrayList<PickItem>()
-        document.listFiles().forEach { file ->
-            val name = file.name ?: return@forEach
-            out.add(
-                PickItem(
-                    key = file.uri.toString(),
-                    name = name,
-                    relativePath = name,
-                    size = file.length(),
-                    mtime = file.lastModified(),
-                    mime = file.type ?: if (file.isDirectory) "inode/directory" else "application/octet-stream",
-                    uri = if (file.isDirectory) null else file.uri.toString(),
-                    isFolder = file.isDirectory,
-                    folderUri = if (file.isDirectory) file.uri.toString() else null
-                )
-            )
-        }
-        return out.sortedWith(compareByDescending<PickItem> { it.isFolder }.thenBy { it.name.lowercase() })
+        val current = _state.value.picker.browsePath ?: return openFolderRoot()
+        val root = storageRoot().absolutePath
+        if (current == root) return
+        val parent = File(current).parentFile?.absolutePath ?: root
+        openFolder(parent)
     }
 
     // --- web / invite ----------------------------------------------------------------------------
@@ -1002,7 +1188,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSpeedMode(mode: String) {
         prefs.speedMode = mode
-        _state.value = _state.value.copy()
+        _state.value = _state.value.copy(speedMode = mode)
     }
 
     fun speedMode(): String = prefs.speedMode

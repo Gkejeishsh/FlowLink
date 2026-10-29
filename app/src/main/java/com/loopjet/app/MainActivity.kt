@@ -9,6 +9,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.animation.Crossfade
@@ -142,6 +143,15 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    /**
+     * The phone's own gallery picker. `PickMultipleVisualMedia` is the modern photo picker: it needs
+     * no storage permission at all, shows the real gallery, and returns however many images and videos
+     * the user taps. Their URIs are merged into the same picker tray as everything else.
+     */
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(50)
+    ) { uris -> if (uris.isNotEmpty()) vmRef?.addPickedUris(uris) }
+
     private val folderLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
             runCatching {
@@ -217,7 +227,7 @@ class MainActivity : ComponentActivity() {
                                 vm = vm,
                                 state = state,
                                 onRequestPermissions = { requestPermissions(receive = true) },
-                                onPickSaveFolder = { folderLauncher.launch(null) },
+                                onPickSaveFolder = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
                                 onBatterySettings = { runCatching { settingsLauncher.launch(Perms.batteryIntent(activity)) } }
                             )
                             Screen.Home -> HomeScreen(
@@ -228,7 +238,13 @@ class MainActivity : ComponentActivity() {
                                     requestPermissions(receive = true)
                                 }
                             )
-                            Screen.Picker -> PickerScreen(vm, state, onPickFolder = { folderLauncher.launch(null) })
+                            Screen.Picker -> PickerScreen(
+                                vm = vm,
+                                state = state,
+                                // "Allow all files" inside the picker opens the system all-files screen.
+                                onPickFolder = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
+                                onOpenGallery = { runCatching { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } }
+                            )
                             Screen.Nearby -> NearbyScreen(vm, state)
                             Screen.Scanner -> QrScannerScreen(vm, onClose = { vm.go(Screen.Nearby) })
                             Screen.Receive -> ReceiveScreen(vm, state)

@@ -361,10 +361,19 @@ private fun ActiveSessionBanner(session: SessionUi, onClick: () -> Unit) {
 
 // --- picker ---------------------------------------------------------------------------------------
 
+/**
+ * @param onOpenGallery launches the system photo picker. Files chosen there are added to the same
+ *        tray as everything else, so a gallery pick, a folder pick and an app can go in one send.
+ */
 @Composable
-fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
+fun PickerScreen(
+    vm: AppViewModel,
+    state: AppState,
+    onPickFolder: () -> Unit,
+    onOpenGallery: () -> Unit = {}
+) {
     val picker = state.picker
-    val trayHeight = if (picker.selection.isNotEmpty()) 92.dp else 0.dp
+    val trayHeight = if (picker.totalSelected > 0) 92.dp else 0.dp
     ScreenFrame(title = if (picker.webShareMode) "Web Share files" else "Send", onBack = { vm.back() }) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
@@ -377,6 +386,18 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                 shape = MaterialTheme.shapes.large
             )
             Spacer(Modifier.width(8.dp))
+            // Gallery: one tap to the phone's own photo picker, which needs no permission at all.
+            // A labelled chip rather than an icon: "the button next to search" has to be obvious.
+            Text(
+                "Gallery",
+                Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable { onOpenGallery() }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
             IconButton(onClick = {
                 val next = when (picker.sort) {
                     SortOrder.Newest -> SortOrder.Largest
@@ -424,41 +445,63 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                     Modifier
                         .clip(CircleShape)
                         .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { if (category == PickCategory.Folders) onPickFolder() else vm.setCategory(category) }
+                        .clickable {
+                            // Folders opens the file tree inside LoopJet. It used to fire the system
+                            // folder picker, which asked the user to hand over exactly one folder
+                            // before they could see anything.
+                            if (category == PickCategory.Folders) vm.openFolderRoot() else vm.setCategory(category)
+                        }
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                     color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
         }
-        if (picker.category == PickCategory.Folders) {
+        if (picker.category == PickCategory.Folders && !picker.needsAllFiles) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { vm.goUpFolder() }) { Text("Up") }
+                // Up is enabled only when there is a parent: the root of the tree is as far as it goes.
+                IconButton(
+                    onClick = { vm.goUpFolder() },
+                    enabled = (picker.folderStack.size > 1)
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up one folder")
+                }
                 Text(
-                    picker.folderStack.lastOrNull()?.second ?: "No folder opened",
-                    style = MaterialTheme.typography.bodyMedium,
+                    picker.folderStack.lastOrNull()?.second ?: "Internal storage",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    picker.folderStack.dropLast(1).takeLast(1).firstOrNull()?.second ?: "",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = onPickFolder) { Text("Choose folder") }
             }
         }
         Box(Modifier.weight(1f)) {
             when {
                 picker.loading -> RadarPulse(active = true, modifier = Modifier.size(120.dp).align(Alignment.Center))
+                picker.category == PickCategory.Folders && picker.needsAllFiles -> AllFilesPrompt(onGrant = onPickFolder)
                 picker.category == PickCategory.Apps -> AppList(
                     apps = picker.apps,
-                    onAdd = { vm.addApp(it) }
+                    selected = picker.selectedApps,
+                    onToggle = { vm.toggleApp(it) }
                 )
                 picker.items.isEmpty() -> EmptyState(
-                    title = "Nothing here yet",
-                    body = if (picker.category == PickCategory.Folders) "Choose a folder to browse this phone's storage."
-                    else "No files matched. Try another category or search."
+                    title = if (picker.query.isNotBlank()) "No match for \"${picker.query}\"" else "Empty folder",
+                    body = when {
+                        picker.query.isNotBlank() -> "Nothing in this view has that name. Clear the search to see everything."
+                        picker.category == PickCategory.Folders -> "This folder has no readable files."
+                        else -> "No files in this category yet."
+                    }
                 )
                 else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                     if (picker.truncated) {
@@ -474,14 +517,14 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
                     itemsIndexed(picker.items, key = { _, item -> item.key }) { index, item ->
                         StaggeredEntrance(index) {
                             PickRow(item, picker.selection.containsKey(item.key)) {
-                                if (item.isFolder) vm.browseFolder(item.folderUri ?: "", item.name) else vm.toggleSelection(item)
+                                if (item.isFolder) vm.openFolder(item.folderUri ?: "") else vm.toggleSelection(item)
                             }
                         }
                     }
                 }
             }
         }
-        AnimatedVisibility(visible = picker.selection.isNotEmpty(), enter = slideInVertically { it }, exit = fadeOut()) {
+        AnimatedVisibility(visible = picker.totalSelected > 0, enter = slideInVertically { it }, exit = fadeOut()) {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = trayHeight)
                     .background(MaterialTheme.colorScheme.surface)
@@ -491,20 +534,22 @@ fun PickerScreen(vm: AppViewModel, state: AppState, onPickFolder: () -> Unit) {
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "${picker.selection.size} selected",
+                        "${picker.totalSelected} selected",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
                     )
                     Text(
-                        Fmt.bytes(picker.selectedBytes),
+                        Fmt.bytes(picker.totalBytes),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
                     )
                 }
-                TextButton(onClick = { vm.clearSelection() }) { Text("Clear") }
+                TextButton(onClick = { vm.clearAll() }) { Text("Clear") }
                 Spacer(Modifier.width(8.dp))
                 PrimaryAction(
-                    text = if (picker.webShareMode) "Share" else "Next",
+                    text = if (picker.webShareMode) "Share" else "Send",
                     modifier = Modifier.widthIn(min = 116.dp)
                 ) { vm.commitSelection() }
             }
@@ -570,14 +615,7 @@ private fun PickRow(item: PickItem, selected: Boolean, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Box(
-            Modifier.size(26.dp).clip(CircleShape)
-                .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                .border(1.5.dp, if (selected) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            if (selected) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
-        }
+        SelectionTick(selected)
     }
 }
 
@@ -596,7 +634,7 @@ private fun extensionBadge(name: String): String {
 }
 
 @Composable
-private fun AppList(apps: List<InstalledApp>, onAdd: (InstalledApp) -> Unit) {
+private fun AppList(apps: List<InstalledApp>, selected: Set<String>, onToggle: (InstalledApp) -> Unit) {
     if (apps.isEmpty()) {
         EmptyState("Reading installed apps", "This can take a moment on phones with many apps.")
         return
@@ -604,9 +642,15 @@ private fun AppList(apps: List<InstalledApp>, onAdd: (InstalledApp) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
         items(apps.size) { index ->
             val app = apps[index]
+            val isSelected = app.packageName in selected
             StaggeredEntrance(index) {
                 Row(
-                    Modifier.fillMaxWidth().clickable { onAdd(app) }
+                    Modifier.fillMaxWidth()
+                        .clickable { onToggle(app) }
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                            else Color.Transparent
+                        )
                         .padding(horizontal = 18.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -628,13 +672,58 @@ private fun AppList(apps: List<InstalledApp>, onAdd: (InstalledApp) -> Unit) {
                         Text(
                             "${app.versionName} · ${Fmt.bytes(app.size)} · ${app.apkPaths.size} APK",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.primary)
+                    // The same tick circle a photo or a document gets: apps are just another item in the
+                    // tray, and tapping one used to queue it instantly with no way to untick it.
+                    SelectionTick(isSelected)
                 }
             }
         }
+    }
+}
+
+/** The one selection indicator, shared by files, folders and apps. */
+@Composable
+private fun SelectionTick(selected: Boolean) {
+    Box(
+        Modifier.size(26.dp).clip(CircleShape)
+            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
+            .border(1.5.dp, if (selected) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        if (selected) {
+            Icon(
+                Icons.Filled.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+/** Shown in the Folders category until the phone grants all-files access. */
+@Composable
+private fun AllFilesPrompt(onGrant: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Browse every folder", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Photos, Videos and the other categories work already. Walking the whole file manager inside " +
+                "LoopJet needs one all-files permission — the same switch every file manager uses.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        PrimaryAction("Allow all files", enabled = true) { onGrant() }
     }
 }
 
@@ -1172,7 +1261,9 @@ private fun TransferSummary(
     SectionCard {
         Text(
             if (sending) "Sending to ${peerName.ifBlank { "device" }}" else "Receiving from ${peerName.ifBlank { "device" }}",
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(12.dp))
         // The bar itself: a rounded track with a gradient fill and the percentage drawn inside.
@@ -1198,6 +1289,9 @@ private fun TransferSummary(
         }
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // A single word in a weight(1f) slot used to be broken wherever it ran out of room, so a
+            // wide ETA on the right could leave "Connecte" on one line and "d" on the next. One line,
+            // never wrapped mid-word; the ETA gives way first.
             Text(
                 if (live) Fmt.rate(instantBps.toDouble()) else when (state) {
                     TransferState.DONE -> "Finished"
@@ -1208,13 +1302,18 @@ private fun TransferSummary(
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f)
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
             if (live && etaMs > 0) {
                 Text(
                     "${Fmt.duration(etaMs)} left",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
         }
@@ -1229,7 +1328,7 @@ private fun TransferSummary(
             Spacer(Modifier.height(6.dp))
             Text(
                 message,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = if (state == TransferState.FAILED) MaterialTheme.colorScheme.error
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1648,7 +1747,8 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                     Spacer(Modifier.height(8.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(listOf("balanced" to "Balanced", "fast" to "Fast", "max" to "Max")) { (mode, label) ->
-                            val selected = vm.speedMode() == mode
+                            // state.speedMode, not vm.speedMode(): a pref read is invisible to Compose.
+                            val selected = state.speedMode == mode
                             Text(
                                 label,
                                 Modifier.clip(CircleShape)
@@ -1661,7 +1761,7 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                         }
                     }
                     Text(
-                        "Fast uses 4 parallel streams; Max uses 6 and keeps the screen awake for the highest Wi-Fi mode.",
+                        "Fast uses 4 parallel streams. Max uses 8 for the highest throughput on a strong Wi-Fi link; Balanced uses 2 to save battery.",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

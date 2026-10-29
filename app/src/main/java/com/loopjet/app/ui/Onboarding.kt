@@ -137,18 +137,27 @@ fun OnboardingScreen(
                 }
             }
             2 -> {
-                StepTitle("Choose where files land")
+                StepTitle("Send and save")
+                // No "pick a folder" step: it asked for a folder before the user had seen a single
+                // file, and the picker now browses the whole phone's storage by itself.
                 Text(
-                    "Received files go to Downloads/${vm.saveFolder()}/<date>. On Android 10+ they are inserted into " +
-                        "the media store, so galleries and file managers see them immediately.",
+                    "Nothing to set up. Received files land in Downloads/${vm.saveFolder()} and appear in " +
+                        "the gallery and every file manager immediately.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(18.dp))
-                StepCard("Default folder", "Downloads/${vm.saveFolder()} — no permission needed to write there.", true)
-                StepCard("Your own folder", "Pick any folder through the system picker; LoopJet keeps read/write access.", false)
+                StepCard("Where received files go", "Downloads/${vm.saveFolder()} — no permission needed to write there.", true)
+                val allFiles = com.loopjet.app.platform.Perms.hasAllFiles(context)
+                StepCard(
+                    "Browsing every folder",
+                    if (allFiles) "Granted — Send › Folders shows the whole file manager."
+                    else "Optional. Photos, videos, music and apps already work without it; this only adds " +
+                        "the full file tree to Send › Folders.",
+                    allFiles
+                )
                 Spacer(Modifier.height(12.dp))
-                PrimaryButton("Pick a folder (optional)") { onPickSaveFolder() }
+                PrimaryButton(if (allFiles) "All files already allowed" else "Allow all files (optional)") { onPickSaveFolder() }
             }
             else -> {
                 StepTitle("Keep transfers alive")

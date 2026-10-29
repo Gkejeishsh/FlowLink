@@ -635,9 +635,14 @@ class TransferService : Service() {
         else -> "Same Wi-Fi"
     }
 
+    /**
+     * Parallel data streams. Only "max" changed (6 → 8): nothing that was already fast got slower, and
+     * a phone on a slow 2.4 GHz link can still pick Balanced. The wire format is untouched — the
+     * receiver accepts up to 8 streams either way, so an old peer and a new one still interoperate.
+     */
     private fun streamCount(speedMode: String): Int = when (speedMode) {
         "balanced" -> 2
-        "max" -> 6
+        "max" -> 8
         else -> 4
     }
 
