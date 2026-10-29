@@ -714,3 +714,32 @@ redesign) is not in this build yet.
 marks, and a guard that the two themes really are opposite) and four motion-token assertions
 (spatial springs overshoot but under 12 %, effects springs never do, faster really is faster, and
 every token settles between 120 and 700 ms).
+
+## Audit follow-up: the Android 14 “select photos” trap
+
+Re-reading the picker for this pass turned up a real hole in the round-4 empty-category fix.
+On Android 14 the photo permission has a weaker answer — *Select photos and videos* — which grants
+`READ_MEDIA_VISUAL_USER_SELECTED` rather than `READ_MEDIA_IMAGES`. Media queries then **succeed**
+but return only the handful of items the user ticked. `canListMedia()` saw a granted permission and
+said yes, so the “Allow access” prompt never appeared: Photos looked half-empty, or empty, with no
+explanation and no way forward. That is the same symptom the user reported, caused by a permission
+state the fix could not see.
+
+* `Perms.mediaAccessIsPartial()` distinguishes “a few” from “all” (and treats all-files access as
+  full, since it makes the media grants redundant).
+* `PickerState.mediaPartial` is set whenever a media query comes back empty under a partial grant.
+* Two surfaces: a full prompt when the category is empty (*Only a few photos are visible* → Open
+  settings), and a one-line banner above the list when it is merely short, so the explanation is
+  present even when some items did load. Both point at the app's own settings page, which is the
+  only place a partial grant can be widened.
+
+Also verified in this pass, with evidence rather than assertion:
+
+* every picker item has a positive size (folder listings, MediaStore rows and gallery picks all
+  reject zero-length entries), so the tray count cannot promise more than the engine can send;
+* `Browse every folder` really is backed by the `MANAGE_EXTERNAL_STORAGE` declaration plus
+  `Environment.isExternalStorageManager()`, not just an intent;
+* all fifteen typography styles carry the bundled variable font, and every line height is greater
+  than its font size (the mid-word splitting came from the reverse);
+* the signing certificate is byte-identical to the keystore's, so this build installs over the
+  previous one.
