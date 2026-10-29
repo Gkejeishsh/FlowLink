@@ -284,16 +284,19 @@ class LocalFileSink(
     private val partFile: File,
     private val modified: Long
 ) : FileSink {
+    // Parent directories must exist before the file is opened. Property initialisers and init
+    // blocks run in source order, so the mkdirs() has to come first -- it used to be an init block
+    // *after* the RandomAccessFile, which threw for every file staged in a subfolder.
+    init {
+        partFile.parentFile?.mkdirs()
+    }
+
     private val raf = RandomAccessFile(partFile, "rw")
     private val channel: FileChannel = raf.channel
     private val buffer = ByteBuffer.allocateDirect(0)
 
     override val target: File get() = file
     override val displayPath: String get() = file.absolutePath
-
-    init {
-        partFile.parentFile?.mkdirs()
-    }
 
     fun preallocate(size: Long) {
         if (size > 0) {
