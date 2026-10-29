@@ -977,7 +977,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 networkSummary = summary,
                 historyCount = count,
                 trustedCount = prefs.trustedDevices.size,
-                freeSpace = Fmt.bytes(application.filesDir.usableSpace)
+                freeSpace = Fmt.bytes(getApplication<Application>().filesDir.usableSpace)
             )
         }
     }

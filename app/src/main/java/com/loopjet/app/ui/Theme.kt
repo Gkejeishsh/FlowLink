@@ -279,8 +279,16 @@ data class MotionSettings(val enabled: Boolean, val rich: Boolean) {
     /** Picks the spring for a job, degrading to a snap or to a non-overshooting spring. */
     fun spec(kind: JetMotion.Kind): androidx.compose.animation.core.FiniteAnimationSpec<Float> {
         if (!enabled) return androidx.compose.animation.core.snap()
-        val spring = JetMotion.spring(kind)
-        return if (rich) spring else spring.copy(dampingRatio = 1f)
+        // Reduced motion keeps the distance and the stiffness, and removes only the bounce. SpringSpec
+        // is immutable with no copy(), so the spring is rebuilt with a critical damping ratio.
+        return if (rich) {
+            JetMotion.spring(kind)
+        } else {
+            androidx.compose.animation.core.spring(
+                dampingRatio = 1f,
+                stiffness = JetMotion.stiffness(kind)
+            )
+        }
     }
 }
 
@@ -308,22 +316,25 @@ object JetMotion {
     const val DEFAULT_EFFECTS_STIFFNESS = 1600f
     const val SLOW_EFFECTS_STIFFNESS = 800f
 
+    fun damping(kind: Kind): Float = when (kind) {
+        Kind.FastSpatial -> FAST_SPATIAL_DAMPING
+        Kind.DefaultSpatial -> DEFAULT_SPATIAL_DAMPING
+        Kind.SlowSpatial -> SLOW_SPATIAL_DAMPING
+        // Colour and opacity never overshoot: critically damped, always.
+        else -> 1f
+    }
+
+    fun stiffness(kind: Kind): Float = when (kind) {
+        Kind.FastSpatial -> FAST_SPATIAL_STIFFNESS
+        Kind.DefaultSpatial -> DEFAULT_SPATIAL_STIFFNESS
+        Kind.SlowSpatial -> SLOW_SPATIAL_STIFFNESS
+        Kind.FastEffects -> FAST_EFFECTS_STIFFNESS
+        Kind.DefaultEffects -> DEFAULT_EFFECTS_STIFFNESS
+        Kind.SlowEffects -> SLOW_EFFECTS_STIFFNESS
+    }
+
     fun spring(kind: Kind): androidx.compose.animation.core.SpringSpec<Float> =
-        androidx.compose.animation.core.spring(
-            dampingRatio = when (kind) {
-                Kind.FastSpatial -> FAST_SPATIAL_DAMPING
-                Kind.DefaultSpatial, Kind.SlowSpatial -> (if (kind == Kind.DefaultSpatial) DEFAULT_SPATIAL_DAMPING else SLOW_SPATIAL_DAMPING)
-                else -> 1f
-            },
-            stiffness = when (kind) {
-                Kind.FastSpatial -> FAST_SPATIAL_STIFFNESS
-                Kind.DefaultSpatial -> DEFAULT_SPATIAL_STIFFNESS
-                Kind.SlowSpatial -> SLOW_SPATIAL_STIFFNESS
-                Kind.FastEffects -> FAST_EFFECTS_STIFFNESS
-                Kind.DefaultEffects -> DEFAULT_EFFECTS_STIFFNESS
-                Kind.SlowEffects -> SLOW_EFFECTS_STIFFNESS
-            }
-        )
+        androidx.compose.animation.core.spring(dampingRatio = damping(kind), stiffness = stiffness(kind))
 }
 
 /**
