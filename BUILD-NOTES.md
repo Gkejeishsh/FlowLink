@@ -400,3 +400,49 @@ diagnosis messages; empty/portless links are never published.
 `core/`'s data path was not touched: the only change in `Engine.kt` is two UI listener
 callbacks. Loopback in this run: 370.7 MB/s large file, 6.9 MB/s for 2 000 small files —
 inside the runner's usual spread (166–407 MB/s on identical code).
+
+---
+
+# Build: LoopJet 1.0.0 — offer fix (`dist/LoopJet-1.0.0-offer-fix.apk`)
+
+* size **2,373,939 bytes**
+* sha256 `034425d787022974cfbae1da64d41202f818e674aef7a6b462ca5a3c1dbba639`
+* signed v2+v3, `SELF-CHECK: OK`, one dex, not debuggable
+* source commit `06572d1`, CI run **40819888920**: compile/debug/release 0, **25/25 tests**
+* aligned payload sha256 `ddcad964…`
+* ⚠ **different signing key again** — the workspace that held the previous key was reset by the
+  sandbox. Uninstall the previous LoopJet before installing this one.
+
+## What the screenshots proved, and what was wrong
+
+The handshake works now: both phones open the transfer screen. What failed is the **offer**.
+
+1. **"Declined" with nothing tapped** (same-Wi-Fi screenshot). `OfferDialog` answered
+   `(false, false)` from `onDismissRequest`, so any outside tap or back press declined the
+   transfer with a blank reason — and leaving the Receive/Transfer screen called
+   `TransferService.stop`, which answered "no" on the user's behalf. Fixed: the dialog cannot be
+   dismissed by accident, navigating away keeps a pending offer alive, and a decline now carries
+   a reason the sender can read ("Declined on the receiving phone — tap Show my code there to
+   retry" / "The other phone stopped receiving").
+2. **The hotspot path could never connect** — `sendTo()` cleared `PendingPeer.network`
+   unconditionally and is called from `pairWithLink`'s callback, i.e. right after a successful
+   join. The joined network was thrown away and the sockets left through the phone's own Wi-Fi.
+   `sendTo(peer, joinedNetwork)` and `pairWithLink(link, joinedNetwork)` now thread it through.
+3. **Different-subnet message** stays, because it is true: 192.168.10.x cannot reach a phone on
+   another network. The fix there is a hotspot join, which now works (2).
+4. UI from the same screenshots: "Remaining" broke into "Remainin"/"g" (StatRow 1:2 with
+   `fill = false`); the receiving screen said "Phone at 192.168.10.8" and "Code 000 000" (the
+   receiver never adopted the sender's name or the pairing code). Both fixed via
+   `TransferListener.onPeer` plus `peerName`/`sas` on the offer.
+5. The code caption now says which path is faster: "Same Wi-Fi · <ip> (fastest)" and
+   "hotspot (slower than shared Wi-Fi)".
+
+## Answer to "which is faster"
+
+**Same Wi-Fi.** Both phones are then on the access point they already belong to, so traffic takes
+one hop through the router — effectively the Wi-Fi link speed. With LoopJet's own hotspot one
+phone becomes the access point: the other phone's traffic is received, re-processed and written
+by the host phone, and the host is simultaneously AP and server, so expect roughly half the
+throughput and more latency. Wi-Fi Direct (5 GHz when available) sits between the two. The app
+never silently downgrades: it uses the LAN path whenever the two phones share a subnet, and only
+falls back to hosting a hotspot when the receiver has no LAN address at all.
