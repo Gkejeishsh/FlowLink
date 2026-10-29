@@ -552,3 +552,27 @@ round), 2000 small files 5.6 MB/s.
 31/31, unchanged — the round-4 changes are UI and I/O-scheduling only; `core/` is untouched
 (`git diff --stat core/` is empty), which is the only reliable regression signal available
 without a device.
+
+## Audit pass (after the round-4 build)
+
+Checked every round-4 claim against the source and against the shipped APK; three real gaps
+turned up and are fixed here:
+
+1. **A gallery pick could be counted but never sent.** The engine skips zero-length files
+   (`buildWork`: `if (file.size <= 0) continue`). For a gallery entry that reports no
+   `OpenableColumns.SIZE` (cloud-backed photos often do not), `resolvePicked` could leave the
+   size at 0 — so the item was ticked, counted in "n selected", and silently absent on the other
+   phone. Size is now also read from the descriptor (`AssetFileDescriptor.length`, then
+   `statSize`), and a pick whose length genuinely cannot be determined is refused up front with
+   "n added · m could not be read" instead of being queued.
+2. **The notice could overstate the count** when an app in the tray was uninstalled while the
+   picker was open. It now counts only apps that are actually in the queue.
+3. **`Connected browsers` did not fit its 40% label column** and was being ellipsised; the row
+   reads "Browsers" in the Web Share panel.
+
+Verified, not assumed: `MANAGE_EXTERNAL_STORAGE` is declared in the manifest (the in-app file
+tree is dead without it); every one of the 15 Material text styles names the bundled family, so
+no screen falls back to the OEM face; `core/` and `platform/net/` are byte-identical to the
+round-3 commit, which is the only trustworthy "no slower" signal available without a device;
+and the release APK carries the same signing certificate as the previous build, so it installs
+as an update.

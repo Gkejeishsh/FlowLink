@@ -1587,7 +1587,7 @@ fun WebScreen(vm: AppViewModel, state: AppState, invite: Boolean) {
                             )
                         }
                         Spacer(Modifier.height(12.dp))
-                        StatRow("Connected browsers", "${web.clients}")
+                        StatRow("Browsers", "${web.clients}")   // "Connected browsers" got ellipsised in the 40% label column
                         Spacer(Modifier.height(6.dp))
                         StatRow("Served", Fmt.bytes(web.bytesServed))
                         if (web.pin.isNotBlank()) {

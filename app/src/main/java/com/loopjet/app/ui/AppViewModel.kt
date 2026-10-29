@@ -652,6 +652,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Navigates into [path] and lists it. Folders come first, then files, names case-insensitive. */
     fun openFolder(path: String) {
+        if (path.isBlank()) return
         val file = File(path)
         viewModelScope.launch {
             _state.value = _state.value.copy(
@@ -955,7 +956,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         SendQueue.add(items + appItems)
-        val total = items.size + picker.selectedApps.size
+        // Count what was actually queued: an app that vanished from the list (uninstalled while the
+        // tray was open) must not inflate the number in the notice.
+        val queuedApps = picker.selectedApps.count { name -> picker.apps.any { it.packageName == name } }
+        val total = items.size + queuedApps
         _state.value = _state.value.copy(
             picker = picker.copy(selection = emptyMap(), selectedApps = emptySet()),
             screen = if (picker.webShareMode) Screen.WebShare else Screen.Nearby,
@@ -983,11 +987,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 notice("Those files could not be read")
                 return@launch
             }
+            val skipped = uris.size - picked.size
             val current = _state.value.picker.selection.toMutableMap()
             picked.forEach { current[it.key] = it }
             _state.value = _state.value.copy(
                 picker = _state.value.picker.copy(selection = current),
-                notice = "${picked.size} item(s) added"
+                notice = if (skipped > 0) {
+                    "${picked.size} added · $skipped could not be read"
+                } else {
+                    "${picked.size} item(s) added"
+                }
             )
         }
     }
@@ -1004,9 +1013,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 ?.use { c -> if (c.moveToFirst() && !c.isNull(0)) size = c.getLong(0) }
         }
         if (size <= 0) {
-            size = runCatching { resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } }
-                .getOrNull() ?: 0L
+            // A size of 0 is not harmless: the transfer engine skips zero-length files, so the item
+            // would be ticked, counted and then silently missing on the other phone. Cloud-backed
+            // gallery entries often report no SIZE column, so ask the descriptor itself.
+            size = runCatching {
+                resolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                    val declared = afd.length
+                    if (declared > 0) declared else afd.parcelFileDescriptor.statSize.takeIf { it > 0 } ?: 0L
+                }
+            }.getOrNull() ?: 0L
         }
+        // Still unknown (a stream with no length): refuse it here rather than queue a file that
+        // cannot be sent, and say so, instead of reporting a count that the other phone never gets.
+        if (size <= 0) return null
         val mime = resolver.getType(uri) ?: mimeFor(name)
         val folder = "Gallery/"
         return PickItem(
