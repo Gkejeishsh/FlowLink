@@ -37,6 +37,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.ripple
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -67,11 +71,60 @@ import androidx.compose.ui.unit.sp
 
 // --- brand ---------------------------------------------------------------------------------------
 
-val JetBlue = Color(0xFF2F6BFF)
-val JetViolet = Color(0xFF8B5CF6)
+/**
+ * The palette lives as plain ints first and `Color` second, so a JVM unit test can assert WCAG
+ * contrast on the exact values the app draws without Android or Compose on the test classpath.
+ * "Dark themes get light text" stops being a claim and becomes an assertion.
+ */
+object Palette {
+    val Primary: Int = 0xFF2F6BFF.toInt()
+    val OnPrimary: Int = 0xFFFFFFFF.toInt()
+    val PrimaryContainer: Int = 0xFFE3EBFF.toInt()
+    val OnPrimaryContainer: Int = 0xFF0A1B4A.toInt()
+
+    val Secondary: Int = 0xFF8B5CF6.toInt()
+    val Tertiary: Int = 0xFF0F8FA6.toInt()
+
+    val LightBackground: Int = 0xFFF6F7FB.toInt()
+    val LightSurface: Int = 0xFFFFFFFF.toInt()
+    val LightSurfaceLow: Int = 0xFFF7F8FC.toInt()
+    val LightSurfaceContainer: Int = 0xFFF1F3FA.toInt()
+    val LightSurfaceHigh: Int = 0xFFE9ECF7.toInt()
+    val LightSurfaceHighest: Int = 0xFFE1E5F4.toInt()
+    val LightOnSurface: Int = 0xFF0D1220.toInt()
+    val LightOnSurfaceVariant: Int = 0xFF4A5265.toInt()
+    val LightOutline: Int = 0xFFC9CFE0.toInt()
+    val LightOutlineVariant: Int = 0xFFE4E8F2.toInt()
+
+    val DarkBackground: Int = 0xFF000000.toInt()
+    val DarkSurface: Int = 0xFF0B0F17.toInt()
+    val DarkSurfaceLow: Int = 0xFF0E131C.toInt()
+    val DarkSurfaceContainer: Int = 0xFF131926.toInt()
+    val DarkSurfaceHigh: Int = 0xFF1A2130.toInt()
+    val DarkSurfaceHighest: Int = 0xFF222A3B.toInt()
+    val DarkOnSurface: Int = 0xFFF2F5FF.toInt()
+    val DarkOnSurfaceVariant: Int = 0xFFAEB7CC.toInt()
+    val DarkOutline: Int = 0xFF3A4257.toInt()
+    val DarkOutlineVariant: Int = 0xFF232A3A.toInt()
+
+    val Success: Int = 0xFF17B26A.toInt()
+    val SuccessDark: Int = 0xFF4ADE80.toInt()
+    val Warning: Int = 0xFFF59E0B.toInt()
+    val WarningDark: Int = 0xFFFBBF24.toInt()
+}
+
+val JetBlue = Color(Palette.Primary)
+val JetViolet = Color(Palette.Secondary)
 val JetCyan = Color(0xFF22D3EE)
 val JetInk = Color(0xFF0B1020)
 val JetGraphite = Color(0xFF141A2B)
+
+/**
+ * Depth comes from tone, not hairlines: cards sit on `surfaceContainerLow`, sheets on `High`, and a
+ * pressed row on `Highest`. Two stops only in the brand gradient -- the third made the middle mud.
+ */
+val JetSuccess = Color(Palette.Success)
+val JetWarning = Color(Palette.Warning)
 
 val BrandGradient = Brush.linearGradient(listOf(JetBlue, JetViolet, JetCyan))
 
@@ -90,10 +143,15 @@ private val LightScheme: ColorScheme = lightColorScheme(
     onBackground = Color(0xFF0D1220),
     surface = Color(0xFFFFFFFF),
     onSurface = Color(0xFF0D1220),
-    surfaceVariant = Color(0xFFEDF0F8),
-    onSurfaceVariant = Color(0xFF4A5265),
-    outline = Color(0xFFC9CFE0),
-    outlineVariant = Color(0xFFE2E6F0),
+    surfaceVariant = Color(Palette.LightSurfaceContainer),
+    onSurfaceVariant = Color(Palette.LightOnSurfaceVariant),
+    surfaceContainerLowest = Color(Palette.LightSurface),
+    surfaceContainerLow = Color(Palette.LightSurfaceLow),
+    surfaceContainer = Color(Palette.LightSurfaceContainer),
+    surfaceContainerHigh = Color(Palette.LightSurfaceHigh),
+    surfaceContainerHighest = Color(Palette.LightSurfaceHighest),
+    outline = Color(Palette.LightOutline),
+    outlineVariant = Color(Palette.LightOutlineVariant),
     error = Color(0xFFB3261E),
     onError = Color.White,
     inverseSurface = Color(0xFF141A2B),
@@ -116,10 +174,15 @@ private val DarkScheme: ColorScheme = darkColorScheme(
     onBackground = Color(0xFFF2F5FF),
     surface = Color(0xFF0B0F17),
     onSurface = Color(0xFFF2F5FF),
-    surfaceVariant = Color(0xFF1A2030),
-    onSurfaceVariant = Color(0xFFAEB7CC),
-    outline = Color(0xFF3A4257),
-    outlineVariant = Color(0xFF232A3A),
+    surfaceVariant = Color(Palette.DarkSurfaceContainer),
+    onSurfaceVariant = Color(Palette.DarkOnSurfaceVariant),
+    surfaceContainerLowest = Color(Palette.DarkBackground),
+    surfaceContainerLow = Color(Palette.DarkSurfaceLow),
+    surfaceContainer = Color(Palette.DarkSurfaceContainer),
+    surfaceContainerHigh = Color(Palette.DarkSurfaceHigh),
+    surfaceContainerHighest = Color(Palette.DarkSurfaceHighest),
+    outline = Color(Palette.DarkOutline),
+    outlineVariant = Color(Palette.DarkOutlineVariant),
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005),
     inverseSurface = Color(0xFFF2F5FF),
@@ -136,6 +199,7 @@ private val DarkScheme: ColorScheme = darkColorScheme(
  * stroke. Every style still carries a line height so descenders are never clipped.
  */
 private val JetSans = FontFamily(
+    Font(R.font.public_sans, FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300))),
     Font(R.font.public_sans, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
     Font(R.font.public_sans, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
     Font(R.font.public_sans, FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
@@ -160,18 +224,132 @@ private val JetTypography = Typography(
     labelSmall = TextStyle(fontFamily = JetSans, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 15.sp, letterSpacing = 0.2.sp)
 )
 
+/**
+ * The number that carries the whole product: live speed. Large, light weight, tight tracking, and
+ * tabular figures so digits do not re-shuffle their width several times a second -- proportional
+ * numerals make a live readout visibly shiver.
+ */
+val Typography.hero: TextStyle
+    get() = TextStyle(
+        fontFamily = JetSans,
+        fontWeight = FontWeight.Light,
+        fontSize = 44.sp,
+        lineHeight = 46.sp,
+        letterSpacing = (-1.2).sp,
+        fontFeatureSettings = "tnum"
+    )
+
+/** Any live number (speed, bytes, percent, ETA digits) without the hero size. */
+val Typography.numeral: TextStyle
+    get() = TextStyle(
+        fontFamily = JetSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp,
+        fontFeatureSettings = "tnum"
+    )
+
+/** Small caps label used for section headers; tracked out, never shouty. */
+val Typography.section: TextStyle
+    get() = TextStyle(
+        fontFamily = JetSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 1.1.sp
+    )
+
 private val JetShapes = Shapes(
-    extraSmall = RoundedCornerShape(10.dp),
-    small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(18.dp),
+    medium = RoundedCornerShape(22.dp),
+    large = RoundedCornerShape(26.dp),
     extraLarge = RoundedCornerShape(34.dp)
 )
 
-/** Motion settings resolved once per composition: battery saver, low RAM and animator scale matter. */
-data class MotionSettings(val enabled: Boolean, val rich: Boolean)
+/**
+ * Motion settings resolved once per composition: battery saver, low RAM and animator scale matter.
+ *
+ * `enabled = false` means the platform's animator scale is 0 or the user chose "System" with
+ * animations off -- every spring becomes a snap. `rich = false` keeps animation but removes
+ * overshoot, which is what a power-saver or a low-RAM phone should get.
+ */
+data class MotionSettings(val enabled: Boolean, val rich: Boolean) {
+    /** Picks the spring for a job, degrading to a snap or to a non-overshooting spring. */
+    fun spec(kind: JetMotion.Kind): androidx.compose.animation.core.FiniteAnimationSpec<Float> {
+        if (!enabled) return androidx.compose.animation.core.snap()
+        val spring = JetMotion.spring(kind)
+        return if (rich) spring else spring.copy(dampingRatio = 1f)
+    }
+}
 
 val LocalMotion = compositionLocalOf { MotionSettings(enabled = true, rich = true) }
+
+/**
+ * The six springs everything is built from, using the published Material 3 Expressive constants
+ * (spatial ζ 0.6/0.8, stiffness 800/380/200; effects ζ 1.0, 3800/1600/800).
+ *
+ * They are declared here rather than imported from material3's expressive theme because those
+ * APIs are still partly internal in material3 1.4.0; our own constants compile today and cannot be
+ * broken by a library bump. Spatial springs move and may overshoot; effects springs are for colour
+ * and opacity and never overshoot, because a bouncing fade reads as a stutter.
+ */
+object JetMotion {
+    enum class Kind { FastSpatial, DefaultSpatial, SlowSpatial, FastEffects, DefaultEffects, SlowEffects }
+
+    const val FAST_SPATIAL_DAMPING = 0.6f
+    const val FAST_SPATIAL_STIFFNESS = 800f
+    const val DEFAULT_SPATIAL_DAMPING = 0.8f
+    const val DEFAULT_SPATIAL_STIFFNESS = 380f
+    const val SLOW_SPATIAL_DAMPING = 0.8f
+    const val SLOW_SPATIAL_STIFFNESS = 200f
+    const val FAST_EFFECTS_STIFFNESS = 3800f
+    const val DEFAULT_EFFECTS_STIFFNESS = 1600f
+    const val SLOW_EFFECTS_STIFFNESS = 800f
+
+    fun spring(kind: Kind): androidx.compose.animation.core.SpringSpec<Float> =
+        androidx.compose.animation.core.spring(
+            dampingRatio = when (kind) {
+                Kind.FastSpatial -> FAST_SPATIAL_DAMPING
+                Kind.DefaultSpatial, Kind.SlowSpatial -> (if (kind == Kind.DefaultSpatial) DEFAULT_SPATIAL_DAMPING else SLOW_SPATIAL_DAMPING)
+                else -> 1f
+            },
+            stiffness = when (kind) {
+                Kind.FastSpatial -> FAST_SPATIAL_STIFFNESS
+                Kind.DefaultSpatial -> DEFAULT_SPATIAL_STIFFNESS
+                Kind.SlowSpatial -> SLOW_SPATIAL_STIFFNESS
+                Kind.FastEffects -> FAST_EFFECTS_STIFFNESS
+                Kind.DefaultEffects -> DEFAULT_EFFECTS_STIFFNESS
+                Kind.SlowEffects -> SLOW_EFFECTS_STIFFNESS
+            }
+        )
+}
+
+/**
+ * Haptics, in one place so the whole app speaks with the same voice.
+ *
+ * Compose maps these to the platform's constants and already refuses to buzz while a screen reader
+ * is exploring by touch, which a raw `View.performHapticFeedback` call does not.
+ */
+class Haptics(private val feedback: HapticFeedback) {
+    /** A file or app joining or leaving the tray. */
+    fun toggleOn() = feedback.performHapticFeedback(HapticFeedbackType.ToggleOn)
+    fun toggleOff() = feedback.performHapticFeedback(HapticFeedbackType.ToggleOff)
+    /** Something irreversible and good: Send, a completed transfer, a granted permission. */
+    fun confirm() = feedback.performHapticFeedback(HapticFeedbackType.Confirm)
+    /** Something failed. Used sparingly -- a buzz for every error becomes noise. */
+    fun reject() = feedback.performHapticFeedback(HapticFeedbackType.Reject)
+    /** A plain button that changes state but sends nothing. */
+    fun tap() = feedback.performHapticFeedback(HapticFeedbackType.VirtualKey)
+    fun longPress() = feedback.performHapticFeedback(HapticFeedbackType.LongPress)
+}
+
+@Composable
+fun rememberHaptics(): Haptics {
+    val feedback = LocalHapticFeedback.current
+    return remember(feedback) { Haptics(feedback) }
+}
 
 fun readMotionSettings(context: Context): MotionSettings {
     val scale = runCatching {
@@ -436,14 +614,16 @@ fun SectionCard(
 ) {
     // Surface, not a plain Column: a hand-painted background leaves LocalContentColor on black, so
     // card text was dark-on-dark. contentColor pins it to the surface's own foreground colour.
+    // Depth from tone rather than a 1 dp hairline: the card is one step above the background, so a
+    // screen full of cards reads as layers instead of a grid of boxes. Padding moves onto the 4 dp
+    // grid (20) and the corner onto the shared large radius.
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        Column(Modifier.padding(18.dp), content = content)
+        Column(Modifier.padding(20.dp), content = content)
     }
 }
 

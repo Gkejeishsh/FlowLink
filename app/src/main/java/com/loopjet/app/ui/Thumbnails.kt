@@ -15,6 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,7 +76,11 @@ object ThumbnailCache {
     }
 }
 
-/** 44 dp thumbnail slot with the text badge as the instant placeholder. */
+/**
+ * 44 dp thumbnail slot. While a real thumbnail is still decoding the slot breathes instead of
+ * showing a dead grey square: a 1.4 s alpha pulse, only when rich motion is on. The badge stays as
+ * the instant label so a slow provider never leaves an empty row.
+ */
 @Composable
 fun Thumbnail(item: PickItem, badge: String) {
     val context = LocalContext.current
@@ -80,9 +91,22 @@ fun Thumbnail(item: PickItem, badge: String) {
         if (!isVisual) return@produceState
         value = ThumbnailCache.get(uri) ?: ThumbnailCache.load(context, uri, item.mime)
     }
+    val motion = LocalMotion.current
+    val isVisual = item.mime.startsWith("image/") || item.mime.startsWith("video/")
+    val waiting = bitmap.value == null && isVisual && !item.isFolder
+    val pulse = if (waiting && motion.rich) {
+        val transition = rememberInfiniteTransition(label = "thumb")
+        val value by transition.animateFloat(
+            initialValue = 0.35f,
+            targetValue = 0.75f,
+            animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing), RepeatMode.Reverse),
+            label = "thumbPulse"
+        )
+        value
+    } else 1f
     Box(
         Modifier.size(44.dp).clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (waiting) pulse else 1f)),
         contentAlignment = Alignment.Center
     ) {
         val image = bitmap.value
@@ -96,5 +120,26 @@ fun Thumbnail(item: PickItem, badge: String) {
         } else {
             Text(badge, style = MaterialTheme.typography.labelMedium)
         }
+    }
+}
+
+/**
+ * App icons, loaded one visible row at a time.
+ *
+ * The installer list used to arrive with a Drawable for every app already decoded and retained,
+ * which cost tens of megabytes before anything was drawn and made the Apps tab slow to open on a
+ * phone with a couple of hundred packages. This is the same idea as [ThumbnailCache], sized smaller
+ * because there are fewer visible rows.
+ */
+object AppIconCache {
+    private val cache = android.util.LruCache<String, Bitmap>(64)
+
+    suspend fun load(context: Context, packageName: String): Bitmap? = withContext(Dispatchers.IO) {
+        cache.get(packageName)?.let { return@withContext it }
+        val drawable = runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull()
+            ?: return@withContext null
+        val bitmap = runCatching { drawableToBitmap(drawable) }.getOrNull() ?: return@withContext null
+        cache.put(packageName, bitmap)
+        bitmap
     }
 }

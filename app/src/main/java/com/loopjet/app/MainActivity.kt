@@ -6,12 +6,19 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -33,9 +40,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,6 +60,7 @@ import com.loopjet.app.ui.AppViewModel
 import com.loopjet.app.ui.ConnectionDoctorScreen
 import com.loopjet.app.ui.HistoryScreen
 import com.loopjet.app.ui.HomeScreen
+import com.loopjet.app.ui.JetMotion
 import com.loopjet.app.ui.LocalMotion
 import com.loopjet.app.ui.FlowLinkTheme
 import com.loopjet.app.ui.NearbyScreen
@@ -224,7 +234,11 @@ class MainActivity : ComponentActivity() {
             // Both phones show the live session. The receiver used to stay on the Receive screen, so a
             // running transfer was invisible on that side.
             val session by TransferHub.session.collectAsStateWithLifecycle()
-            LaunchedEffect(session.mode, session.state) { vm.openSessionIfRunning() }
+            LaunchedEffect(session.mode, session.state) {
+                vm.openSessionIfRunning()
+                // A finished session changes the history count and the free space Home shows.
+                if (session.state == com.loopjet.app.core.TransferState.DONE) vm.refreshFacts()
+            }
             LaunchedEffect(state.screen) {
                 if (state.screen == Screen.Picker) requestPickerPermissions()
             }
@@ -238,10 +252,32 @@ class MainActivity : ComponentActivity() {
                         vm.notice(null)
                     }
                 }
-                Box(Modifier) {
-                    Crossfade(
+                // Predictive back: during the gesture the whole surface recedes under the finger and
+                // only commits when the gesture completes. Devices that do not report progress fall
+                // back to a plain back press.
+                var backProgress by remember { mutableFloatStateOf(0f) }
+                Box(
+                    Modifier.graphicsLayer {
+                        val p = backProgress.coerceIn(0f, 1f)
+                        scaleX = 1f - 0.05f * p
+                        scaleY = 1f - 0.05f * p
+                    }
+                ) {
+                    // Fade-through with direction: the outgoing screen recedes and dims, the incoming
+                    // one grows into place. Reversed on the way back, so Back retraces the path
+                    // instead of feeling like a brand-new navigation. All motion is skipped when the
+                    // system animation scale is off (motion.enabled).
+                    AnimatedContent(
                         targetState = state.screen,
-                        animationSpec = tween(if (motion.enabled) 240 else 0),
+                        transitionSpec = {
+                            val forward = targetState.depth >= initialState.depth
+                            val spatial = motion.spec(JetMotion.Kind.SlowSpatial)
+                            val effects = motion.spec(JetMotion.Kind.FastEffects)
+                            (fadeIn(effects) + scaleIn(spatial, initialScale = if (forward) 1.04f else 0.92f))
+                                .togetherWith(
+                                    fadeOut(effects) + scaleOut(spatial, targetScale = if (forward) 0.92f else 1.04f)
+                                )
+                        },
                         label = "screen"
                     ) { screen ->
                         when (screen) {
@@ -295,7 +331,16 @@ class MainActivity : ComponentActivity() {
                     ) { data -> Snackbar(snackbarData = data) }
                     Offers()
                 }
-                BackHandler(enabled = state.screen != Screen.Home && state.screen != Screen.Onboarding) {
+                // Predictive back: during the gesture the screen recedes under the finger, and the
+                // navigation only commits when the gesture completes. On devices that do not report
+                // progress this behaves exactly like a plain back handler.
+                PredictiveBackHandler(
+                    enabled = state.screen != Screen.Home && state.screen != Screen.Onboarding
+                ) { progress ->
+                    runCatching {
+                        progress.collect { event -> backProgress = event.progress }
+                    }
+                    backProgress = 0f
                     vm.back()
                 }
             }
@@ -327,6 +372,9 @@ class MainActivity : ComponentActivity() {
             ) {
                 vm.startDiscovery(advertise = true)
             }
+            // Cached facts (network name/band, session count, free space) are refreshed here, not
+            // inside a composable: WifiManager IPC and history JSON both used to run per frame.
+            vm.refreshFacts()
             // Returning from the system permission dialog or settings: refresh, never re-prompt from
             // here (that would loop on a refusal). The explicit button on the prompt does the asking.
             if (vm.state.value.screen == Screen.Picker) vm.refreshPicker()

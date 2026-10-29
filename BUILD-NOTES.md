@@ -659,3 +659,58 @@ Nothing that was fast got slower.
 
 31 → **33**: the room path serves the same page as the root (and `/talal-other` is still a 404),
 a requested port is honoured, and a second server asked for a taken port moves off it.
+
+---
+
+# Round 6 — the motion system, the type scale and the efficiency pass
+
+This is the first half of the design plan in `docs/ROUND-5-DESIGN-PLAN.md`: phases **A** (foundations),
+**E** (efficiency) and the low-risk half of **D** (micro-interactions). Phase C (screen-by-screen
+redesign) is not in this build yet.
+
+## Foundations
+
+* **Six motion tokens** in `JetMotion`, using the published M3 Expressive constants (spatial
+  ζ 0.6/0.8, k 800/380/200; effects ζ 1.0, k 3800/1600/800). `MotionSettings.spec()` returns the
+  spring for a job and degrades twice: no overshoot under power-save / low-RAM, and a snap when the
+  system animation scale is 0. Declared locally rather than imported, because material3 1.4's
+  expressive APIs are still partly internal.
+* **Type**: weight 300 added to the bundled variable face; new `hero` (44/46, tabular digits) for
+  the live speed, `numeral` for any live number, and `section` for tracked-out small labels.
+* **Colour**: `surfaceContainer*` tiers for both themes (dark keeps true black), plus `success` and
+  `warning`. The palette is now plain ints behind `Palette`, so contrast is testable.
+* **Shape/depth**: radii moved onto 12/18/26/34; `SectionCard` moved from a 1 dp border to the
+  `surfaceContainerLow` tone.
+
+## Motion and touch
+
+* **Navigation is a fade-through with direction**, not a 240 ms cross-fade: the incoming screen
+  grows in from 1.04 (deeper) or 0.92 (back), the outgoing one recedes, all on the shared springs.
+  `Screen` now carries a `depth` so the transition knows which way it is going.
+* **Predictive back**: the surface recedes under the finger during the gesture and only commits on
+  completion (it behaves like a plain back press where progress is not reported).
+* **Haptics exist at last** — the app had none. One `Haptics` wrapper over Compose's feedback:
+  toggle on/off for a file or app joining the tray, confirm on Send and on a finished transfer,
+  reject on failure, tap for navigation. Compose's mapping also refuses to buzz during touch
+  exploration, which a raw `View.performHapticFeedback` does not.
+* **The tick lands**: the selection circle scales on `fastSpatial` while its fill fades on
+  `fastEffects`, so a tap reads as a snap rather than a repaint.
+* Thumbnails **pulse while decoding** instead of showing a dead grey square.
+
+## Efficiency
+
+* `vm.history()` — a **JSON file read** — ran inside Home's composable body on every recomposition.
+  The count is now cached in `AppState` and refreshed on resume / after a session; the History
+  screen loads off the main thread.
+* `vm.deviceSummary()` — **three WifiManager IPC calls** — also ran inside composition. Cached the
+  same way.
+* `AppRepository.load()` decoded and retained a Drawable for **every installed app**. It now returns
+  metadata only; icons load per visible row from a 64-entry LRU on the IO dispatcher.
+* Brushes and gradients are no longer rebuilt per frame in the card path.
+
+## Tests
+
+33 → **38**: five contrast assertions (both themes, every surface tier, button pairs, semantic
+marks, and a guard that the two themes really are opposite) and four motion-token assertions
+(spatial springs overshoot but under 12 %, effects springs never do, faster really is faster, and
+every token settles between 120 and 700 ms).

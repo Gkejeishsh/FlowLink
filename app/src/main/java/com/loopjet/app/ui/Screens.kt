@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -69,6 +70,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,6 +79,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
@@ -101,6 +105,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.loopjet.app.core.FileResult
 import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.TransferState
+import kotlinx.coroutines.withContext
+import com.loopjet.app.platform.HistoryEntry
 import com.loopjet.app.platform.IncomingOfferUi
 import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.SessionFileUi
@@ -222,7 +228,7 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SmallAction("History", "${vm.history().size} sessions", Icons.Filled.Refresh, Modifier.weight(1f)) { vm.go(Screen.History) }
+                SmallAction("History", "${state.historyCount} sessions", Icons.Filled.DateRange, Modifier.weight(1f)) { vm.go(Screen.History) }
                 SmallAction("Settings", "Speed, trust, theme", Icons.Filled.Settings, Modifier.weight(1f)) { vm.go(Screen.Settings) }
             }
             Spacer(Modifier.height(18.dp))
@@ -231,7 +237,7 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
             SectionCard {
                 Text("This phone", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(10.dp))
-                StatRow("Network", vm.deviceSummary())
+                StatRow("Network", state.networkSummary.ifBlank { vm.deviceSummary() })
                 Spacer(Modifier.height(6.dp))
                 StatRow("Free space", state.freeSpace)
                 Spacer(Modifier.height(6.dp))
@@ -376,6 +382,7 @@ fun PickerScreen(
     onGrantMedia: () -> Unit = {}
 ) {
     val picker = state.picker
+    val haptics = rememberHaptics()
     val trayHeight = if (picker.totalSelected > 0) 92.dp else 0.dp
     ScreenFrame(title = if (picker.webShareMode) "Web Share files" else "Send", onBack = { vm.back() }) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -560,7 +567,10 @@ fun PickerScreen(
                 searchApps -> AppList(
                     apps = visibleApps,
                     selected = picker.selectedApps,
-                    onToggle = { vm.toggleApp(it) },
+                    onToggle = { app ->
+                        if (picker.selectedApps.contains(app.packageName)) haptics.toggleOff() else haptics.toggleOn()
+                        vm.toggleApp(app)
+                    },
                     emptyTitle = if (picker.query.isBlank()) "Type to find an app" else "No app called \"${picker.query}\"",
                     emptyBody = if (picker.query.isBlank()) "Apps are matched by name or package."
                     else "Clear the search to see every app on this phone."
@@ -598,8 +608,15 @@ fun PickerScreen(
                     }
                     itemsIndexed(picker.items, key = { _, item -> item.key }) { index, item ->
                         StaggeredEntrance(index) {
-                            PickRow(item, picker.selection.containsKey(item.key)) {
-                                if (item.isFolder) vm.openFolder(item.folderUri ?: "") else vm.toggleSelection(item)
+                            val isPicked = picker.selection.containsKey(item.key)
+                            PickRow(item, isPicked) {
+                                if (item.isFolder) {
+                                    haptics.tap()
+                                    vm.openFolder(item.folderUri ?: "")
+                                } else {
+                                    if (isPicked) haptics.toggleOff() else haptics.toggleOn()
+                                    vm.toggleSelection(item)
+                                }
                             }
                         }
                     }
@@ -633,7 +650,10 @@ fun PickerScreen(
                 PrimaryAction(
                     text = if (picker.webShareMode) "Share" else "Send",
                     modifier = Modifier.widthIn(min = 116.dp)
-                ) { vm.commitSelection() }
+                ) {
+                    haptics.confirm()
+                    vm.commitSelection()
+                }
             }
         }
     }
@@ -747,11 +767,23 @@ private fun AppList(
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
-                        val bitmap = remember(app.packageName) { app.icon?.let { drawableToBitmap(it) } }
+                        val context = LocalContext.current
+                        val icon by produceState<Bitmap?>(initialValue = null, app.packageName) {
+                            value = AppIconCache.load(context, app.packageName)
+                        }
+                        val bitmap = icon
                         if (bitmap != null) {
-                            Image(bitmap.asImageBitmap(), contentDescription = null, modifier = Modifier.size(30.dp))
+                            Image(
+                                bitmap.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.size(30.dp)
+                            )
                         } else {
-                            Icon(Icons.Filled.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Text(
+                                app.label.take(1).uppercase(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     Spacer(Modifier.width(12.dp))
@@ -777,17 +809,34 @@ private fun AppList(
 /** The one selection indicator, shared by files, folders and apps. */
 @Composable
 private fun SelectionTick(selected: Boolean) {
+    val motion = LocalMotion.current
+    // The tick lands with a small overshoot on the shared fast-spatial spring; the check itself
+    // scales in behind it, so tapping a row reads as a physical snap rather than a repaint.
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.86f,
+        animationSpec = motion.spec(JetMotion.Kind.FastSpatial),
+        label = "tick"
+    )
+    val fill by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = motion.spec(JetMotion.Kind.FastEffects),
+        label = "tickFill"
+    )
     Box(
-        Modifier.size(26.dp).clip(CircleShape)
-            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
-            .border(1.5.dp, if (selected) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape),
+        Modifier.size(26.dp).scale(scale).clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = fill))
+            .border(
+                1.5.dp,
+                if (selected) Color.Transparent else MaterialTheme.colorScheme.outline,
+                CircleShape
+            ),
         contentAlignment = Alignment.Center
     ) {
-        if (selected) {
+        if (fill > 0.02f) {
             Icon(
                 Icons.Filled.Check,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
+                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = fill),
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -1218,6 +1267,15 @@ fun qrBitmap(text: String, size: Int, dark: Boolean): Bitmap? {
 @Composable
 fun TransferScreen(vm: AppViewModel, state: AppState) {
     val session by vm.session.collectAsStateSafe()
+    val haptics = rememberHaptics()
+    // One buzz at the moment the session settles -- completion or failure, never both, never twice.
+    LaunchedEffect(session.state) {
+        when (session.state) {
+            TransferState.DONE -> haptics.confirm()
+            TransferState.FAILED, TransferState.CANCELLED -> haptics.reject()
+            else -> Unit
+        }
+    }
     // The role, not the mode: see SessionUi.sending.
     val sending = session.sending
     val total = session.totalBytes.coerceAtLeast(1L)
@@ -1409,7 +1467,9 @@ private fun TransferSummary(
                     TransferState.CANCELLED -> "Cancelled"
                     else -> "Preparing…"
                 },
-                style = MaterialTheme.typography.titleMedium,
+                // The live speed is the number this product is judged on: it gets the hero style
+                // and tabular digits, so it glides instead of shivering between frames.
+                style = if (live) MaterialTheme.typography.hero else MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 softWrap = false,
@@ -1723,7 +1783,11 @@ fun WebScreen(vm: AppViewModel, state: AppState, invite: Boolean) {
 
 @Composable
 fun HistoryScreen(vm: AppViewModel, state: AppState) {
-    val entries = remember(state) { vm.history() }
+    // Reading the history file used to happen inside composition, on the main thread, every time any
+    // state changed. It is IO, so it belongs off the frame.
+    val entries by produceState(initialValue = emptyList<HistoryEntry>(), state.historyCount, state.screen) {
+        value = withContext(kotlinx.coroutines.Dispatchers.IO) { vm.history() }
+    }
     ScreenFrame(title = "History", onBack = { vm.back() }) {
         if (entries.isEmpty()) {
             EmptyState("No transfers yet", "Finished and failed sessions appear here with their speed and target folder.")

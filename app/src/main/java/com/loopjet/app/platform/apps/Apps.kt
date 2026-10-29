@@ -67,7 +67,10 @@ class AppRepository(private val context: Context) {
                     targetSdk = info.targetSdkVersion,
                     nativeAbis = nativeAbisOf(info),
                     system = system,
-                    icon = runCatching { pm.getApplicationIcon(packageName) }.getOrNull()
+                    // Deliberately null: loading a Drawable for every installed app held ~200 icons
+                    // in memory (~tens of MB) before a single row was drawn. The picker loads one
+                    // icon per visible row from AppIconCache instead.
+                    icon = null
                 )
             )
         }

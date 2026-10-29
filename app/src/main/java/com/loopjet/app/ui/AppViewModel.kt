@@ -36,7 +36,26 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-enum class Screen { Home, Picker, Nearby, Scanner, Receive, Transfer, Invite, WebShare, History, Settings, Doctor, About, Onboarding }
+/**
+ * Screens carry a depth so navigation knows which way it is going. Deeper screens grow in from
+ * slightly larger; shallower ones recede. Without this every transition looks the same and Back
+ * feels like a new navigation rather than a step back.
+ */
+enum class Screen(val depth: Int) {
+    Onboarding(0),
+    Home(0),
+    Picker(1),
+    Nearby(1),
+    Receive(1),
+    History(1),
+    Settings(1),
+    Doctor(1),
+    About(1),
+    Invite(1),
+    WebShare(1),
+    Scanner(2),
+    Transfer(2)
+}
 
 enum class PickCategory(val label: String) {
     Apps("Apps"),
@@ -151,6 +170,14 @@ data class AppState(
     val avatar: String = "🚀",
     val trustedCount: Int = 0,
     val freeSpace: String = "",
+    /**
+     * Cached so Home can show it without asking WifiManager three times per recomposition. Three
+     * IPC calls inside a composable body is exactly the kind of cost that turns a scroll into a
+     * stutter on a mid-range phone.
+     */
+    val networkSummary: String = "",
+    /** Session count, cached: the count used to be a JSON file read inside composition. */
+    val historyCount: Int = 0,
     val notice: String? = null,
     val selectedPeerName: String = ""
 )
@@ -180,7 +207,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             deviceName = prefs.deviceName,
             avatar = prefs.avatar,
             trustedCount = prefs.trustedDevices.size,
-            freeSpace = Fmt.bytes(application.filesDir.usableSpace)
+            freeSpace = Fmt.bytes(application.filesDir.usableSpace),
+            historyCount = runCatching { app.history.all().size }.getOrDefault(0),
+            networkSummary = runCatching { deviceSummary() }.getOrDefault("")
         )
     )
     val state: StateFlow<AppState> = _state
@@ -934,6 +963,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }.thenByDescending { it.mtime }
         )
+    }
+
+    /**
+     * Refreshes the cached facts Home shows. Called on resume and after a session, never from a
+     * composable body.
+     */
+    fun refreshFacts() {
+        viewModelScope.launch {
+            val summary = withContext(Dispatchers.IO) { runCatching { deviceSummary() }.getOrDefault("") }
+            val count = withContext(Dispatchers.IO) { runCatching { app.history.all().size }.getOrDefault(_state.value.historyCount) }
+            _state.value = _state.value.copy(
+                networkSummary = summary,
+                historyCount = count,
+                trustedCount = prefs.trustedDevices.size,
+                freeSpace = Fmt.bytes(application.filesDir.usableSpace)
+            )
+        }
     }
 
     fun refreshPicker() {
