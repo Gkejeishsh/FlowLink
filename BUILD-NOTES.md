@@ -446,3 +446,48 @@ by the host phone, and the host is simultaneously AP and server, so expect rough
 throughput and more latency. Wi-Fi Direct (5 GHz when available) sits between the two. The app
 never silently downgrades: it uses the LAN path whenever the two phones share a subnet, and only
 falls back to hosting a hotspot when the receiver has no LAN address at all.
+
+---
+
+# Build: LoopJet 1.0.0 — cross-network path (`dist/LoopJet-1.0.0-hotspot-path.apk`)
+
+* size **2,373,939 bytes**
+* sha256 `441c4d214438e52be5609364a78206fcb0368e86c0a35ef9da28cf7f94cb376b`
+* signed v2+v3, `SELF-CHECK: OK`, one dex, not debuggable
+* source commit `b6b7eb8`, CI run **40824070611**: compile/debug/release 0, **31/31 tests**
+* aligned payload sha256 `5424cf76…`
+* same signing key as `-offer-fix` (both were generated in this workspace), so it installs over it
+
+## Why the hotspot "still showed the same red line"
+
+The fallback hotspot was only started when the receiving phone had **no address at all**. Two
+phones on two different networks each have a perfectly good address, so the receiver published a
+LAN-only code, the sender dialled an address it could never reach, and nothing else was offered.
+Both screenshots are that exact case, or the offer being cancelled in the same window.
+
+Now: the receiver starts its hotspot **while the code is on screen** and publishes one v2 code
+carrying **both** paths. The sender decides with `ConnectPlanner` — same IPv4 subnet ⇒ LAN
+(fastest, no consent sheet); different network ⇒ join the advertised hotspot (one Android
+consent tap, unavoidable) and send over it. No probing, no extra traffic on the data path.
+
+## Other fixes in this build
+
+1. **App closed when tapping Receive.** `startReceiver()` runs on the main thread and called
+   `startLocalOnlyHotspot` (SecurityException without the Wi-Fi permission), the Wi-Fi Direct
+   stack and the bind, all unguarded. LOHS is permission-checked, every platform call is guarded,
+   and a failure is now a message on screen.
+2. **Sender said "Receiving from …".** The direction came from `SessionUi.mode`, which the
+   receive side also writes (code publishing, the 3 s address watcher). `SessionUi.sending` is now
+   the only source and the receive path may not touch a session that is sending.
+3. **`.part` files next to the photos.** Incomplete files are staged in a hidden
+   `.loopjet-partial` folder inside the destination and renamed to their real name only when
+   whole and verified; the folder disappears when empty. Resume works and keeps the original
+   name rather than creating `name (1)` copies.
+4. **No typed 6-digit code, no pasted link** on the Send screen — one card explains, the two
+   actions are "Show my code" and "Scan a code".
+5. The receive code's caption no longer claims "no shared Wi-Fi" when the hotspot simply failed.
+
+## Tests
+
+25 → **31**: subnet routing, a code carrying LAN + hotspot, hotspot-only codes, no visible
+`.part` file, a resumed file keeps its name. Loopback in this run: **381 MB/s** large file.
