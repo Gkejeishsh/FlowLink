@@ -491,3 +491,64 @@ consent tap, unavoidable) and send over it. No probing, no extra traffic on the 
 
 25 → **31**: subnet routing, a code carrying LAN + hotspot, hotspot-only codes, no visible
 `.part` file, a resumed file keeps its name. Loopback in this run: **381 MB/s** large file.
+
+---
+
+# Round 4 — the picker rebuilt around one tray
+
+Everything below was reproduced from the source first; nothing is a guess about a platform
+behaviour I could not check.
+
+## File choosing (the "way too complicated" report)
+
+1. **Apps had no tick.** Tapping an app called `SendQueue.add` directly, so it was queued the
+   instant you touched it, and there was no way to untick it. Apps now use the *same* tick
+   circle as files (`SelectionTick`), the tray counts them, and nothing is queued until Send.
+2. **One tray, every source.** Apps, files from any category, files from a browsed folder and
+   picks from the gallery all live in one selection and go out in one Send
+   (`toggleApp` / `commitSelection` / `addPickedUris`).
+3. **Folders category was the system picker.** It launched `OpenDocumentTree` and asked the user
+   to nominate exactly one folder before showing anything. It now browses the phone's storage
+   in-app: a breadcrumb with Up, folders first, then files — down to any depth. When the phone
+   has not granted all-files access it shows one card with one button instead of failing.
+4. **Gallery button.** A "Gallery" chip sits next to the search field, above the categories. It
+   opens the system photo picker (`PickMultipleVisualMedia`, no permission required), and the
+   picks join the tray like everything else.
+5. **Search never filtered.** The bug was ordering, not the pattern: the cursor was limited to
+   the first rows *before* the in-memory name filter ran, so any match outside that window was
+   invisible — i.e. almost every search. The `LIKE` is now part of the MediaStore query, and the
+   folder listing applies the same filter.
+6. **First run no longer asks for a folder.** Sending and receiving need none. The only optional
+   extra is all-files access for browsing, and it is labelled optional.
+
+## Bugs found while verifying the round-3 fixes
+
+- **Speed mode did nothing until something else repainted.** The chips read a SharedPreferences
+  value (invisible to Compose) and `setSpeedMode()` copied state that compared equal, so Compose
+  saw no change. `speedMode` is part of `AppState` now; a tap repaints immediately.
+- **Text broken mid-word.** The transfer status was one word in a `weight(1f)` slot without
+  `maxLines`, so a wide "12m 34s left" split it into "Connecte" + "d". Single line, no mid-word
+  wrap, ETA yields first.
+- **`startForeground` could crash the app on Android 14+** when the service type was refused.
+  Guarded: the session continues without a notification rather than the process dying.
+- **The picker stayed on "Allow all files" after granting it** (nothing refreshed on return).
+  `onResume` re-opens the folder root when the permission has actually appeared.
+
+## Font
+
+The platform default face was in use, which every OEM substitutes — the same screen looked
+different on every phone. **Public Sans** (SIL OFL 1.1), variable `wght` axis, 103 KB, is bundled
+and used by every type style, with tighter heading tracking and line heights.
+
+## Speed
+
+No code path that was already fast got slower. The opt-in **Max** mode goes from 6 to 8 parallel
+streams; Balanced (2) and Fast (4) are untouched, and the wire format is unchanged, so a new
+phone and an old one still interoperate. Loopback bench this round: **402.5 MB/s** (381 MB/s last
+round), 2000 small files 5.6 MB/s.
+
+## Tests
+
+31/31, unchanged — the round-4 changes are UI and I/O-scheduling only; `core/` is untouched
+(`git diff --stat core/` is empty), which is the only reliable regression signal available
+without a device.

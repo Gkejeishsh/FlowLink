@@ -58,6 +58,7 @@ import com.loopjet.app.ui.OfferDialog
 import com.loopjet.app.ui.OnboardingScreen
 import com.loopjet.app.ui.PickerScreen
 import com.loopjet.app.ui.QrScannerScreen
+import com.loopjet.app.ui.PickCategory
 import com.loopjet.app.ui.ReceiveScreen
 import com.loopjet.app.ui.Screen
 import com.loopjet.app.ui.SectionCard
@@ -303,6 +304,15 @@ class MainActivity : ComponentActivity() {
                 vm.state.value.screen == Screen.Receive
             ) {
                 vm.startDiscovery(advertise = true)
+            }
+            // Coming back from the all-files screen must open the file tree, not leave the user
+            // staring at "Allow all files" after they already allowed it.
+            if (vm.state.value.screen == Screen.Picker &&
+                vm.state.value.picker.category == PickCategory.Folders &&
+                vm.state.value.picker.needsAllFiles &&
+                Perms.hasAllFiles(this)
+            ) {
+                vm.openFolderRoot()
             }
         }
     }

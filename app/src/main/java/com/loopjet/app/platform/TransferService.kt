@@ -1204,11 +1204,16 @@ class TransferService : Service() {
     // --- foreground plumbing ---------------------------------------------------------------------
 
     private fun promote(title: String, text: String) {
-        val notification = buildNotification(title, text)
+        // startForeground throws on Android 14+ when the process is not allowed to run this service
+        // type (for example when the app was started from the background). That exception used to
+        // reach the main thread and close the app; the session then runs without a notification
+        // instead, which is degraded but not fatal.
         val type = if (Build.VERSION.SDK_INT >= 29) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC or ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         } else 0
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
+        runCatching {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(title, text), type)
+        }.onFailure { Log.e(TAG, "startForeground refused", it) }
     }
 
     private fun updateNotification() {
