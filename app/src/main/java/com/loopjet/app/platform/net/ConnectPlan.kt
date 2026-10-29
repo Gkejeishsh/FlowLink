@@ -167,6 +167,48 @@ object ReceiveCodes {
     }
 }
 
+/**
+ * Picks the transport from what the code says and what this phone already knows.
+ *
+ * The rule that matters: a LAN address is only useful when the two phones are on the same IPv4
+ * subnet. Two phones can both be online and still be unable to see each other (different Wi-Fi, a
+ * guest SSID, AP isolation), and that used to be undetectable until the connection had already
+ * failed. Comparing subnets costs nothing and needs no I/O.
+ */
+object ConnectPlanner {
+
+    enum class Route { LAN, HOTSPOT, PAIR_ONLY, NONE }
+
+    data class Plan(val route: Route, val reason: String, val code: ConnectCode)
+
+    fun plan(code: ConnectCode, localAddresses: List<String>): Plan {
+        val network = code.network
+        val lanUsable = code.lanHost.isNotBlank() && code.lanPort > 0
+        if (lanUsable) {
+            val peerSubnet = ConnectDiagnosis.subnet(code.lanHost)
+            val mine = localAddresses.mapNotNull { ConnectDiagnosis.subnet(it) }.toSet()
+            val sameSubnet = peerSubnet != null && peerSubnet in mine
+            if (sameSubnet) {
+                return Plan(Route.LAN, "Same Wi-Fi · ${code.lanHost}", code)
+            }
+            if (network != null) {
+                return Plan(
+                    Route.HOTSPOT,
+                    "Different Wi-Fi — switching to this phone's hotspot",
+                    code
+                )
+            }
+            return Plan(
+                Route.LAN,
+                "Different Wi-Fi — ${code.lanHost} is on another network",
+                code
+            )
+        }
+        if (network != null) return Plan(Route.HOTSPOT, "Joining the other phone's hotspot", code)
+        return Plan(Route.NONE, "That code has no address in it", code)
+    }
+}
+
 object ConnectCodes {
 
     /** Parses anything the scanner can see. Never throws. */
@@ -200,8 +242,10 @@ object ConnectCodes {
             val code = ConnectCode.decode(trimmed) ?: return ScannedCode.NeedsUpdate
             val net = code.network
             return when {
-                net != null -> ScannedCode.JoinThenConnect(code, net)
+                // Direct keeps code.network, so the sender can decide: same subnet -> LAN (fastest),
+                // different network -> join the hotspot the receiver also advertised.
                 code.lanHost.isNotBlank() -> ScannedCode.Direct(code)
+                net != null -> ScannedCode.JoinThenConnect(code, net)
                 else -> ScannedCode.Unknown
             }
         }

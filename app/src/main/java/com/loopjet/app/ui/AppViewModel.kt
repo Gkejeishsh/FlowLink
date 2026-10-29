@@ -397,54 +397,65 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         acceptScanned(text)
     }
 
-    fun acceptScanned(text: String) {
-        when (val parsed = com.loopjet.app.platform.net.ConnectCodes.parse(text)) {
-            is com.loopjet.app.platform.net.ScannedCode.JoinThenConnect -> {
-                if (sendItems.value.isEmpty()) {
-                    // Joining a network costs a system prompt: ask for the files first.
-                    notice("Pick the files to send first, then scan again")
-                    return
+    /** Every IPv4 address this phone holds, for the same-subnet decision. */
+    private fun localIpv4Addresses(): List<String> =
+        com.loopjet.app.platform.net.NetworkTools(app).allLocalAddresses()
+            .mapNotNull { it.second.hostAddress }
+
+    /**
+     * Joins the hotspot advertised in [net] and sends to the receiver there. Shared by the v2
+     * "join then connect" code and by the LAN code that also carries a hotspot as a fallback.
+     */
+    private fun joinThenSend(
+        net: com.loopjet.app.platform.net.ConnectNetwork,
+        code: com.loopjet.app.platform.net.ConnectCode
+    ) {
+        if (sendItems.value.isEmpty()) {
+            notice("Pick the files to send first, then scan again")
+            return
+        }
+        if (!hasWifiPermission()) {
+            pendingWifiScan = lastScanned
+            notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join the other phone")
+            requestWifiPermission?.invoke()
+            return
+        }
+        val app = getApplication<android.app.Application>()
+        notice("Joining \"${net.ssid}\" — confirm the Android prompt")
+        com.loopjet.app.platform.net.HotspotController.of(app)
+            .joinAp(net.ssid, net.psk.ifBlank { null }) { joined, message ->
+                if (joined == null) {
+                    notice(message)
+                    return@joinAp
                 }
-                if (!hasWifiPermission()) {
-                    pendingWifiScan = text
-                    notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join the other phone")
-                    val ask = requestWifiPermission
-                    if (ask != null) ask() else {
-                        pendingWifiScan = null
-                        notice("Grant Nearby Wi-Fi devices in Settings to use a hotspot code")
-                    }
-                    return
-                }
-                val net = parsed.network
-                val app = getApplication<android.app.Application>()
-                notice("Joining \"${net.ssid}\" — confirm the Android prompt")
-                com.loopjet.app.platform.net.HotspotController.of(app)
-                    .joinAp(net.ssid, net.psk.ifBlank { null }) { joined, message ->
-                        if (joined == null) {
-                            notice(message)
-                            return@joinAp
-                        }
-                        // The network is passed down into sendTo(), which is what binds the sockets
-                        // to it; setting the global here as well was not enough, because sendTo()
-                        // cleared it again in the same call chain.
-                        pairWithLink(
-                            joinedNetwork = joined,
-                            link = com.loopjet.app.platform.net.ConnectCode(
-                                deviceId = parsed.code.deviceId,
-                                fingerprint = parsed.code.fingerprint,
-                                name = parsed.code.name,
-                                lanHost = net.host,
-                                lanPort = net.port
-                            ).let { c ->
-                                // Hand the LAN parser a v1-shaped link pointing at the AP address.
-                                "loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}"
-                            }
-                        )
-                    }
+                pairWithLink(
+                    link = "loopjet://${net.host}:${net.port}#${code.fingerprint}#${code.deviceId}",
+                    joinedNetwork = joined
+                )
             }
+    }
+
+    private var lastScanned: String = ""
+
+    fun acceptScanned(text: String) {
+        lastScanned = text
+        when (val parsed = com.loopjet.app.platform.net.ConnectCodes.parse(text)) {
+            is com.loopjet.app.platform.net.ScannedCode.JoinThenConnect ->
+                joinThenSend(parsed.network, parsed.code)
             is com.loopjet.app.platform.net.ScannedCode.Direct -> {
                 val c = parsed.code
-                pairWithLink("loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}")
+                // Decide from data instead of trying and failing: same subnet -> LAN (fastest),
+                // different network -> the hotspot the same code advertises. This is the case both
+                // phones have a perfectly good address on two different networks.
+                val plan = com.loopjet.app.platform.net.ConnectPlanner.plan(c, localIpv4Addresses())
+                val link = "loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}"
+                when {
+                    plan.route == com.loopjet.app.platform.net.ConnectPlanner.Route.HOTSPOT &&
+                        c.network != null -> joinThenSend(c.network!!, c)
+                    c.lanHost.isNotBlank() && c.lanPort > 0 -> pairWithLink(link)
+                    c.network != null -> joinThenSend(c.network!!, c)
+                    else -> notice(plan.reason)
+                }
             }
             is com.loopjet.app.platform.net.ScannedCode.PairingCode -> pairWithCode(parsed.digits)
             is com.loopjet.app.platform.net.ScannedCode.WifiOnly -> {

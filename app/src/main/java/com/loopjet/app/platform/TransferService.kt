@@ -97,6 +97,12 @@ data class SessionFileUi(
 
 data class SessionUi(
     val mode: SessionMode = SessionMode.IDLE,
+    /**
+     * True only for a session this phone started by sending. `mode` is also written by the receive
+     * side (code publishing, the address watcher), so reading the direction from it gave the sending
+     * phone the receiving labels -- "Receiving from …" while it was uploading.
+     */
+    val sending: Boolean = false,
     val state: TransferState = TransferState.IDLE,
     val peerName: String = "",
     val sas: String = "",
@@ -237,6 +243,8 @@ class TransferService : Service() {
     private var hotspot: HotspotController? = null
     private var hotspotInfo: HotspotController.HotspotInfo? = null
     private var addressWatch: Thread? = null
+    /** Held so the hidden staging folder can be tidied when a session ends. */
+    private var saveFactory: LocalFileSinkFactory? = null
     private val worker = AtomicReference<Thread?>(null)
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
@@ -275,7 +283,7 @@ class TransferService : Service() {
                 if (running.get() && receiver != null) {
                     Log.d(TAG, "receive already running on port ${receiver?.controlPort}; reusing it")
                     promote("Ready to receive", "Waiting for a sender")
-                    TransferHub.update { it.copy(mode = SessionMode.RECEIVE, receiveReady = true) }
+                    TransferHub.update { it.copy(mode = SessionMode.RECEIVE, sending = false, receiveReady = true) }
                     updateNotification()
                     return START_STICKY
                 }
@@ -289,7 +297,16 @@ class TransferService : Service() {
                     return START_STICKY
                 }
                 promote("Ready to receive", "Waiting for a sender")
-                startReceiver()
+                // startReceiver() runs on the main thread: a SecurityException from the hotspot, the
+                // Wi-Fi Direct stack or a bind failure used to take the whole app down the moment
+                // Receive was tapped. Report it on the screen instead.
+                val started = runCatching { startReceiver() }
+                if (started.isFailure) {
+                    val why = started.exceptionOrNull()?.message ?: "Receive could not start"
+                    Log.e(TAG, "receive failed to start", started.exceptionOrNull())
+                    TransferHub.update { it.copy(state = TransferState.FAILED, message = "Could not start receiving: $why") }
+                    stopSelfSafely("Could not start receiving: $why")
+                }
             }
             ACTION_PAUSE -> {
                 val engine = sender
@@ -451,6 +468,7 @@ class TransferService : Service() {
         TransferHub.update {
             it.copy(
                 mode = SessionMode.SEND,
+                sending = true,
                 state = TransferState.CONNECTING,
                 peerName = peer.name,
                 filesTotal = items.size,
@@ -698,9 +716,11 @@ class TransferService : Service() {
         val saveRoot = resolveSaveRoot()
         // Media goes straight into the gallery through a pending MediaStore item (API 29+), so the
         // photo appears in Photos the moment it lands and no second copy is written.
+        val fileFactory = LocalFileSinkFactory(saveRoot) { SpaceGuard.usable(saveRoot) }
+        saveFactory = fileFactory
         val factory = GallerySinkFactory(
             this,
-            LocalFileSinkFactory(saveRoot) { SpaceGuard.usable(saveRoot) },
+            fileFactory,
             app.prefs.saveFolderName.ifBlank { "LoopJet" }
         )
         val engine = ReceiverEngine(
@@ -847,21 +867,24 @@ class TransferService : Service() {
             deviceId = app.prefs.deviceId()
         )
         publishReceiveCode(lanQr, localAddress)
-        // A phone with no usable LAN address (no Wi-Fi at all) can still be reached if it hosts a
-        // network itself. Starting one costs battery, so it is only done when LAN is not an option.
-        if (localAddress == "0.0.0.0") startFallbackHotspot()
+        // Start the fallback hotspot while the code is on screen -- not only when this phone has no
+        // address at all. Two phones can each have a perfectly good IP on *different* networks
+        // (different Wi-Fi, a guest SSID, AP isolation), and in that case the LAN code can never
+        // connect and there was no fallback whatsoever. The v2 code now carries both, and the sender
+        // picks: same subnet -> LAN (fastest), otherwise join this hotspot.
+        startFallbackHotspot()
         // Host a Wi-Fi Direct group so a sender that cannot see this phone on the Wi-Fi can still join
         // one. Best effort: on phones/ROMs without support the LAN and hotspot paths stay available.
         if (tools.supportsWifiDirect()) {
-            DirectLink.host { ok, detail ->
-                Log.d(TAG, "wi-fi direct host: $ok $detail")
-                if (ok) {
-                    p2pGroupHosted = true
-                    TransferHub.update {
-                        it.copy(message = "Wi-Fi Direct ready ($detail)")
+            runCatching {
+                DirectLink.host { ok, detail ->
+                    Log.d(TAG, "wi-fi direct host: $ok $detail")
+                    if (ok) {
+                        p2pGroupHosted = true
+                        TransferHub.update { it.copy(message = "Wi-Fi Direct ready ($detail)") }
                     }
                 }
-            }
+            }.onFailure { Log.d(TAG, "wi-fi direct unavailable: ${it.message}") }
         }
         updateNotification()
         // The code is built from whatever address existed in the first second of the session. A very
@@ -921,6 +944,8 @@ class TransferService : Service() {
 
     /** Publishes the code the Receive screen renders, plus the one-line explanation of the path. */
     private fun publishReceiveCode(qr: String, localAddress: String, note: String? = null) {
+        // A receive code must never rewrite a session that is currently sending.
+        if (TransferHub.session.value.sending) return
         val app = LoopJetApp.instance
         // Never put a placeholder address under the code: "Same Wi-Fi · 0.0.0.0" is worse than
         // admitting that the address is still being worked out.
@@ -928,6 +953,7 @@ class TransferService : Service() {
         TransferHub.update {
             it.copy(
                 mode = SessionMode.RECEIVE,
+                sending = false,
                 state = TransferState.IDLE,
                 receiveReady = true,
                 files = emptyList(),
@@ -957,8 +983,10 @@ class TransferService : Service() {
         hotspot = controller
         controller.start { info, message ->
             if (info == null) {
+                // Not fatal: the LAN path is still advertised, and the message no longer claims
+                // there is "no shared Wi-Fi" when there may well be one.
                 Log.d(TAG, "local-only hotspot unavailable: $message")
-                TransferHub.update { it.copy(message = "No shared Wi-Fi and the hotspot was refused — use Wi-Fi Direct") }
+                TransferHub.update { it.copy(message = "Same Wi-Fi only — the hotspot could not start ($message)") }
                 return@start
             }
             hotspotInfo = info
@@ -974,22 +1002,29 @@ class TransferService : Service() {
                 }
                 return@start
             }
+            // Carry BOTH paths: the LAN address this phone already has (fast, no consent sheet) and
+            // the hotspot it just started (works across networks). The sender compares subnets and
+            // takes the matching one, so the same code works on the same Wi-Fi *and* anywhere else.
+            val lanHost = runCatching { NetworkTools(this).sessionBinding()?.address?.hostAddress }
+                .getOrNull()
+                .orEmpty()
+            val port = if (controlPort > 0) controlPort else ProtocolLimits.DEFAULT_PORT
             val code = ConnectCode(
                 deviceId = app.prefs.deviceId(),
                 fingerprint = app.identity.fingerprintHex,
                 name = app.prefs.deviceName,
-                lanHost = "",
-                lanPort = 0,
+                lanHost = if (lanHost == "0.0.0.0") "" else lanHost,
+                lanPort = if (lanHost.isBlank() || lanHost == "0.0.0.0") 0 else port,
                 network = ConnectNetwork(
                     kind = "ap",
                     ssid = info.ssid,
                     psk = info.passphrase.orEmpty(),
                     host = host,
-                    port = controlPort
+                    port = port
                 )
             )
             publishReceiveCode(code.encode(), host)
-            Log.d(TAG, "hotspot ready: ${info.ssid} on $host")
+            Log.d(TAG, "hotspot ready: ${info.ssid} on $host (lan=${code.lanHost})")
         }
     }
 
@@ -1064,6 +1099,7 @@ class TransferService : Service() {
                 offer = null
             )
         }
+        runCatching { saveFactory?.cleanupStaging() }
         MediaIndex.notifyFinished(this, result.ok, result.message)
         if (!keepRunning) {
             stopSelfSafely(result.message)
@@ -1085,6 +1121,10 @@ class TransferService : Service() {
     }
 
     private fun stopSelfSafely(reason: String) {
+        // Incomplete files stay behind in the hidden folder on purpose (that is what a resume uses),
+        // but the folder itself disappears once it is empty, so nothing is left next to the user's
+        // own files.
+        runCatching { saveFactory?.cleanupStaging() }
         running.set(false)
         beacon?.close()
         beacon = null
@@ -1116,7 +1156,9 @@ class TransferService : Service() {
         receiveCode = ""
         releaseLocks()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        TransferHub.update { it.copy(mode = SessionMode.IDLE, receiveReady = false, offer = null, message = reason) }
+        TransferHub.update {
+            it.copy(mode = SessionMode.IDLE, sending = false, receiveReady = false, offer = null, message = reason)
+        }
         stopSelf()
     }
 

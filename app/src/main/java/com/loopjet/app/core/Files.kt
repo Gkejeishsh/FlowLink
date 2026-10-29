@@ -322,6 +322,8 @@ class LocalFileSink(
                 throw java.io.IOException("checksum mismatch")
             }
         }
+        // The staged file lives in a hidden folder; the visible one appears only when it is whole.
+        file.parentFile?.mkdirs()
         if (file.exists()) file.delete()
         if (!partFile.renameTo(file)) {
             partFile.copyTo(file, overwrite = true)
@@ -352,6 +354,11 @@ class LocalFileSinkFactory(
     private val root: File,
     private val freeSpaceProbe: (() -> Long)? = null
 ) : FileSinkFactory {
+    companion object {
+        /** Hidden (dot-prefixed) folder holding every incomplete file. */
+        const val STAGING_DIR = ".loopjet-partial"
+    }
+
     private val lock = Any()
 
     init {
@@ -361,19 +368,38 @@ class LocalFileSinkFactory(
 
     private fun probeFree(): Long = freeSpaceProbe?.invoke() ?: SpaceGuard.usable(root)
 
+    /**
+     * Staging root. Half-written files used to sit next to the user's photos as
+     * "IMG_1234.jpg.part", which is confusing, gets picked up by galleries and file managers, and
+     * looks like corruption. Everything incomplete now lives in this hidden folder -- hidden because
+     * of the leading dot -- and appears in the real folder with its real name only when it is whole
+     * and verified.
+     */
+    private val staging: File get() = File(root, STAGING_DIR)
+
     override fun prepare(relativePath: String, size: Long, modified: Long, mime: String): FileSink {
         val safe = SafePath.sanitize(relativePath) ?: throw java.io.IOException("unsafe file name")
         val target = synchronized(lock) {
             val candidate = File(root, safe)
             val dir = candidate.parentFile ?: root
             dir.mkdirs()
-            val part = File(dir, candidate.name + ".part")
-            if (part.exists()) candidate else SafePath.uniqueFile(dir, candidate.name)
+            // A file we are already resuming keeps its name; a genuine name clash gets " (1)".
+            if (staged(candidate).exists()) candidate else SafePath.uniqueFile(dir, candidate.name)
         }
-        val part = File(target.parentFile, target.name + ".part")
-        val sink = LocalFileSink(target, part, modified)
+        val sink = LocalFileSink(target, staged(target), modified)
         sink.preallocate(size)
         return sink
+    }
+
+    private fun staged(target: File): File = File(staging, target.relativeTo(root).path)
+
+    /** Removes the hidden staging folder when nothing is left to resume. */
+    fun cleanupStaging() {
+        runCatching {
+            val empty = staging.walkBottomUp().filter { it != staging && it.isDirectory && it.list()?.isEmpty() == true }
+            empty.forEach { it.delete() }
+            if (staging.list()?.isEmpty() == true) staging.delete()
+        }
     }
 
     override fun makeDirectory(relativePath: String) {
@@ -384,6 +410,12 @@ class LocalFileSinkFactory(
     override fun freeBytes(): Long = probeFree()
 
     override fun rootLabel(): String = root.absolutePath
+
+    /** True when a hidden partial exists for this entry (i.e. a previous session can resume it). */
+    fun hasPartial(relativePath: String): Boolean {
+        val safe = SafePath.sanitize(relativePath) ?: return false
+        return staged(File(root, safe)).isFile
+    }
 
     override fun exists(relativePath: String, size: Long): Boolean {
         val safe = SafePath.sanitize(relativePath) ?: return false

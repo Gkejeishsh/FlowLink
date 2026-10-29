@@ -343,11 +343,9 @@ private fun ActiveSessionBanner(session: SessionUi, onClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                when (session.mode) {
-                    SessionMode.SEND -> "Sending to ${session.peerName}"
-                    SessionMode.RECEIVE -> "Receiving from ${session.peerName}"
-                    else -> "Session"
-                },
+                if (session.sending) "Sending to ${session.peerName.ifBlank { "the other phone" }}"
+                else if (session.mode == SessionMode.RECEIVE) "Receiving from ${session.peerName.ifBlank { "the other phone" }}"
+                else "Session",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -656,8 +654,6 @@ fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitmap {
 @Composable
 fun NearbyScreen(vm: AppViewModel, state: AppState) {
     val discovery = state.discovery
-    var manualCode by remember { mutableStateOf("") }
-    var manualLink by remember { mutableStateOf("") }
     ScreenFrame(title = "Send to", onBack = { vm.back() }) {
         Box(Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
             RadarPulse(active = discovery.active, modifier = Modifier.size(210.dp))
@@ -709,50 +705,18 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
             }
             item {
                 Spacer(Modifier.height(12.dp))
+                // No typed 6-digit code and no pasted loopjet:// link any more: two ways to pair, both
+                // one tap -- show a code, or scan one. Typing a 6-digit code out of a QR was a
+                // developer fallback nobody used, and a pasted link is what the QR already contains.
                 SectionCard {
-                    Text("Pair without discovery", style = MaterialTheme.typography.titleMedium)
+                    Text("Both taps in the wrong order?", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "Type the 6-digit code shown on the other phone if the radar finds nothing.",
+                        "If the radar finds nothing, tap \"Show my code\" on one phone and \"Scan a code\" " +
+                            "on the other. LoopJet makes its own hotspot when the two phones are not on the same Wi-Fi.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(10.dp))
-                    OutlinedTextField(
-                        value = manualCode,
-                        onValueChange = { manualCode = it.filter { ch -> ch.isDigit() }.take(6) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = { Text("000000") },
-                        shape = MaterialTheme.shapes.large
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    // Stacked instead of sharing one row: side by side, the button label was squeezed
-                    // to nothing on narrow screens and at larger font scales.
-                    PrimaryAction("Connect", Modifier.fillMaxWidth(), enabled = manualCode.length == 6) {
-                        vm.pairWithCode(manualCode)
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Or paste the loopjet:// link from the other phone's QR code.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = manualLink,
-                        onValueChange = { manualLink = it.trim().take(300) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = { Text("loopjet://192.168.1.20:43130#…") },
-                        shape = MaterialTheme.shapes.large
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    PrimaryAction(
-                        "Connect with link",
-                        Modifier.fillMaxWidth(),
-                        enabled = manualLink.startsWith("loopjet://")
-                    ) { vm.pairWithLink(manualLink) }
                 }
             }
         }
@@ -878,7 +842,7 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            "Pairing code — type it on the other phone under Send › Pair without discovery",
+                            "Shown to match against the other phone, not typed anywhere",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
@@ -915,7 +879,7 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "On the other phone: LoopJet › Send › pick this name, type the code, or paste the link from this QR.",
+                        "On the other phone: LoopJet › Send › Scan a code. Nothing to type.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1056,7 +1020,8 @@ fun qrBitmap(text: String, size: Int, dark: Boolean): Bitmap? {
 @Composable
 fun TransferScreen(vm: AppViewModel, state: AppState) {
     val session by vm.session.collectAsStateSafe()
-    val sending = session.mode == SessionMode.SEND
+    // The role, not the mode: see SessionUi.sending.
+    val sending = session.sending
     val total = session.totalBytes.coerceAtLeast(1L)
     val progress = (session.doneBytes.toFloat() / total).coerceIn(0f, 1f)
     val live = session.state == TransferState.TRANSFERRING

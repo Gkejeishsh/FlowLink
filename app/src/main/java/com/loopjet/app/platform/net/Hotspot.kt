@@ -50,6 +50,12 @@ class HotspotController(private val context: Context) {
 
     fun start(onResult: (HotspotInfo?, String) -> Unit) {
         val manager = wifi ?: return onResult(null, "Wi-Fi is not available")
+        // startLocalOnlyHotspot throws SecurityException without the Wi-Fi runtime permission. That
+        // exception used to reach the service's main thread and close the app the moment Receive was
+        // tapped on a phone that had not granted it yet.
+        if (!hasHotspotPermission(context)) {
+            return onResult(null, "Allow \"Nearby Wi-Fi devices\" to share a hotspot")
+        }
         if (reservation != null) {
             return onResult(readInfo(), "already running")
         }
@@ -144,6 +150,16 @@ class HotspotController(private val context: Context) {
             }
         }
         return null
+    }
+
+    private fun hasHotspotPermission(ctx: Context): Boolean {
+        val permission = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            android.Manifest.permission.NEARBY_WIFI_DEVICES
+        } else {
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        }
+        return androidx.core.content.ContextCompat.checkSelfPermission(ctx, permission) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
     fun stop() {
