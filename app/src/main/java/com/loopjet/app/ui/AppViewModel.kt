@@ -440,6 +440,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(selectedPeerName = peer.name)
         com.loopjet.app.platform.PendingPeer.network = joinedNetwork
         TransferService.startSend(getApplication(), peer)
+        // This phone is now the sender: stop probing the subnet. Those probe packets would share the
+        // radio with the transfer itself. (This path sets the screen directly, so it has to say so.)
+        stopDiscovery()
         _state.value = _state.value.copy(screen = Screen.Transfer)
     }
 
