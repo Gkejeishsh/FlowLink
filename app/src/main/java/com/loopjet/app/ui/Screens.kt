@@ -1099,64 +1099,6 @@ private fun CredentialRow(label: String, value: String, clipboard: androidx.comp
  * That is one device away from useless: the camera is busy, the other phone is an iPhone, the code
  * expired. The credentials Android generated are right here, so the other phone can simply join.
  */
-@Composable
-private fun HotspotCredentials(ssid: String, passphrase: String, address: String) {
-    val clipboard = LocalClipboardManager.current
-    val haptics = rememberHaptics()
-    SectionCard {
-        Text("This phone's hotspot", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(8.dp))
-        CredentialRow("Name", ssid, clipboard)
-        if (passphrase.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            CredentialRow("Password", passphrase, clipboard)
-        }
-        if (address.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            CredentialRow("Address", address, clipboard)
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Join it on the other phone (Android shows it in Wi-Fi settings). FlowLink finds this " +
-                "phone on it by itself.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(4.dp))
-        TextButton(
-            onClick = {
-                haptics.confirm()
-                clipboard.setText(AnnotatedString("$ssid\n$passphrase"))
-            }
-        ) { Text("Copy name and password") }
-    }
-}
-
-@Composable
-private fun CredentialRow(label: String, value: String, clipboard: androidx.compose.ui.platform.ClipboardManager) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            label,
-            Modifier.width(78.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            value,
-            Modifier.weight(1f),
-            style = MaterialTheme.typography.numeral,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        TextButton(
-            onClick = { clipboard.setText(AnnotatedString(value)) },
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-        ) {
-            Text("Copy", style = MaterialTheme.typography.labelMedium)
-        }
-    }
-}
-
 /**
  * Joining the other phone's hotspot by hand.
  *
