@@ -232,7 +232,7 @@ class AppInstaller(private val context: Context) {
             session.commit(pending.intentSender)
             session.close()
         } catch (t: Throwable) {
-            Log.w("LoopJetInstall", "install failed", t)
+            Log.w("FlowLinkInstall", "install failed", t)
             onResult(false, explain(t.message ?: "Install failed"))
         }
     }

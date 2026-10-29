@@ -85,7 +85,7 @@ fun ConnectionDoctorScreen(vm: AppViewModel, onBack: () -> Unit) {
     }
 
     val report = buildString {
-        appendLine("LoopJet connection report")
+        appendLine("FlowLink connection report")
         rows.forEach { (k, v) -> appendLine("$k: $v") }
     }
 
@@ -129,7 +129,7 @@ fun ConnectionDoctorScreen(vm: AppViewModel, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     val clipboard = context.getSystemService(ClipboardManager::class.java)
-                    clipboard?.setPrimaryClip(ClipData.newPlainText("LoopJet connection report", report))
+                    clipboard?.setPrimaryClip(ClipData.newPlainText("FlowLink connection report", report))
                     copied = true
                 }
                 Spacer(Modifier.height(8.dp))

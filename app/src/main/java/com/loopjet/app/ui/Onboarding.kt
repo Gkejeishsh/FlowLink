@@ -41,7 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.loopjet.app.platform.LoopJetApp
+import com.loopjet.app.platform.FlowLinkApp
 import com.loopjet.app.platform.Perms
 
 /**
@@ -61,7 +61,7 @@ fun OnboardingScreen(
     val missing = remember(state.screen) { Perms.missing(context, requirements) }
     var step by remember { mutableIntStateOf(0) }
     val steps = listOf("Welcome", "Find phones", "Save files", "Battery")
-    val prefs = LoopJetApp.instance.prefs
+    val prefs = FlowLinkApp.instance.prefs
     LaunchedEffect(step) {
         if (step == steps.size) {
             prefs.onboardingDone = true
@@ -94,9 +94,9 @@ fun OnboardingScreen(
         Spacer(Modifier.height(28.dp))
         when (step) {
             0 -> {
-                LoopJetMark(96)
+                FlowLinkMark(96)
                 Spacer(Modifier.height(18.dp))
-                Text("LoopJet", style = MaterialTheme.typography.displaySmall)
+                Text("FlowLink", style = MaterialTheme.typography.displaySmall)
                 Spacer(Modifier.height(8.dp))
                 Text(
                     "Phone-to-phone transfers at the speed of your Wi-Fi. No account, no cloud, no ads — " +
@@ -113,7 +113,7 @@ fun OnboardingScreen(
             1 -> {
                 StepTitle("Let phones find each other")
                 Text(
-                    "LoopJet uses nearby Wi-Fi to create the direct link, plus Bluetooth to advertise when there is no network at all. " +
+                    "FlowLink uses nearby Wi-Fi to create the direct link, plus Bluetooth to advertise when there is no network at all. " +
                         "Android asks once per capability.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -129,7 +129,7 @@ fun OnboardingScreen(
                     PrimaryButton("Grant nearby access") { onRequestPermissions() }
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Refused? LoopJet still works on an existing Wi-Fi network and through Web Share — " +
+                        "Refused? FlowLink still works on an existing Wi-Fi network and through Web Share — " +
                             "Wi-Fi Direct and the hotspot stay unavailable.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -162,7 +162,7 @@ fun OnboardingScreen(
             else -> {
                 StepTitle("Keep transfers alive")
                 Text(
-                    "Some manufacturers stop background apps mid-transfer. Exempting LoopJet from battery " +
+                    "Some manufacturers stop background apps mid-transfer. Exempting FlowLink from battery " +
                         "optimisation is the single biggest reliability win on those phones.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -210,7 +210,7 @@ fun OnboardingScreen(
             Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                "No analytics, no account, no ads. LoopJet has no internet transfer path.",
+                "No analytics, no account, no ads. FlowLink has no internet transfer path.",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -95,6 +95,8 @@ object WebShareQueue {
  * off, and stops itself when the session expires.
  */
 class WebService : Service() {
+
+
     private var server: WebServer? = null
     private var hotspot: HotspotController? = null
     private var hotspotInfo: HotspotController.HotspotInfo? = null
@@ -117,7 +119,7 @@ class WebService : Service() {
             stopServer()
         }
         promote()
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         val tools = NetworkTools(this)
         if (useHotspot) {
             val controller = HotspotController(this)
@@ -136,7 +138,7 @@ class WebService : Service() {
         tools: NetworkTools,
         hotspot: HotspotController.HotspotInfo?
     ) {
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         val binding = tools.sessionBinding()
         val address = hotspot?.address ?: binding?.address?.hostAddress ?: "127.0.0.1"
         val addressInet = runCatching { java.net.InetAddress.getByName(address) }.getOrNull()
@@ -166,9 +168,11 @@ class WebService : Service() {
         } else null
         val downloadFolder = uploadFolder()
         val pin = if (app.prefs.webRequirePin && app.prefs.webPin.isNotBlank()) app.prefs.webPin else null
-        val expiresAt = System.currentTimeMillis() + 30 * 60 * 1000
+        // The room link is meant to be handed out once and keep working; the install link is a
+        // one-shot and should die quickly.
+        val expiresAt = System.currentTimeMillis() + if (mode == WebMode.SHARE) 12 * 60 * 60 * 1000L else 30 * 60 * 1000L
         val config = WebConfig(
-            title = app.prefs.deviceName.ifBlank { "LoopJet" },
+            title = app.prefs.deviceName.ifBlank { "FlowLink" },
             versionName = com.loopjet.app.BuildConfig.VERSION_NAME,
             mode = mode,
             files = files,
@@ -181,8 +185,13 @@ class WebService : Service() {
             requirePin = pin != null,
             // Web Share is an inbound door: the first request from each browser needs a tap on the
             // phone. Invite is outbound only, so it does not need the extra gate.
-            token = token,
+            // No session token: it was the thing that made the link different every time. A new
+            // browser is still gated by the one-tap approval on the phone, which is per address and
+            // therefore has to be given once, not per request.
+            token = null,
             requireApproval = mode == WebMode.SHARE,
+            roomPath = ROOM_PATH,
+            port = ROOM_PORT,
             expiresAt = expiresAt
         )
         val webServer = WebServer(config, object : WebServerEvents {
@@ -216,7 +225,7 @@ class WebService : Service() {
         })
         val port = webServer.start()
         server = webServer
-        val url = "http://$address:$port/?t=$token"
+        val url = "http://$address:$port/$ROOM_PATH"
         val wifiQr = hotspot?.let { info ->
             if (info.passphrase.isNullOrBlank()) WifiQr.payload(info.ssid, null)
             else WifiQr.payload(info.ssid, info.passphrase)
@@ -235,8 +244,9 @@ class WebService : Service() {
                 message = when {
                     address == "127.0.0.1" ->
                         "No Wi-Fi network found — connect to Wi-Fi or use the hotspot option"
-                    mode == WebMode.INVITE -> "Share this link to install LoopJet"
-                    else -> "Open this link on any device on this Wi-Fi"
+                    mode == WebMode.INVITE -> "Share this link to install FlowLink"
+                    // Permanent by design: the port and the room path never change between sessions.
+                    else -> "Permanent room link — the same address every time you share"
                 }
             )
         }
@@ -266,8 +276,8 @@ class WebService : Service() {
      * otherwise app storage with a MediaStore publish on completion.
      */
     private fun uploadFolder(): File {
-        val name = LoopJetApp.instance.prefs.saveFolderName.ifBlank { "LoopJet" }.let {
-            SafePath.sanitizeComponent(it) ?: "LoopJet"
+        val name = FlowLinkApp.instance.prefs.saveFolderName.ifBlank { "FlowLink" }.let {
+            SafePath.sanitizeComponent(it) ?: "FlowLink"
         }
         val canWrite = if (android.os.Build.VERSION.SDK_INT >= 30) {
             android.os.Environment.isExternalStorageManager()
@@ -327,9 +337,9 @@ class WebService : Service() {
     }
 
     private fun promote() {
-        val notification: Notification = NotificationCompat.Builder(this, LoopJetApp.CHANNEL_SERVER)
+        val notification: Notification = NotificationCompat.Builder(this, FlowLinkApp.CHANNEL_SERVER)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("LoopJet sharing")
+            .setContentTitle("FlowLink sharing")
             .setContentText("A local page is being served")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -347,7 +357,16 @@ class WebService : Service() {
     }
 
     companion object {
-        private const val TAG = "LoopJetWeb"
+        /**
+         * The room address is fixed on purpose: a share link that changes every session is one the
+         * user has to re-send every time. Port 8080 and the path `/talal` never change; the host is
+         * this phone's own Wi-Fi address, which only the router can decide. If 8080 is taken the
+         * server walks up a few ports and the phone shows the one it actually bound.
+         */
+        const val ROOM_PORT = 8080
+        const val ROOM_PATH = "talal"
+
+        private const val TAG = "FlowLinkWeb"
         private const val NOTIFICATION_ID = 4103
         const val ACTION_START_INVITE = "com.loopjet.app.WEB_INVITE"
         const val ACTION_START_SHARE = "com.loopjet.app.WEB_SHARE"

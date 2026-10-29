@@ -10,7 +10,7 @@ import java.net.Socket
 import java.net.SocketException
 import java.security.KeyPair
 
-/** Frame identifiers of the LoopJet wire protocol (LJP/1). */
+/** Frame identifiers of the FlowLink wire protocol (LJP/1). */
 object Frame {
     const val HELLO = 0x10
     const val HELLO_REPLY = 0x11
@@ -99,14 +99,16 @@ interface StreamIo : Closeable {
 }
 
 class SocketIo(val socket: Socket) : StreamIo {
-    override val input: InputStream = BufferedInputStream(socket.getInputStream(), 128 * 1024)
-    override val output: OutputStream = BufferedOutputStream(socket.getOutputStream(), 128 * 1024)
+    // One record is 256 KiB, so a buffer below that turns every record into several write syscalls.
+    // 1 MiB lets four records ride one flush; the kernel still decides the real window.
+    override val input: InputStream = BufferedInputStream(socket.getInputStream(), 1024 * 1024)
+    override val output: OutputStream = BufferedOutputStream(socket.getOutputStream(), 1024 * 1024)
 
     init {
         socket.tcpNoDelay = true
         try {
-            socket.sendBufferSize = 4 * 1024 * 1024
-            socket.receiveBufferSize = 4 * 1024 * 1024
+            socket.sendBufferSize = 8 * 1024 * 1024
+            socket.receiveBufferSize = 8 * 1024 * 1024
         } catch (_: SocketException) {
             // Some devices cap the buffer; the kernel default is then used.
         }

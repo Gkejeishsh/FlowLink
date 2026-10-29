@@ -183,7 +183,7 @@ object TransferHub {
         }
         val result = runBlocking { withTimeoutOrNull(timeoutMs) { deferred.await() } }
         pending.compareAndSet(deferred, null)
-        return result ?: OfferDecision(accepted = false, reason = "Offer not answered — open LoopJet to accept")
+        return result ?: OfferDecision(accepted = false, reason = "Offer not answered — open FlowLink to accept")
     }
 }
 
@@ -399,7 +399,7 @@ class TransferService : Service() {
             stopSelfSafely("Nothing selected")
             return
         }
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         val tools = NetworkTools(this)
         val startedAt = System.currentTimeMillis()
         // A Wi-Fi Direct peer is a MAC address, not something a socket can connect to. Join the group
@@ -640,10 +640,15 @@ class TransferService : Service() {
      * a phone on a slow 2.4 GHz link can still pick Balanced. The wire format is untouched — the
      * receiver accepts up to 8 streams either way, so an old peer and a new one still interoperate.
      */
+    /**
+     * Parallel data streams. Fast moves 4 -> 6: Wi-Fi loses packets, and six in-flight streams keep
+     * the pipe busy through a loss event where four go quiet together. The receiver already accepts
+     * eight, so nothing on the other side had to change, and Balanced stays at two for battery.
+     */
     private fun streamCount(speedMode: String): Int = when (speedMode) {
         "balanced" -> 2
         "max" -> 8
-        else -> 4
+        else -> 6
     }
 
     private fun buildManifest(
@@ -715,7 +720,7 @@ class TransferService : Service() {
     // --- receiving -------------------------------------------------------------------------------
 
     private fun startReceiver() {
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         val tools = NetworkTools(this)
         val binding = tools.sessionBinding()
         val saveRoot = resolveSaveRoot()
@@ -726,7 +731,7 @@ class TransferService : Service() {
         val factory = GallerySinkFactory(
             this,
             fileFactory,
-            app.prefs.saveFolderName.ifBlank { "LoopJet" }
+            app.prefs.saveFolderName.ifBlank { "FlowLink" }
         )
         val engine = ReceiverEngine(
             identity = app.identity,
@@ -934,8 +939,8 @@ class TransferService : Service() {
                 val link = ReceiveCodes.lanLink(
                     host = address,
                     port = engineNow.controlPort,
-                    fingerprint = LoopJetApp.instance.identity.fingerprintHex,
-                    deviceId = LoopJetApp.instance.prefs.deviceId()
+                    fingerprint = FlowLinkApp.instance.identity.fingerprintHex,
+                    deviceId = FlowLinkApp.instance.prefs.deviceId()
                 )
                 if (link.isBlank()) continue
                 Log.d(TAG, "receive address changed to $address; republishing the code")
@@ -951,7 +956,7 @@ class TransferService : Service() {
     private fun publishReceiveCode(qr: String, localAddress: String, note: String? = null) {
         // A receive code must never rewrite a session that is currently sending.
         if (TransferHub.session.value.sending) return
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         // Never put a placeholder address under the code: "Same Wi-Fi · 0.0.0.0" is worse than
         // admitting that the address is still being worked out.
         val label = note ?: localAddress.takeIf { it.isNotBlank() && it != "0.0.0.0" } ?: "preparing the connection"
@@ -965,7 +970,7 @@ class TransferService : Service() {
                 fileProgress = emptyMap(),
                 receiveQr = qr.ifBlank { "loopjet://waiting" },
                 deviceName = app.prefs.deviceName,
-                pathLabel = it.pathLabel.ifBlank { "Downloads/LoopJet" },
+                pathLabel = it.pathLabel.ifBlank { "Downloads/FlowLink" },
                 linkLabel = label,
                 message = note ?: ""
             )
@@ -997,7 +1002,7 @@ class TransferService : Service() {
             hotspotInfo = info
             val host = info.address
             val controlPort = receiver?.controlPort ?: ProtocolLimits.DEFAULT_PORT
-            val app = LoopJetApp.instance
+            val app = FlowLinkApp.instance
             if (host.isNullOrBlank()) {
                 // Started, but no AP address: the code would advertise 0.0.0.0 and the sender would
                 // spin. Say so instead of showing a code that cannot work.
@@ -1034,10 +1039,10 @@ class TransferService : Service() {
     }
 
     private fun resolveSaveRoot(): File {
-        val prefs = LoopJetApp.instance.prefs
+        val prefs = FlowLinkApp.instance.prefs
         // The folder name comes from a text field: keep it a single safe component so it can never
         // escape the directory it is joined to.
-        val folder = SafePath.sanitizeComponent(prefs.saveFolderName) ?: "LoopJet"
+        val folder = SafePath.sanitizeComponent(prefs.saveFolderName) ?: "FlowLink"
         val external = getExternalFilesDir(null) ?: filesDir
         val canWrite = if (Build.VERSION.SDK_INT >= 30) {
             android.os.Environment.isExternalStorageManager()
@@ -1075,7 +1080,7 @@ class TransferService : Service() {
         items: List<SendItem>,
         keepRunning: Boolean = false
     ) {
-        val app = LoopJetApp.instance
+        val app = FlowLinkApp.instance
         val names = if (direction == Direction.SEND) items.map { it.displayName }
         else result.files.map { it.relPath }
         app.history.add(
@@ -1191,7 +1196,7 @@ class TransferService : Service() {
         TransferHub.update {
             it.copy(
                 state = TransferState.PAUSED,
-                message = "Android stopped the background transfer (6 h limit). Open LoopJet to resume."
+                message = "Android stopped the background transfer (6 h limit). Open FlowLink to resume."
             )
         }
         stopSelfSafely("Paused by the system")
@@ -1221,7 +1226,7 @@ class TransferService : Service() {
         val title = when (ui.mode) {
             SessionMode.SEND -> "Sending to ${ui.peerName.ifBlank { "device" }}"
             SessionMode.RECEIVE -> if (ui.state == TransferState.TRANSFERRING) "Receiving from ${ui.peerName}" else "Ready to receive"
-            SessionMode.IDLE -> "LoopJet"
+            SessionMode.IDLE -> "FlowLink"
         }
         val text = when (ui.state) {
             TransferState.TRANSFERRING -> "${Fmt.rate(ui.instantBps.toDouble())} · ${Fmt.bytes(ui.doneBytes)} / ${Fmt.bytes(ui.totalBytes)}"
@@ -1249,7 +1254,7 @@ class TransferService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val ui = TransferHub.session.value
-        val builder = NotificationCompat.Builder(this, LoopJetApp.CHANNEL_TRANSFER)
+        val builder = NotificationCompat.Builder(this, FlowLinkApp.CHANNEL_TRANSFER)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
@@ -1289,7 +1294,7 @@ class TransferService : Service() {
     // --- sources ---------------------------------------------------------------------------------
 
     companion object {
-        private const val TAG = "LoopJetTransfer"
+        private const val TAG = "FlowLinkTransfer"
         const val NOTIFICATION_ID = 4101
         const val ACTION_SEND = "com.loopjet.app.SEND"
         const val ACTION_RECEIVE = "com.loopjet.app.RECEIVE"
@@ -1331,7 +1336,7 @@ class TransferService : Service() {
         fun openSourceForItem(item: SendItem): RandomAccessSource {
             item.filePath?.let { return FileSource(File(it)) }
             val uri = item.uri?.let { Uri.parse(it) } ?: throw IOException("no source for ${item.displayName}")
-            return UriSource(LoopJetApp.context, uri)
+            return UriSource(FlowLinkApp.context, uri)
         }
     }
 }
@@ -1386,7 +1391,7 @@ class UriSource(private val context: Context, private val uri: Uri) : RandomAcce
             channel = raf.channel
             direct = false
             size = cached.length()
-            Log.w("LoopJetUriSource", "non-seekable source ${uri}, using cached copy")
+            Log.w("FlowLinkUriSource", "non-seekable source ${uri}, using cached copy")
         }
     }
 

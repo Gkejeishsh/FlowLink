@@ -181,7 +181,7 @@ class NetworkTools(private val context: Context) {
         addresses?.firstOrNull { it is Inet4Address && !it.isLoopbackAddress }
 
     companion object {
-        private const val TAG = "LoopJetNet"
+        private const val TAG = "FlowLinkNet"
         fun log(message: String) = Log.d(TAG, message)
     }
 }

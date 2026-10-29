@@ -408,7 +408,8 @@ class SenderEngine(
     private fun workerLoop(index: Int) {
         var socket: Socket? = null
         var channel: RecordChannel? = null
-        val readBuffer = ByteArray(ProtocolLimits.CHUNK_SIZE)
+        // One buffer per stream: the payload is read into the record buffer itself, so a separate
+        // 256 KiB staging array per worker is gone as well.
         val staging = ByteArray(ProtocolLimits.MAX_RECORD)
         val digest = ByteArray(32)
         val entryDigests = ByteArray(32)
@@ -442,8 +443,8 @@ class SenderEngine(
                                 dataSockets[index] = pair.first
                             }
                             when (work) {
-                                is WorkItem.Chunk -> sendChunk(channel, work, readBuffer, staging, digest)
-                                is WorkItem.Bundle -> sendBundle(channel, work, readBuffer, staging, entryDigests)
+                                is WorkItem.Chunk -> sendChunk(channel, work, staging, digest)
+                                is WorkItem.Bundle -> sendBundle(channel, work, staging, entryDigests)
                             }
                             sent = true
                         } catch (e: Exception) {
@@ -504,7 +505,6 @@ class SenderEngine(
     private fun sendChunk(
         channel: RecordChannel,
         item: WorkItem.Chunk,
-        readBuffer: ByteArray,
         staging: ByteArray,
         digest: ByteArray
     ) {
@@ -517,16 +517,19 @@ class SenderEngine(
             if (cancelled.get()) throw IOException("Cancelled")
             while (paused.get() && !cancelled.get()) Thread.sleep(15)
             val chunk = min(remaining, ProtocolLimits.CHUNK_SIZE)
-            val n = source.readAt(readBuffer, 0, chunk, offset)
+            // Read straight into the payload slot of the record buffer. The old path read into a
+            // second array and then memcpy'd it here, which copied every byte of every file twice
+            // for no benefit -- at 256 KiB per record that was a measurable slice of the CPU budget
+            // on the sending phone. The wire format is unchanged.
+            val n = source.readAt(staging, DATA_HEADER, chunk, offset)
             if (n != chunk) throw IOException("short read on ${file.relPath}")
-            Sha256.digestTo(readBuffer, 0, n, digest, 0)
+            Sha256.digestTo(staging, DATA_HEADER, n, digest, 0)
             putInt(staging, 0, file.id)
             putLong(staging, 4, offset)
             putInt(staging, 12, n)
             staging[16] = 0
             System.arraycopy(digest, 0, staging, 17, 32)
-            System.arraycopy(readBuffer, 0, staging, 49, n)
-            channel.writeRecord(Frame.DATA, staging, 0, 49 + n)
+            channel.writeRecord(Frame.DATA, staging, 0, DATA_HEADER + n)
             rate.add(n.toLong())
             fileBytes.getOrPut(file.id) { AtomicLong() }.addAndGet(n.toLong())
             chunksDone.incrementAndGet()
@@ -540,7 +543,6 @@ class SenderEngine(
     private fun sendBundle(
         channel: RecordChannel,
         item: WorkItem.Bundle,
-        readBuffer: ByteArray,
         staging: ByteArray,
         digest: ByteArray
     ) {
@@ -673,6 +675,11 @@ class SenderEngine(
     }
 
     companion object {
+        /**
+         * Bytes in front of the payload of a DATA record: fileId(4) + offset(8) + length(4) +
+         * flag(1) + sha256(32). The payload is read directly at this offset.
+         */
+        const val DATA_HEADER = 49
         const val CONNECT_TIMEOUT_MS = 6000
         /** Attempts on one data stream before the item goes back on the queue. */
         const val MAX_ITEM_ATTEMPTS = 3

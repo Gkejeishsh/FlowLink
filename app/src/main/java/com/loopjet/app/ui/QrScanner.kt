@@ -210,9 +210,9 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
                 !granted -> ScannerFallback(
                     onClose = onClose,
                     message = if (blockedForever) {
-                        "The camera permission is blocked for LoopJet. Android will not ask again — open the app settings to allow it."
+                        "The camera permission is blocked for FlowLink. Android will not ask again — open the app settings to allow it."
                     } else {
-                        "LoopJet needs the camera to read a QR code. Nothing is recorded or uploaded."
+                        "FlowLink needs the camera to read a QR code. Nothing is recorded or uploaded."
                     },
                     action = if (blockedForever) {
                         "Open app settings" to {

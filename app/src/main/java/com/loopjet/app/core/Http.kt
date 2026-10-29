@@ -75,9 +75,7 @@ class WebServer(
     val activeClients: Int get() = activeDownloads.get()
 
     fun start(): Int {
-        val socket = ServerSocket()
-        socket.reuseAddress = true
-        socket.bind(InetSocketAddress(config.bindAddress, config.port))
+        val socket = bindSocket()
         server = socket
         port = socket.localPort
         running.set(true)
@@ -89,6 +87,30 @@ class WebServer(
         watchdog.start()
         events.onLog("web server listening on ${socket.localPort}")
         return port
+    }
+
+    /**
+     * Binds the configured port, walking upwards if something else already holds it.
+     *
+     * A fixed port is what makes the shared link permanent. Falling back a few ports is better than
+     * refusing to share at all; the phone shows whichever port it actually bound.
+     */
+    private fun bindSocket(): ServerSocket {
+        val preferred = config.port
+        var attempt = 0
+        while (true) {
+            val socket = ServerSocket()
+            socket.reuseAddress = true
+            val want = if (preferred == 0) 0 else preferred + attempt
+            try {
+                socket.bind(InetSocketAddress(config.bindAddress, want))
+                return socket
+            } catch (e: Exception) {
+                runCatching { socket.close() }
+                if (preferred == 0 || attempt >= 15) throw e
+                attempt++
+            }
+        }
     }
 
     private fun acceptLoop(socket: ServerSocket) {
@@ -251,7 +273,9 @@ class WebServer(
             return keepAlive
         }
         return when {
-            request.path == "/" || request.path == "/index.html" -> {
+            request.path == "/" || request.path == "/index.html" ||
+                (config.roomPath.isNotEmpty() &&
+                    (request.path == "/${config.roomPath}" || request.path == "/${config.roomPath}/")) -> {
                 if (request.method != "GET" && request.method != "HEAD") {
                     writeText(output, 405, "text/plain", "method not allowed")
                     true
@@ -786,6 +810,11 @@ data class WebConfig(
     val allowUpload: Boolean = false,
     val installPackage: File? = null,
     val port: Int = 0,
+    /**
+     * Permanent room path. When set, `/<roomPath>` serves the same page as `/`, so the share link
+     * can stay the same between sessions instead of carrying a per-session query string.
+     */
+    val roomPath: String = "",
     val bindAddress: InetAddress? = null,
     val pin: String? = null,
     val requirePin: Boolean = false,

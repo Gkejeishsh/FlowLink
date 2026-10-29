@@ -1,10 +1,10 @@
 <resources>
     <!-- The product name lives in exactly one place. -->
-    <string name="app_name">LoopJet</string>
+    <string name="app_name">FlowLink</string>
     <string name="channel_transfer">Transfers</string>
     <string name="channel_server">Sharing servers</string>
     <string name="notif_pause">Pause</string>
     <string name="notif_resume">Resume</string>
     <string name="notif_cancel">Cancel</string>
-    <string name="share_sheet_hint">Send with LoopJet</string>
+    <string name="share_sheet_hint">Send with FlowLink</string>
 </resources>

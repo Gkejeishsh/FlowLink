@@ -60,7 +60,7 @@ interface DiscoveryListener {
 }
 
 /**
- * Finds other LoopJet phones. Four independent channels, because any single one fails often:
+ * Finds other FlowLink phones. Four independent channels, because any single one fails often:
  * mDNS (NsdManager), UDP multicast, a parallel subnet scan that identifies peers through the beacon
  * port, Wi-Fi Direct peer discovery and a BLE advert for the no-network case.
  */
@@ -78,7 +78,7 @@ class DiscoveryEngine(
     private val beaconClient = BeaconClient()
     private val p2p = P2pController(context)
     private val ble = BleBeacon(context)
-    private val fingerprintProvider: () -> String = { com.loopjet.app.platform.LoopJetApp.instance.identity.fingerprintHex }
+    private val fingerprintProvider: () -> String = { com.loopjet.app.platform.FlowLinkApp.instance.identity.fingerprintHex }
 
     private var advertise = false
     private var controlPort = ProtocolLimits.DEFAULT_PORT
@@ -248,7 +248,7 @@ class DiscoveryEngine(
             executor.execute {
                 val parsed = parseLink(link)
                 if (parsed == null) {
-                    onResult(null, "That does not look like a LoopJet link")
+                    onResult(null, "That does not look like a FlowLink link")
                     return@execute
                 }
                 val (host, port, fingerprint) = parsed
@@ -404,7 +404,7 @@ class NsdHelper(
     fun register() {
         val manager = nsd ?: return
         val info = android.net.nsd.NsdServiceInfo().apply {
-            serviceName = "LoopJet-$name"
+            serviceName = "FlowLink-$name"
             serviceType = SERVICE_TYPE
             setPort(port)
             setAttribute("fp", fingerprint)
@@ -505,7 +505,7 @@ class P2pController(private val context: Context) {
         if (channel != null) return
         channel = runCatching { m.initialize(context, Looper.getMainLooper(), null) }.getOrNull()
         if (channel == null) {
-            Log.w("LoopJetP2p", "WifiP2pManager.initialize failed")
+            Log.w("FlowLinkP2p", "WifiP2pManager.initialize failed")
             return
         }
         val filter = android.content.IntentFilter().apply {
@@ -531,8 +531,8 @@ class P2pController(private val context: Context) {
         val m = manager ?: return
         val c = channel ?: return
         runCatching { m.discoverPeers(c, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() { Log.d("LoopJetP2p", "peer discovery started") }
-            override fun onFailure(reason: Int) { Log.d("LoopJetP2p", "peer discovery failed: $reason") }
+            override fun onSuccess() { Log.d("FlowLinkP2p", "peer discovery started") }
+            override fun onFailure(reason: Int) { Log.d("FlowLinkP2p", "peer discovery failed: $reason") }
         }) }
     }
 
@@ -734,7 +734,7 @@ class BleBeacon(private val context: Context) {
             .setTimeout(0)
             .build()
         val callback = object : AdvertiseCallback() {
-            override fun onStartFailure(errorCode: Int) { Log.d("LoopJetBle", "advertise failed $errorCode") }
+            override fun onStartFailure(errorCode: Int) { Log.d("FlowLinkBle", "advertise failed $errorCode") }
         }
         runCatching { advertiser.startAdvertising(settings, data, callback) }
         advertiseCallback = callback

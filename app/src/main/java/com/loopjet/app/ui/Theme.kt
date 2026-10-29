@@ -187,7 +187,7 @@ fun readMotionSettings(context: Context): MotionSettings {
 }
 
 @Composable
-fun LoopJetTheme(dark: Boolean, content: @Composable () -> Unit) {
+fun FlowLinkTheme(dark: Boolean, content: @Composable () -> Unit) {
     val context = LocalContext.current
     val motion = remember(dark) { readMotionSettings(context) }
     MaterialTheme(
@@ -212,11 +212,11 @@ fun LoopJetTheme(dark: Boolean, content: @Composable () -> Unit) {
 // --- brand mark ----------------------------------------------------------------------------------
 
 /**
- * The LoopJet mark drawn from vectors: a bolt that curves into a closed loop between two nodes.
+ * The FlowLink mark drawn from vectors: a bolt that curves into a closed loop between two nodes.
  * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
  */
 @Composable
-fun LoopJetMark(size: Int = 72, modifier: Modifier = Modifier, roundedBackground: Boolean = true) {
+fun FlowLinkMark(size: Int = 72, modifier: Modifier = Modifier, roundedBackground: Boolean = true) {
     Canvas(modifier = modifier.size(size.dp)) {
         val s = this.size.minDimension
         if (roundedBackground) {
@@ -528,7 +528,7 @@ fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
         modifier.fillMaxWidth().padding(28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LoopJetMark(size = 64, modifier = Modifier.padding(bottom = 14.dp).scale(1f + float / 400f))
+        FlowLinkMark(size = 64, modifier = Modifier.padding(bottom = 14.dp).scale(1f + float / 400f))
         Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
         Spacer(Modifier.height(6.dp))
         Text(

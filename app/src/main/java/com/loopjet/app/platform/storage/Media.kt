@@ -189,7 +189,7 @@ class GallerySinkFactory(
  * collection; only files inside app-private storage are re-created in MediaStore.
  */
 object MediaIndex {
-    private const val TAG = "LoopJetMedia"
+    private const val TAG = "FlowLinkMedia"
 
     fun index(context: Context, file: File, mime: String) {
         if (!file.isFile) return
@@ -253,7 +253,7 @@ object MediaIndex {
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
             put(MediaStore.MediaColumns.MIME_TYPE, mime)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/LoopJet/")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/FlowLink/")
             put(MediaStore.MediaColumns.IS_PENDING, 1)
             put(MediaStore.MediaColumns.DATE_TAKEN, file.lastModified())
         }
@@ -281,9 +281,9 @@ object MediaIndex {
     }
 
     fun notifyFinished(context: Context, ok: Boolean, message: String) {
-        val notification = NotificationCompat.Builder(context, LoopJetApp.CHANNEL_TRANSFER)
+        val notification = NotificationCompat.Builder(context, FlowLinkApp.CHANNEL_TRANSFER)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(if (ok) "LoopJet finished" else "LoopJet stopped")
+            .setContentTitle(if (ok) "FlowLink finished" else "FlowLink stopped")
             .setContentText(message)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)

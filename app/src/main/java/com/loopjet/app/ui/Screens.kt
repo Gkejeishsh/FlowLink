@@ -77,6 +77,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -161,10 +163,10 @@ fun HomeScreen(vm: AppViewModel, state: AppState, onSend: () -> Unit, onReceive:
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                LoopJetMark(size = 52)
+                FlowLinkMark(size = 52)
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("LoopJet", style = MaterialTheme.typography.headlineLarge)
+                    Text("FlowLink", style = MaterialTheme.typography.headlineLarge)
                     Text(
                         state.deviceName,
                         style = MaterialTheme.typography.bodyMedium,
@@ -370,34 +372,76 @@ fun PickerScreen(
     vm: AppViewModel,
     state: AppState,
     onPickFolder: () -> Unit,
-    onOpenGallery: () -> Unit = {}
+    onOpenGallery: () -> Unit = {},
+    onGrantMedia: () -> Unit = {}
 ) {
     val picker = state.picker
     val trayHeight = if (picker.totalSelected > 0) 92.dp else 0.dp
     ScreenFrame(title = if (picker.webShareMode) "Web Share files" else "Send", onBack = { vm.back() }) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = picker.query,
-                onValueChange = { vm.setQuery(it) },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Search name") },
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                shape = MaterialTheme.shapes.large
-            )
-            Spacer(Modifier.width(8.dp))
-            // Gallery: one tap to the phone's own photo picker, which needs no permission at all.
-            // A labelled chip rather than an icon: "the button next to search" has to be obvious.
-            Text(
-                "Gallery",
-                Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable { onOpenGallery() }
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            if (picker.searchOpen) {
+                val focus = remember { FocusRequester() }
+                LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+                OutlinedTextField(
+                    value = picker.query,
+                    onValueChange = { vm.setQuery(it) },
+                    modifier = Modifier.weight(1f).focusRequester(focus),
+                    placeholder = { Text("Find any file or app") },
+                    singleLine = true,
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (picker.query.isNotEmpty()) {
+                            IconButton(onClick = { vm.setQuery("") }) {
+                                Icon(Icons.Filled.Close, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    shape = MaterialTheme.shapes.large
+                )
+                Spacer(Modifier.width(6.dp))
+                IconButton(onClick = { vm.closeSearch() }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Close search")
+                }
+            } else {
+                // A doorway, not a filter: tapping it opens the dedicated search area instead of
+                // quietly filtering whichever category happened to be on screen.
+                Row(
+                    Modifier.weight(1f)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { vm.openSearch() }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        "Search files and apps",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                // Gallery: one tap to the phone's own photo picker, which needs no permission at all.
+                // A labelled chip rather than an icon: "the button next to search" has to be obvious.
+                Text(
+                    "Gallery",
+                    Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .clickable { onOpenGallery() }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
             IconButton(onClick = {
                 val next = when (picker.sort) {
                     SortOrder.Newest -> SortOrder.Largest
@@ -422,7 +466,29 @@ fun PickerScreen(
                 onAdd = { text -> vm.addTextSnippet(text); snippetDialog = false }
             )
         }
-        LazyRow(
+        if (picker.searchOpen) {
+            // Search mode: the category strip is replaced by the only two things a search can return.
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SearchScope.entries.forEach { scope ->
+                    val active = scope == picker.searchScope
+                    Text(
+                        scope.label,
+                        Modifier
+                            .weight(1f)
+                            .clip(CircleShape)
+                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { vm.setSearchScope(scope) }
+                            .padding(vertical = 10.dp),
+                        color = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelLarge,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -446,7 +512,7 @@ fun PickerScreen(
                         .clip(CircleShape)
                         .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable {
-                            // Folders opens the file tree inside LoopJet. It used to fire the system
+                            // Folders opens the file tree inside FlowLink. It used to fire the system
                             // folder picker, which asked the user to hand over exactly one folder
                             // before they could see anything.
                             if (category == PickCategory.Folders) vm.openFolderRoot() else vm.setCategory(category)
@@ -457,7 +523,7 @@ fun PickerScreen(
                 )
             }
         }
-        if (picker.category == PickCategory.Folders && !picker.needsAllFiles) {
+        if (!picker.searchOpen && picker.category == PickCategory.Folders && !picker.needsAllFiles) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -487,17 +553,33 @@ fun PickerScreen(
             }
         }
         Box(Modifier.weight(1f)) {
+            val searchApps = picker.searchOpen && picker.searchScope == SearchScope.Apps
+            val visibleApps = if (searchApps) vm.filteredApps(picker.query) else picker.apps
             when {
                 picker.loading -> RadarPulse(active = true, modifier = Modifier.size(120.dp).align(Alignment.Center))
-                picker.category == PickCategory.Folders && picker.needsAllFiles -> AllFilesPrompt(onGrant = onPickFolder)
-                picker.category == PickCategory.Apps -> AppList(
+                searchApps -> AppList(
+                    apps = visibleApps,
+                    selected = picker.selectedApps,
+                    onToggle = { vm.toggleApp(it) },
+                    emptyTitle = if (picker.query.isBlank()) "Type to find an app" else "No app called \"${picker.query}\"",
+                    emptyBody = if (picker.query.isBlank()) "Apps are matched by name or package."
+                    else "Clear the search to see every app on this phone."
+                )
+                picker.searchOpen && picker.query.isBlank() -> EmptyState(
+                    title = "Search the whole phone",
+                    body = "Type part of a name. Files are found wherever they live, not only in the folder you had open."
+                )
+                !picker.searchOpen && picker.category == PickCategory.Folders && picker.needsAllFiles -> AllFilesPrompt(onGrant = onPickFolder)
+                !picker.searchOpen && picker.category == PickCategory.Apps -> AppList(
                     apps = picker.apps,
                     selected = picker.selectedApps,
                     onToggle = { vm.toggleApp(it) }
                 )
+                picker.items.isEmpty() && picker.needsMediaAccess -> MediaAccessPrompt(onGrant = onGrantMedia)
                 picker.items.isEmpty() -> EmptyState(
-                    title = if (picker.query.isNotBlank()) "No match for \"${picker.query}\"" else "Empty folder",
+                    title = if (picker.query.isNotBlank()) "No match for \"${picker.query}\"" else "Nothing here yet",
                     body = when {
+                        picker.searchOpen -> "No file on this phone matches that name."
                         picker.query.isNotBlank() -> "Nothing in this view has that name. Clear the search to see everything."
                         picker.category == PickCategory.Folders -> "This folder has no readable files."
                         else -> "No files in this category yet."
@@ -634,9 +716,15 @@ private fun extensionBadge(name: String): String {
 }
 
 @Composable
-private fun AppList(apps: List<InstalledApp>, selected: Set<String>, onToggle: (InstalledApp) -> Unit) {
+private fun AppList(
+    apps: List<InstalledApp>,
+    selected: Set<String>,
+    onToggle: (InstalledApp) -> Unit,
+    emptyTitle: String = "Reading installed apps",
+    emptyBody: String = "This can take a moment on phones with many apps."
+) {
     if (apps.isEmpty()) {
-        EmptyState("Reading installed apps", "This can take a moment on phones with many apps.")
+        EmptyState(emptyTitle, emptyBody)
         return
     }
     LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
@@ -706,6 +794,27 @@ private fun SelectionTick(selected: Boolean) {
     }
 }
 
+/** Shown when a media category is empty because Android has not granted access to the library. */
+@Composable
+private fun MediaAccessPrompt(onGrant: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Allow access to your files", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Photos, videos, music and documents live behind an Android permission. Folders and Apps " +
+                "already work because they are read a different way.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        PrimaryAction("Allow access", enabled = true) { onGrant() }
+    }
+}
+
 /** Shown in the Folders category until the phone grants all-files access. */
 @Composable
 private fun AllFilesPrompt(onGrant: () -> Unit) {
@@ -717,7 +826,7 @@ private fun AllFilesPrompt(onGrant: () -> Unit) {
         Spacer(Modifier.height(8.dp))
         Text(
             "Photos, Videos and the other categories work already. Walking the whole file manager inside " +
-                "LoopJet needs one all-files permission — the same switch every file manager uses.",
+                "FlowLink needs one all-files permission — the same switch every file manager uses.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -746,7 +855,7 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
     ScreenFrame(title = "Send to", onBack = { vm.back() }) {
         Box(Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
             RadarPulse(active = discovery.active, modifier = Modifier.size(210.dp))
-            LoopJetMark(size = 86)
+            FlowLinkMark(size = 86)
         }
         Text(
             if (discovery.peers.isEmpty()) "Looking for nearby phones…" else "${discovery.peers.size} phone(s) found",
@@ -756,7 +865,7 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            discovery.log.ifBlank { "Keep LoopJet open on the other phone" },
+            discovery.log.ifBlank { "Keep FlowLink open on the other phone" },
             Modifier.fillMaxWidth().padding(horizontal = 28.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -802,7 +911,7 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
                     Spacer(Modifier.height(6.dp))
                     Text(
                         "If the radar finds nothing, tap \"Show my code\" on one phone and \"Scan a code\" " +
-                            "on the other. LoopJet makes its own hotspot when the two phones are not on the same Wi-Fi.",
+                            "on the other. FlowLink makes its own hotspot when the two phones are not on the same Wi-Fi.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -968,12 +1077,12 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "On the other phone: LoopJet › Send › Scan a code. Nothing to type.",
+                        "On the other phone: FlowLink › Send › Scan a code. Nothing to type.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(10.dp))
-                    StatRow("Saving to", session.pathLabel.ifBlank { "Downloads/LoopJet" })
+                    StatRow("Saving to", session.pathLabel.ifBlank { "Downloads/FlowLink" })
                     Spacer(Modifier.height(6.dp))
                     StatRow("Link", session.linkLabel.ifBlank { "waiting" })
                 }
@@ -1190,7 +1299,7 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                         StatRow("Code", session.sas.chunked(3).joinToString(" "))
                     }
                     Spacer(Modifier.height(6.dp))
-                    StatRow("Target", session.pathLabel.ifBlank { "Downloads/LoopJet" })
+                    StatRow("Target", session.pathLabel.ifBlank { "Downloads/FlowLink" })
                 }
                 Spacer(Modifier.height(14.dp))
             }
@@ -1562,7 +1671,7 @@ fun WebScreen(vm: AppViewModel, state: AppState, invite: Boolean) {
                 if (!web.active) {
                     EmptyState(
                         title = if (invite) "Share the app" else "Share files with a PC",
-                        body = if (invite) "Start the page and let the other phone install LoopJet." else "Open the page in any browser on this Wi-Fi."
+                        body = if (invite) "Start the page and let the other phone install FlowLink." else "Open the page in any browser on this Wi-Fi."
                     )
                     Spacer(Modifier.height(16.dp))
                     PrimaryAction(if (invite) "Start invite page" else "Start Web Share") {
@@ -1676,7 +1785,7 @@ fun HistoryScreen(vm: AppViewModel, state: AppState) {
 
 @Composable
 fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable () -> Unit) {
-    val prefs = com.loopjet.app.platform.LoopJetApp.instance.prefs
+    val prefs = com.loopjet.app.platform.FlowLinkApp.instance.prefs
     var name by remember { mutableStateOf(state.deviceName) }
     var saveFolder by remember { mutableStateOf(vm.saveFolder()) }
     var pin by remember { mutableStateOf(vm.webPin()) }
@@ -1761,7 +1870,7 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                         }
                     }
                     Text(
-                        "Fast uses 4 parallel streams. Max uses 8 for the highest throughput on a strong Wi-Fi link; Balanced uses 2 to save battery.",
+                        "Fast uses 6 parallel streams. Max uses 8 for the highest throughput on a strong Wi-Fi link; Balanced uses 2 to save battery.",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1922,11 +2031,11 @@ fun SettingsScreen(vm: AppViewModel, state: AppState, permissions: @Composable (
                 SectionCard {
                     Text("About", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
-                    StatRow("App", "LoopJet ${com.loopjet.app.BuildConfig.VERSION_NAME}")
+                    StatRow("App", "FlowLink ${com.loopjet.app.BuildConfig.VERSION_NAME}")
                     Spacer(Modifier.height(6.dp))
                     StatRow("Identity", if (com.loopjet.app.platform.IdentityFactory.isHardwareBacked()) "Keystore (hardware)" else "Software key")
                     Spacer(Modifier.height(6.dp))
-                    StatRow("Fingerprint", com.loopjet.app.platform.LoopJetApp.instance.identity.fingerprintHex.take(24) + "…")
+                    StatRow("Fingerprint", com.loopjet.app.platform.FlowLinkApp.instance.identity.fingerprintHex.take(24) + "…")
                     Spacer(Modifier.height(8.dp))
                     Text(
                         "Local-only transfers: AES-256-GCM sealed, ECDH P-256 session keys, pinned identities. No analytics, no ads, no accounts, no internet access.",
@@ -1948,16 +2057,16 @@ fun AboutScreen(vm: AppViewModel) {
             item {
                 SectionCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LoopJetMark(56)
+                        FlowLinkMark(56)
                         Spacer(Modifier.width(14.dp))
                         Column {
-                            Text("LoopJet", style = MaterialTheme.typography.headlineMedium)
+                            Text("FlowLink", style = MaterialTheme.typography.headlineMedium)
                             Text("Fast local transfers", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Spacer(Modifier.height(14.dp))
                     Text(
-                        "LoopJet moves files phone-to-phone over Wi-Fi Direct, your own Wi-Fi, or a hotspot. " +
+                        "FlowLink moves files phone-to-phone over Wi-Fi Direct, your own Wi-Fi, or a hotspot. " +
                             "The engine keeps four stages busy (read, seal, send, write) so the radio stays full, " +
                             "splits big files across parallel streams, batches thousands of small files, and resumes " +
                             "from a chunk map after any interruption.",

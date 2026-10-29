@@ -16,7 +16,7 @@ import java.util.Base64
  *  * `loopjet2:<base64url json>` — v2, LAN **and** an optional network (hotspot or Wi-Fi Direct group)
  *    the receiver is hosting right now.
  *
- * A v1 phone that scans a v2 code says so explicitly instead of reporting "not a LoopJet code" — that
+ * A v1 phone that scans a v2 code says so explicitly instead of reporting "not a FlowLink code" — that
  * was the flaw in the first draft of this design (see CONNECTION-PLAN.md §0).
  *
  * Deliberately small: the JSON keys are two letters each so a code carrying a network stays around
@@ -84,7 +84,7 @@ data class ConnectCode(
         /**
          * Tolerates what a camera app may do to the payload: line breaks from a wrapped display,
          * missing padding, and the standard (+/) alphabet. Strict rejection here means "that is not
-         * a LoopJet code", which sends the user hunting for a problem that does not exist.
+         * a FlowLink code", which sends the user hunting for a problem that does not exist.
          */
         private fun decodePayload(raw: String): ByteArray {
             val cleaned = raw.filterNot { it.isWhitespace() }.replace('-', '+').replace('_', '/')
@@ -109,7 +109,7 @@ data class ConnectCode(
             return ConnectCode(
                 deviceId = map.str("id").orEmpty(),
                 fingerprint = map.str("fp").orEmpty(),
-                name = map.str("n").orEmpty().ifBlank { "LoopJet phone" },
+                name = map.str("n").orEmpty().ifBlank { "FlowLink phone" },
                 lanHost = lan?.str("h").orEmpty(),
                 lanPort = lan?.int("p") ?: 0,
                 network = net?.let {
@@ -145,7 +145,7 @@ sealed class ScannedCode {
     /** `http(s)://` — the Web Share page. */
     data class WebLink(val url: String) : ScannedCode()
 
-    /** A LoopJet code from a newer build. */
+    /** A FlowLink code from a newer build. */
     data object NeedsUpdate : ScannedCode()
 
     data object Unknown : ScannedCode()
@@ -231,7 +231,7 @@ object ConnectCodes {
                 ConnectCode(
                     deviceId = "",
                     fingerprint = rest.substringBefore('#').trim(),
-                    name = "LoopJet phone",
+                    name = "FlowLink phone",
                     lanHost = host,
                     lanPort = port
                 )

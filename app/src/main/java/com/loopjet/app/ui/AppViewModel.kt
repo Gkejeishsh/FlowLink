@@ -14,7 +14,7 @@ import com.loopjet.app.platform.Benchmark
 import com.loopjet.app.platform.Perms
 import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.HistoryEntry
-import com.loopjet.app.platform.LoopJetApp
+import com.loopjet.app.platform.FlowLinkApp
 import com.loopjet.app.platform.SendItem
 import com.loopjet.app.platform.SendQueue
 import com.loopjet.app.platform.TransferHub
@@ -52,6 +52,18 @@ enum class PickCategory(val label: String) {
 
 enum class SortOrder(val label: String) { Newest("Newest"), Largest("Largest"), Name("Name") }
 
+/**
+ * Search is its own place now. Tapping the search field leaves the category tabs behind and asks a
+ * direct question: are you looking for a file, or for an app? Files are searched across the whole
+ * phone, not inside whichever folder happened to be open.
+ */
+enum class SearchScope(val label: String) { Files("Files"), Apps("Apps") }
+
+/** Search budgets: MediaStore does the bulk, the tree walk is capped so it can never stall the UI. */
+private const val SEARCH_LIMIT = 300
+private const val SEARCH_SCAN_LIMIT = 20_000
+private const val SEARCH_SCAN_BUDGET_MS = 1_200L
+
 data class PickItem(
     val key: String,
     val name: String,
@@ -86,6 +98,11 @@ data class PickerState(
     /** The Folders category needs "All files access" before it can show the real file tree. */
     val needsAllFiles: Boolean = false,
     val error: String? = null,
+    /** Search mode replaces the category strip with a Files/Apps choice and a global query. */
+    val searchOpen: Boolean = false,
+    val searchScope: SearchScope = SearchScope.Files,
+    /** A category is empty only because Android has not granted media access yet. */
+    val needsMediaAccess: Boolean = false,
     val webShareMode: Boolean = false,
     /** The category had more rows than the picker loads in one pass. */
     val truncated: Boolean = false
@@ -150,7 +167,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var requestWifiPermission: (() -> Unit)? = null
     private var pendingWifiScan: String? = null
 
-    private val app = application as LoopJetApp
+    private val app = application as FlowLinkApp
     private val prefs = app.prefs
     private val tools = NetworkTools(application)
     private val appRepo = AppRepository(application)
@@ -441,7 +458,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         if (!hasWifiPermission()) {
             pendingWifiScan = lastScanned
-            notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join the other phone")
+            notice("Allow \"Nearby Wi-Fi devices\" so FlowLink can join the other phone")
             requestWifiPermission?.invoke()
             return
         }
@@ -486,12 +503,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             is com.loopjet.app.platform.net.ScannedCode.WifiOnly -> {
                 if (!hasWifiPermission()) {
                     pendingWifiScan = text
-                    notice("Allow \"Nearby Wi-Fi devices\" so LoopJet can join this network")
+                    notice("Allow \"Nearby Wi-Fi devices\" so FlowLink can join this network")
                     requestWifiPermission?.invoke()
                     return
                 }
                 val app = getApplication<android.app.Application>()
-                notice("Joining \"${parsed.ssid}\" — then scan the LoopJet code again")
+                notice("Joining \"${parsed.ssid}\" — then scan the FlowLink code again")
                 com.loopjet.app.platform.net.HotspotController.of(app)
                     .joinAp(parsed.ssid, parsed.passphrase.ifBlank { null }) { joined, message ->
                         notice(if (joined != null) "Joined ${parsed.ssid} — scan again" else message)
@@ -501,14 +518,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val clipboard = getApplication<android.app.Application>()
                     .getSystemService(android.content.ClipboardManager::class.java)
                 clipboard?.setPrimaryClip(
-                    android.content.ClipData.newPlainText("LoopJet link", parsed.url)
+                    android.content.ClipData.newPlainText("FlowLink link", parsed.url)
                 )
                 notice("Web Share link copied — open it in a browser")
             }
             com.loopjet.app.platform.net.ScannedCode.NeedsUpdate ->
-                notice("That code is from a newer LoopJet — update this phone first")
+                notice("That code is from a newer FlowLink — update this phone first")
             com.loopjet.app.platform.net.ScannedCode.Unknown ->
-                notice("That QR is not a LoopJet code")
+                notice("That QR is not a FlowLink code")
         }
     }
 
@@ -536,7 +553,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!Perms.canInstallPackages(context)) {
             updateInstall(received.packageName) {
                 InstallUi(
-                    message = "Allow “Install unknown apps” for LoopJet, then tap Install again",
+                    message = "Allow “Install unknown apps” for FlowLink, then tap Install again",
                     needsPermission = true
                 )
             }
@@ -614,7 +631,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 items = emptyList(),
                 folderStack = emptyList(),
                 browsePath = null,
-                needsAllFiles = false
+                needsAllFiles = false,
+                needsMediaAccess = false,
+                searchOpen = false
             )
         )
         if (category == PickCategory.Folders) {
@@ -625,7 +644,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * The primary shared storage. Browsing starts here instead of asking the user to hand LoopJet one
+     * The primary shared storage. Browsing starts here instead of asking the user to hand FlowLink one
      * folder through the system picker: the file manager is the tree, and it is already on the phone.
      */
     fun storageRoot(): File = android.os.Environment.getExternalStorageDirectory()
@@ -659,6 +678,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 picker = _state.value.picker.copy(
                     category = PickCategory.Folders,
                     needsAllFiles = false,
+                    needsMediaAccess = false,
                     loading = true,
                     browsePath = file.absolutePath,
                     error = null
@@ -734,16 +754,194 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setQuery(query: String) {
         _state.value = _state.value.copy(picker = _state.value.picker.copy(query = query))
-        // Debounced, then a real query -- including inside a browsed folder.
+        // Debounced, then a real query -- global when search mode is open, otherwise the current view.
         queryJob?.cancel()
         queryJob = viewModelScope.launch {
             kotlinx.coroutines.delay(220)
             val picker = _state.value.picker
-            if (picker.category == PickCategory.Folders && picker.browsePath != null) {
-                openFolder(picker.browsePath)
-            } else {
-                loadCategory()
+            when {
+                picker.searchOpen -> runSearch(picker.searchScope, picker.query)
+                picker.category == PickCategory.Folders && picker.browsePath != null -> openFolder(picker.browsePath)
+                else -> loadCategory()
             }
+        }
+    }
+
+    /** Opened by tapping the search field: the category strip gives way to a Files / Apps choice. */
+    fun openSearch() {
+        _state.value = _state.value.copy(
+            picker = _state.value.picker.copy(searchOpen = true, items = emptyList(), loading = false)
+        )
+        runSearch(_state.value.picker.searchScope, _state.value.picker.query)
+        if (_state.value.picker.apps.isEmpty()) loadApps()
+    }
+
+    fun closeSearch() {
+        queryJob?.cancel()
+        _state.value = _state.value.copy(
+            picker = _state.value.picker.copy(searchOpen = false, query = "", items = emptyList())
+        )
+        if (_state.value.picker.category == PickCategory.Folders) openFolderRoot() else loadCategory()
+    }
+
+    fun setSearchScope(scope: SearchScope) {
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(searchScope = scope, items = emptyList()))
+        runSearch(scope, _state.value.picker.query)
+    }
+
+    private fun runSearch(scope: SearchScope, query: String) {
+        val q = query.trim()
+        _state.value = _state.value.copy(picker = _state.value.picker.copy(loading = q.isNotEmpty()))
+        if (q.isEmpty()) {
+            _state.value = _state.value.copy(picker = _state.value.picker.copy(loading = false, items = emptyList()))
+            return
+        }
+        searchJob?.cancel()
+        if (scope == SearchScope.Apps) {
+            // Apps are already in memory, so this tab answers instantly and needs no query.
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(loading = false, items = emptyList(), needsMediaAccess = false)
+            )
+            return
+        }
+        searchJob = viewModelScope.launch {
+            val results = withContext(Dispatchers.IO) { searchFilesEverywhere(q) }
+            // A slower keystroke must not overwrite a newer query's results.
+            if (_state.value.picker.query.trim() != q || !_state.value.picker.searchOpen) return@launch
+            _state.value = _state.value.copy(
+                picker = _state.value.picker.copy(
+                    loading = false,
+                    items = results,
+                    truncated = false,
+                    needsMediaAccess = results.isEmpty() && !Perms.canListMedia(app)
+                )
+            )
+        }
+    }
+
+    private var searchJob: kotlinx.coroutines.Job? = null
+
+    /** Apps tab: name or package match, answered from the list already loaded. */
+    fun filteredApps(query: String): List<InstalledApp> {
+        val q = query.trim().lowercase()
+        if (q.isEmpty()) return _state.value.picker.apps
+        return _state.value.picker.apps.filter {
+            it.label.lowercase().contains(q) || it.packageName.lowercase().contains(q)
+        }
+    }
+
+    /**
+     * File search across the whole phone, not just the open folder.
+     *
+     * MediaStore is the index Android maintains for [MediaStore.Files] -- it covers photos, video,
+     * audio, documents, archives and APKs in every shared directory, so the first pass is a single
+     * indexed query. When `all files` access is granted and the index comes back thin, a bounded
+     * walk of the real tree fills the gap for files the media index never scanned.
+     */
+    private fun searchFilesEverywhere(rawQuery: String): List<PickItem> {
+        val query = rawQuery.trim()
+        if (query.isEmpty()) return emptyList()
+        val lower = query.lowercase()
+        val resolver = getApplication<Application>().contentResolver
+        val out = LinkedHashMap<String, PickItem>()
+        val projections = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DATE_MODIFIED,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.RELATIVE_PATH
+        )
+        runCatching {
+            resolver.query(
+                MediaStore.Files.getContentUri("external"),
+                projections,
+                "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE ?",
+                arrayOf("%$lower%"),
+                "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+                val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+                val dateIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
+                val mimeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+                val pathIndex = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                var count = 0
+                while (cursor.moveToNext() && count < SEARCH_LIMIT) {
+                    val name = cursor.getString(nameIndex) ?: continue
+                    val size = cursor.getLong(sizeIndex)
+                    if (size <= 0) continue
+                    val uri = android.content.ContentUris.withAppendedId(
+                        MediaStore.Files.getContentUri("external"), cursor.getLong(idIndex)
+                    )
+                    val folder = if (pathIndex >= 0) cursor.getString(pathIndex) ?: "" else ""
+                    val item = PickItem(
+                        key = uri.toString(),
+                        name = name,
+                        relativePath = folder.trimEnd('/') + "/" + name,
+                        size = size,
+                        mtime = cursor.getLong(dateIndex) * 1000,
+                        mime = cursor.getString(mimeIndex) ?: mimeFor(name),
+                        uri = uri.toString()
+                    )
+                    out[item.key] = item
+                    count++
+                }
+            }
+        }
+        if (hasAllFilesAccess() && out.size < 40) {
+            runCatching {
+                val deadline = System.currentTimeMillis() + SEARCH_SCAN_BUDGET_MS
+                val queue = ArrayDeque<File>()
+                queue.add(storageRoot())
+                var visited = 0
+                while (queue.isNotEmpty() && visited < SEARCH_SCAN_LIMIT && System.currentTimeMillis() < deadline) {
+                    val dir = queue.removeFirst()
+                    val entries = runCatching { dir.listFiles() }.getOrNull() ?: continue
+                    visited++
+                    for (entry in entries) {
+                        val name = entry.name ?: continue
+                        if (name.startsWith(".")) continue
+                        if (entry.isDirectory) {
+                            if (name != "Android") queue.add(entry)
+                            continue
+                        }
+                        if (entry.length() <= 0 || !entry.canRead()) continue
+                        if (!name.lowercase().contains(lower)) continue
+                        val path = entry.absolutePath
+                        if (out.containsKey(path)) continue
+                        out[path] = PickItem(
+                            key = path,
+                            name = name,
+                            relativePath = path.removePrefix(storageRoot().absolutePath).trimStart('/'),
+                            size = entry.length(),
+                            mtime = entry.lastModified(),
+                            mime = mimeFor(name),
+                            uri = android.net.Uri.fromFile(entry).toString(),
+                            filePath = path
+                        )
+                    }
+                }
+            }
+        }
+        // Exact name first, then "starts with", then the rest -- newest first inside each band.
+        return out.values.sortedWith(
+            compareBy<PickItem> {
+                when {
+                    it.name.equals(query, ignoreCase = true) -> 0
+                    it.name.startsWith(query, ignoreCase = true) -> 1
+                    else -> 2
+                }
+            }.thenByDescending { it.mtime }
+        )
+    }
+
+    fun refreshPicker() {
+        val picker = _state.value.picker
+        when {
+            picker.searchOpen -> runSearch(picker.searchScope, picker.query)
+            picker.category == PickCategory.Folders && picker.browsePath != null -> openFolder(picker.browsePath)
+            else -> loadCategory()
         }
     }
 
@@ -779,12 +977,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val picker = _state.value.picker
             _state.value = _state.value.copy(picker = picker.copy(loading = true, error = null))
             val items = withContext(Dispatchers.IO) { queryCategory(picker) }
+            // An empty media category is usually a permission answer, not an empty phone. Saying so
+            // is the difference between "this app is broken" and "tap this to fix it".
+            val mediaCategory = picker.category !in setOf(PickCategory.Folders, PickCategory.Apps)
             _state.value = _state.value.copy(
                 picker = _state.value.picker.copy(
                     loading = false,
                     items = items,
                     error = null,
-                    truncated = resultTruncated
+                    truncated = resultTruncated,
+                    needsMediaAccess = items.isEmpty() && mediaCategory && !Perms.canListMedia(app)
                 )
             )
         }
@@ -1048,7 +1250,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addTextSnippet(text: String) {
-        val file = File(getApplication<Application>().cacheDir, "LoopJet note ${System.currentTimeMillis()}.txt")
+        val file = File(getApplication<Application>().cacheDir, "FlowLink note ${System.currentTimeMillis()}.txt")
         runCatching { file.writeText(text) }
         SendQueue.add(
             listOf(
@@ -1137,7 +1339,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * The system folder picker, used only by Settings to choose the *name* of the save folder. It no
-     * longer gates the picker: browsing the phone's storage happens inside LoopJet.
+     * longer gates the picker: browsing the phone's storage happens inside FlowLink.
      */
     fun openFolderTree(uri: Uri) {
         val resolver = getApplication<Application>().contentResolver

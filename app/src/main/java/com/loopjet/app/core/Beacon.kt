@@ -51,7 +51,7 @@ data class BeaconInfo(
  * Tiny discovery beacon.
  *
  * One line request, one line JSON reply, on `controlPort + 2`. It is deliberately dumber than the
- * transfer protocol: a subnet scan has to be able to identify a LoopJet phone in a few milliseconds
+ * transfer protocol: a subnet scan has to be able to identify a FlowLink phone in a few milliseconds
  * without a session, a key exchange or a user prompt.
  */
 class BeaconServer(

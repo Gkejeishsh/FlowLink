@@ -134,7 +134,7 @@ class HotspotController(private val context: Context) {
                 }
             }
         }
-        return HotspotInfo(ssid ?: "LoopJet hotspot", passphrase, address, band)
+        return HotspotInfo(ssid ?: "FlowLink hotspot", passphrase, address, band)
     }
 
     /** Finds the hotspot AP interface address (never cellular). */
@@ -273,5 +273,5 @@ object WifiQr {
         }
     }
 
-    fun log(message: String) = Log.d("LoopJetHotspot", message)
+    fun log(message: String) = Log.d("FlowLinkHotspot", message)
 }

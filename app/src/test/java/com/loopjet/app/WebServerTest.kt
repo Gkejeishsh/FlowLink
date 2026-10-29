@@ -68,7 +68,9 @@ class WebServerTest {
         files: List<SharedFile>,
         uploadDir: File? = null,
         allowUpload: Boolean = false,
-        pin: String? = null
+        pin: String? = null,
+        port: Int = 0,
+        roomPath: String = ""
     ): WebServer {
         val config = WebConfig(
             title = "Test phone",
@@ -82,7 +84,9 @@ class WebServerTest {
             pin = pin,
             requirePin = pin != null,
             maxConnections = 4,
-            idleTimeoutMs = 10_000
+            idleTimeoutMs = 10_000,
+            port = port,
+            roomPath = roomPath
         )
         val server = WebServer(config, Events())
         server.start()
@@ -258,12 +262,43 @@ class WebServerTest {
         val response = request(server, "GET", "/")
         assertEquals(200, response.status)
         val html = response.body.toString(Charsets.UTF_8)
-        assertTrue("the page must carry the app name", html.contains("LoopJet"))
+        assertTrue("the page must carry the app name", html.contains("FlowLink"))
         assertTrue("the page must link the shared file", html.contains("/files/1"))
         // The only URL in the markup is the SVG namespace, which is an identifier, not a fetch.
         val withoutNamespaces = html.replace("http://www.w3.org/2000/svg", "")
         for (forbidden in listOf("https://", "http://", "googleapis", "cdn.", "integrity=", "crossorigin")) {
             assertFalse("the page must not reach for $forbidden", withoutNamespaces.contains(forbidden, ignoreCase = true))
         }
+    }
+
+    /**
+     * The permanent room link: `/talal` serves the same page as `/`, so the address handed out once
+     * keeps working between sessions instead of carrying a per-session query string.
+     */
+    @Test
+    fun theRoomPathServesTheSamePageAsTheRoot() {
+        val file = File(root, "photo.jpg").apply { writeBytes(ByteArray(2048) { 7 }) }
+        val server = start(
+            files = listOf(SharedFile(1, "photo.jpg", file.length(), "image/jpeg", file)),
+            roomPath = "talal"
+        )
+        val root = request(server, "GET", "/")
+        val room = request(server, "GET", "/talal")
+        assertEquals(200, root.status)
+        assertEquals(200, room.status)
+        assertArrayEquals(root.body, room.body)
+        // A path that is neither is still a 404, so the alias is deliberate rather than a catch-all.
+        assertEquals(404, request(server, "GET", "/talal-other").status)
+    }
+
+    /** A fixed port is requested, honoured, and kept even when a second server asks for it too. */
+    @Test
+    fun aFixedPortIsHonouredAndFallsBackOnlyWhenTaken() {
+        val preferred = java.net.ServerSocket(0).use { it.localPort }
+        val first = start(files = emptyList(), port = preferred, roomPath = "talal")
+        assertEquals(preferred, first.port)
+        val second = start(files = emptyList(), port = preferred, roomPath = "talal")
+        assertTrue("second server must move off the taken port", second.port > preferred)
+        assertTrue("and stay close to it", second.port <= preferred + 15)
     }
 }

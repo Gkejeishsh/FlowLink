@@ -24,7 +24,7 @@ import java.security.Signature
 import java.security.spec.ECGenParameterSpec
 import java.util.UUID
 
-class LoopJetApp : Application() {
+class FlowLinkApp : Application() {
     lateinit var prefs: Prefs
         private set
     lateinit var identity: Identity
@@ -62,7 +62,7 @@ class LoopJetApp : Application() {
     companion object {
         const val CHANNEL_TRANSFER = "loopjet.transfer"
         const val CHANNEL_SERVER = "loopjet.server"
-        lateinit var instance: LoopJetApp
+        lateinit var instance: FlowLinkApp
             private set
         val context: Context get() = instance.applicationContext
     }
@@ -74,7 +74,7 @@ class LoopJetApp : Application() {
  * software key stored in private preferences and say so in the About screen.
  */
 object IdentityFactory {
-    private const val TAG = "LoopJetIdentity"
+    private const val TAG = "FlowLinkIdentity"
     private const val KEYSTORE = "AndroidKeyStore"
     const val ALIAS = "loopjet.identity.v1"
     private const val PREF_SOFT_KEY = "identity.software.pkcs8"
@@ -94,7 +94,7 @@ object IdentityFactory {
      * to report "hardware" even after [load] had fallen back to a software key.
      */
     fun isHardwareBacked(): Boolean = runCatching {
-        LoopJetApp.instance.identity is KeystoreIdentity
+        FlowLinkApp.instance.identity is KeystoreIdentity
     }.getOrDefault(false)
 
     private fun softwareIdentity(context: Context): Identity {
@@ -176,7 +176,7 @@ class Prefs(context: Context) {
         set(value) = prefs.edit().putBoolean("autoAccept", value).apply()
 
     var saveFolderName: String
-        get() = prefs.getString("save.folder", "LoopJet") ?: "LoopJet"
+        get() = prefs.getString("save.folder", "FlowLink") ?: "FlowLink"
         set(value) = prefs.edit().putString("save.folder", sanitizeFolder(value)).apply()
 
     var saveTreeUri: String?
@@ -249,7 +249,7 @@ class Prefs(context: Context) {
 
     private fun sanitizeFolder(value: String): String {
         val cleaned = value.replace('/', '_').replace('\\', '_').trim()
-        return if (cleaned.isEmpty()) "LoopJet" else cleaned.take(48)
+        return if (cleaned.isEmpty()) "FlowLink" else cleaned.take(48)
     }
 
     fun deviceId(): String {
@@ -298,7 +298,7 @@ data class HistoryEntry(
 }
 
 class HistoryStore(private val prefs: Prefs) {
-    private val context = LoopJetApp.context
+    private val context = FlowLinkApp.context
     private val prefsFile = context.getSharedPreferences("loopjet.history", Context.MODE_PRIVATE)
 
     @Synchronized

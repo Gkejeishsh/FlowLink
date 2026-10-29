@@ -1,7 +1,7 @@
 package com.loopjet.app.platform.net
 
 import android.util.Log
-import com.loopjet.app.platform.LoopJetApp
+import com.loopjet.app.platform.FlowLinkApp
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference
  * a mystery timeout.
  */
 object DirectLink {
-    private const val TAG = "LoopJetDirect"
+    private const val TAG = "FlowLinkDirect"
     const val JOIN_TIMEOUT_MS = 22_000L
 
     data class Result(
@@ -35,7 +35,7 @@ object DirectLink {
      */
     fun join(deviceAddress: String, timeoutMs: Long = JOIN_TIMEOUT_MS, onResult: (Result) -> Unit) {
         Thread({
-            val controller = P2pController(LoopJetApp.context)
+            val controller = P2pController(FlowLinkApp.context)
             try {
                 controller.initialize()
                 if (!controller.isSupported) {
@@ -69,7 +69,7 @@ object DirectLink {
                             onResult(
                                 Result(
                                     null,
-                                    "This phone became the Wi-Fi Direct host. Open LoopJet → Receive on " +
+                                    "This phone became the Wi-Fi Direct host. Open FlowLink → Receive on " +
                                         "the other phone first, then try again.",
                                     becameGroupOwner = true
                                 )
@@ -94,7 +94,7 @@ object DirectLink {
 
     /** Creates the group on the receiving phone, preferring 5 GHz and reporting the band it got. */
     fun host(onResult: (Boolean, String) -> Unit) {
-        val controller = P2pController(LoopJetApp.context)
+        val controller = P2pController(FlowLinkApp.context)
         controller.initialize()
         if (!controller.isSupported) {
             onResult(false, "Wi-Fi Direct is not available")
@@ -121,7 +121,7 @@ object DirectLink {
 
     /** Removes the group so no hotspot, interface or power draw is left behind. */
     fun teardown(onDone: () -> Unit = {}) {
-        val controller = P2pController(LoopJetApp.context)
+        val controller = P2pController(FlowLinkApp.context)
         controller.initialize()
         controller.removeGroup {
             runCatching { controller.stop() }

@@ -589,3 +589,73 @@ workflow published. One dex, no `debuggable` attribute, v2 + v3 signatures valid
 certificate `C=PK, O=LoopJet, OU=Release, CN=LoopJet` — the same key as the previous build, so
 it installs as an update. Permissions were read out of the binary manifest's string pool, not
 grepped as raw bytes: `MANAGE_EXTERNAL_STORAGE` is present, which the in-app file tree needs.
+
+---
+
+# Round 5 — FlowLink, a permanent room link, working categories, global search
+
+## 1. The name
+
+Every shipped surface now says **FlowLink**: the launcher label, the notification channels, the
+in-app copy, the browser pages served over Web Share, the share-sheet hint and the APK name.
+The application id stays `com.loopjet.app` on purpose — changing it would make this build a
+different app that cannot install over the one already on the phone. The `loopjet://` QR scheme
+is untouched, so codes from the previous build still work.
+
+## 2. A room link that never changes
+
+`http://<phone-ip>:8080/talal`
+
+* Port **8080** and room path **`/talal`** are constants. If another process already holds 8080
+  the server walks up to 15 ports and the phone shows the port it actually bound — sharing still
+  works, and it says which address to use.
+* The per-session `?t=…` token is gone: it was the thing that made the link different every time.
+  First contact from a new browser is still gated by the one-tap approval on the phone, cached
+  per address, so a permanent link does not mean an open door.
+* Share sessions now stay valid for 12 hours instead of 30 minutes; the install-invite link stays
+  short-lived on purpose.
+
+The host part is the phone's own Wi-Fi address. That is the one piece an app cannot dictate; if
+the router hands out 192.168.1.7 every time, the link is exactly the requested address.
+
+## 3. Why every category looked empty
+
+`READ_MEDIA_IMAGES / VIDEO / AUDIO` were only ever requested on the **Receive** screen, so anyone
+who went straight to Send got an empty Photos, Videos, Music, Downloads, Documents, Archives and
+APKs list — the query throws `SecurityException`, which the category loader swallowed. Now:
+
+* `Perms.pickerRequirements()` asks for exactly what the picker needs, when the Send screen opens.
+* A failed query is no longer silent: an empty category shows "Allow access to your files" with a
+  button instead of "Nothing here yet".
+* Returning from the dialog refreshes the open category.
+
+## 4. Search that finds the thing
+
+The field is now a doorway, not a filter. Tapping it hides the category strip and offers two
+tabs — **Files** and **Apps** — exactly as requested:
+
+* **Files** searches the whole phone, not the open folder: one indexed `MediaStore.Files` query
+  across every shared directory, then a bounded tree walk (all-files access, 1.2 s, 20 000
+  entries) for files the media index never scanned. Results are ranked exact → prefix → contains,
+  newest first within each band.
+* **Apps** answers from the installed-app list by name or package.
+* Files and apps land in the same tray, so one Send still sends everything.
+* Closing search restores the category you were in.
+
+## 5. Speed
+
+Nothing that was fast got slower.
+
+* **One less copy per chunk.** The sender read each 256 KiB chunk into a scratch array, hashed it,
+  then memcpy'd it into the record buffer. It now reads straight into the payload slot of the
+  record buffer and hashes it there. Same wire format, one fewer full copy of every byte, and the
+  256 KiB scratch array per stream is gone.
+* **1 MiB stream buffers** (was 128 KiB) and **8 MiB socket buffers** (was 4 MiB): a 256 KiB
+  record used to straddle several write syscalls.
+* **Fast mode: 4 → 6 parallel streams** (Max stays 8, Balanced stays 2). The receiver already
+  accepts eight, so the other phone needs no update for this.
+
+## 6. Tests
+
+31 → **33**: the room path serves the same page as the root (and `/talal-other` is still a 404),
+a requested port is honoured, and a second server asked for a taken port moves off it.

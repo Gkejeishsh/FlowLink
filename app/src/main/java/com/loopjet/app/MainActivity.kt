@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.loopjet.app.core.ProtocolLimits
 import com.loopjet.app.platform.IncomingOfferUi
-import com.loopjet.app.platform.LoopJetApp
+import com.loopjet.app.platform.FlowLinkApp
 import com.loopjet.app.platform.Perms
 import com.loopjet.app.platform.TransferHub
 import com.loopjet.app.ui.AboutScreen
@@ -52,7 +52,7 @@ import com.loopjet.app.ui.ConnectionDoctorScreen
 import com.loopjet.app.ui.HistoryScreen
 import com.loopjet.app.ui.HomeScreen
 import com.loopjet.app.ui.LocalMotion
-import com.loopjet.app.ui.LoopJetTheme
+import com.loopjet.app.ui.FlowLinkTheme
 import com.loopjet.app.ui.NearbyScreen
 import com.loopjet.app.ui.OfferDialog
 import com.loopjet.app.ui.OnboardingScreen
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
         if (ok) {
             vmRef?.retryWifiScan()
         } else {
-            vmRef?.notice("LoopJet cannot join the other phone's hotspot without the nearby-Wi-Fi permission")
+            vmRef?.notice("FlowLink cannot join the other phone's hotspot without the nearby-Wi-Fi permission")
         }
     }
 
@@ -137,9 +137,9 @@ class MainActivity : ComponentActivity() {
         }
         vmRef?.notice(
             if (blocked.isEmpty()) {
-                "Refused for now — LoopJet will fall back to the paths that still work"
+                "Refused for now — FlowLink will fall back to the paths that still work"
             } else {
-                "Refused for good: LoopJet may not be able to find phones. Settings › Permissions opens the app settings."
+                "Refused for good: FlowLink may not be able to find phones. Settings › Permissions opens the app settings."
             }
         )
     }
@@ -166,6 +166,24 @@ class MainActivity : ComponentActivity() {
     }
 
     private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
+
+    /**
+     * Media/storage permissions, asked when the Send screen opens. They used to be requested only on
+     * Receive, so Photos, Videos, Music and Downloads were empty for anyone who went straight to Send.
+     */
+    private val pickerPermLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { _ -> vmRef?.refreshPicker() }
+
+    private fun requestPickerPermissions() {
+        val vm = vmRef ?: return
+        val missing = Perms.missing(this, Perms.pickerRequirements(this))
+        if (missing.isEmpty()) {
+            vm.refreshPicker()
+            return
+        }
+        runCatching { pickerPermLauncher.launch(missing.map { it.permission }.toTypedArray()) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val activity = this
@@ -207,7 +225,10 @@ class MainActivity : ComponentActivity() {
             // running transfer was invisible on that side.
             val session by TransferHub.session.collectAsStateWithLifecycle()
             LaunchedEffect(session.mode, session.state) { vm.openSessionIfRunning() }
-            LoopJetTheme(dark = dark) {
+            LaunchedEffect(state.screen) {
+                if (state.screen == Screen.Picker) requestPickerPermissions()
+            }
+            FlowLinkTheme(dark = dark) {
                 val motion = LocalMotion.current
                 val snackbar = remember { SnackbarHostState() }
                 LaunchedEffect(state.notice) {
@@ -244,7 +265,8 @@ class MainActivity : ComponentActivity() {
                                 state = state,
                                 // "Allow all files" inside the picker opens the system all-files screen.
                                 onPickFolder = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
-                                onOpenGallery = { runCatching { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } }
+                                onOpenGallery = { runCatching { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } },
+                                onGrantMedia = { requestPickerPermissions() }
                             )
                             Screen.Nearby -> NearbyScreen(vm, state)
                             Screen.Scanner -> QrScannerScreen(vm, onClose = { vm.go(Screen.Nearby) })
@@ -305,6 +327,9 @@ class MainActivity : ComponentActivity() {
             ) {
                 vm.startDiscovery(advertise = true)
             }
+            // Returning from the system permission dialog or settings: refresh, never re-prompt from
+            // here (that would loop on a refusal). The explicit button on the prompt does the asking.
+            if (vm.state.value.screen == Screen.Picker) vm.refreshPicker()
             // Coming back from the all-files screen must open the file tree, not leave the user
             // staring at "Allow all files" after they already allowed it.
             if (vm.state.value.screen == Screen.Picker &&
@@ -326,7 +351,7 @@ class MainActivity : ComponentActivity() {
             return
         }
         val array = missing.map { it.permission }.toTypedArray()
-        LoopJetApp.instance.prefs.askedPermissions = LoopJetApp.instance.prefs.askedPermissions + array.toSet()
+        FlowLinkApp.instance.prefs.askedPermissions = FlowLinkApp.instance.prefs.askedPermissions + array.toSet()
         val localNetwork = array.firstOrNull { it == Perms.LOCAL_NETWORK }
         if (localNetwork != null) {
             // Never bundled silently with the rest: Android 17 shows a dedicated local-network prompt.
@@ -378,7 +403,7 @@ private fun PermissionsCard(
     // "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android
     // reports false for both. So the app remembers what it has asked for on this install.
     val activity = LocalContext.current as? android.app.Activity
-    val asked = LoopJetApp.instance.prefs.askedPermissions
+    val asked = FlowLinkApp.instance.prefs.askedPermissions
     val permanentlyBlocked = if (activity == null) emptyList() else missing.filter { requirement ->
         requirement.permission in asked && !activity.shouldShowRequestPermissionRationale(requirement.permission)
     }
@@ -388,7 +413,7 @@ private fun PermissionsCard(
             Spacer(Modifier.height(8.dp))
             if (missing.isEmpty()) {
                 Text(
-                    "Every capability LoopJet needs is granted.",
+                    "Every capability FlowLink needs is granted.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

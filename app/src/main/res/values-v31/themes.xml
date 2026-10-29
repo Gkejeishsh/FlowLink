@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Android 12+ system splash: brand background, launcher mark, no icon animation delay. -->
-    <style name="Theme.LoopJet" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.FlowLink" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/splash_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

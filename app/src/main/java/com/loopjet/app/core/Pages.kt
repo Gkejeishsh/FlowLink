@@ -4,7 +4,7 @@ package com.loopjet.app.core
 object Branding {
     /** Name used by the browser pages and the ZIP they download. The app label itself lives in
      *  `res/values/strings.xml`; both are the same word, on purpose. */
-    const val APP_NAME = "LoopJet"
+    const val APP_NAME = "FlowLink"
 
     const val BLUE = "#2F6BFF"
     const val VIOLET = "#8B5CF6"
@@ -15,7 +15,7 @@ object Branding {
      * Same geometry as `design/loopjet-mark.svg` and the adaptive icon layers.
      */
     val logoSvg: String =
-        """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="LoopJet">
+        """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="FlowLink">
 <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
 <stop offset="0" stop-color="$BLUE"/><stop offset=".55" stop-color="$VIOLET"/><stop offset="1" stop-color="$CYAN"/>
 </linearGradient></defs>
