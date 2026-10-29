@@ -179,7 +179,7 @@ document.getElementById(id).style.display = 'none';
     <div class="mdl-layout__header-row">
       <span class="mdl-layout-title">Lint Report: 19 errors and 73 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 06:12:11 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 06:20:24 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -361,14 +361,14 @@ Dismiss</button>            </div>
 <span class="lineno">  412 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:96</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  93 </span>    private <span class="keyword">val</span> wifiJoinLauncher = registerForActivityResult(
-<span class="lineno">  94 </span>        ActivityResultContracts.RequestMultiplePermissions()
-<span class="lineno">  95 </span>    ) { granted ->
-<span class="caretline"><span class="lineno">  96 </span>        <span class="keyword">val</span> ok = granted[<span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span>] != <span class="keyword">false</span> &amp;&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  97 </span>            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != <span class="keyword">false</span>
-<span class="lineno">  98 </span>        <span class="keyword">if</span> (ok) {
-<span class="lineno">  99 </span>            vmRef?.retryWifiScan()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:97</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
+<span class="lineno">  94 </span>    private <span class="keyword">val</span> wifiJoinLauncher = registerForActivityResult(
+<span class="lineno">  95 </span>        ActivityResultContracts.RequestMultiplePermissions()
+<span class="lineno">  96 </span>    ) { granted ->
+<span class="caretline"><span class="lineno">  97 </span>        <span class="keyword">val</span> ok = granted[<span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span>] != <span class="keyword">false</span> &amp;&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  98 </span>            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != <span class="keyword">false</span>
+<span class="lineno">  99 </span>        <span class="keyword">if</span> (ok) {
+<span class="lineno"> 100 </span>            vmRef?.retryWifiScan()
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:162</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
@@ -1051,14 +1051,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:370</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
-<span class="lineno"> 367 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
-<span class="lineno"> 368 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
-<span class="lineno"> 369 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
-<span class="caretline"><span class="lineno"> 370 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 371 </span>  <span class="keyword">val</span> asked = LoopJetApp.instance.prefs.askedPermissions
-<span class="lineno"> 372 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
-<span class="lineno"> 373 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:380</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
+<span class="lineno"> 377 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
+<span class="lineno"> 378 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
+<span class="lineno"> 379 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
+<span class="caretline"><span class="lineno"> 380 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 381 </span>  <span class="keyword">val</span> asked = LoopJetApp.instance.prefs.askedPermissions
+<span class="lineno"> 382 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
+<span class="lineno"> 383 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
 </pre>
 
 </div>
@@ -1852,14 +1852,14 @@ Dismiss</button>            </div>
 <span class="lineno">  50 </span>              context.contentResolver.loadThumbnail(parsed, android.util.Size(<span class="number">96</span>, <span class="number">96</span>), <span class="keyword">null</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1328</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1325 </span>
-<span class="lineno"> 1326 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
-<span class="lineno"> 1327 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
-<span class="caretline"><span class="lineno"> 1328 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
-<span class="lineno"> 1329 </span>          <span class="keyword">return</span> UriSource(LoopJetApp.context, uri)
-<span class="lineno"> 1330 </span>      }
-<span class="lineno"> 1331 </span>  }
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1333</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 1330 </span>
+<span class="lineno"> 1331 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
+<span class="lineno"> 1332 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
+<span class="caretline"><span class="lineno"> 1333 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
+<span class="lineno"> 1334 </span>          <span class="keyword">return</span> UriSource(LoopJetApp.context, uri)
+<span class="lineno"> 1335 </span>      }
+<span class="lineno"> 1336 </span>  }
 </pre>
 
 </div>
