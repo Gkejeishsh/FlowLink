@@ -380,6 +380,7 @@ class TransferService : Service() {
         beacon = null
         receiver?.close()
         receiver = null
+        ReceiverPort.clear()
         receiveCode = ""
         worker.get()?.let { thread ->
             if (thread !== Thread.currentThread()) {
@@ -477,25 +478,76 @@ class TransferService : Service() {
                 files = manifest.files.map { SessionFileUi(it.id, it.relPath.substringAfterLast('/'), it.size) }
             )
         }
+        // The endpoint is rediscovered, not assumed.
+        //
+        // Every dial used to go to the address and port that were learned when the peer appeared in
+        // the list. Both can move: the receiving engine binds the next free port pair if the default
+        // one is still held by the previous session, and a phone that switches between Wi-Fi and its
+        // own hotspot changes address. A failed dial now asks the beacon again and retries with the
+        // answer, instead of spending six seconds on a stale socket and then reporting failure.
+        val basePort = peer.controlPort
+        val endpoint = java.util.concurrent.atomic.AtomicReference(peer.address to basePort)
+        val beaconClient = com.loopjet.app.core.BeaconClient()
+        fun refreshEndpoint(): Boolean {
+            val (host, _) = endpoint.get()
+            val info = runCatching {
+                beaconClient.probe(host, ProtocolLimits.BEACON_PORT, 450)
+            }.getOrNull() ?: return false
+            val port = info.controlPort.takeIf { it > 0 } ?: return false
+            val address = info.address.ifBlank { host }
+            val changed = address != host || port != basePort || endpoint.get().second != port
+            if (changed) Log.d(TAG, "peer moved to $address:$port (was $host)")
+            endpoint.set(address to port)
+            return changed
+        }
         val connector = SocketConnector { port, timeout ->
-            val target = InetSocketAddress(peer.address, port)
-            if (network != null) {
-                val bound = runCatching {
-                    Socket().apply {
-                        tools.bind(this, network)
-                        connect(target, timeout)
+            // The engine asks for controlPort and controlPort+1; keep that offset when the port moves.
+            val isData = port != basePort
+            fun dial(host: String, targetPort: Int, ms: Int): Socket {
+                val target = InetSocketAddress(host, targetPort)
+                if (network != null) {
+                    val bound = runCatching {
+                        Socket().apply {
+                            tools.bind(this, network)
+                            connect(target, ms)
+                        }
+                    }.getOrNull()
+                    if (bound != null) return bound
+                    // A bound socket can fail even though the peer is reachable: the Network object
+                    // may be a specifier network left over from an earlier hotspot join, or a VPN may
+                    // own the default route. Same Wi-Fi still works through the default route, so try
+                    // it before telling the user the phones cannot see each other. Only for the LAN
+                    // path -- after a real hotspot join the default route is by definition wrong.
+                    if (usingJoined) {
+                        throw java.io.IOException("Could not connect to $host:$targetPort over the joined hotspot")
                     }
-                }.getOrNull()
-                if (bound != null) return@SocketConnector bound
-                // A bound socket can fail even though the peer is reachable: the Network object may be
-                // a specifier network left over from an earlier hotspot join, or a VPN may own the
-                // default route. Same Wi-Fi still works through the default route, so try it before
-                // telling the user the phones cannot see each other. Only for the LAN path -- after a
-                // real hotspot join the default route is by definition the wrong one.
-                if (usingJoined) throw java.io.IOException("Could not connect to ${peer.address}:$port over the joined hotspot")
-                Log.d(TAG, "connect over the bound network failed; retrying on the default route")
+                    Log.d(TAG, "connect over the bound network failed; retrying on the default route")
+                }
+                return Socket().apply { connect(target, ms) }
             }
-            Socket().apply { connect(target, timeout) }
+            val (host, ctrl) = endpoint.get()
+            val firstPort = if (isData) ctrl + 1 else ctrl
+            try {
+                dial(host, firstPort, minOf(timeout, 2500))
+            } catch (first: Exception) {
+                // Ask the beacon again: the other phone may have re-bound its ports, or moved
+                // between interfaces since it appeared in the list.
+                if (refreshEndpoint()) {
+                    val (nextHost, nextCtrl) = endpoint.get()
+                    val nextPort = if (isData) nextCtrl + 1 else nextCtrl
+                    try {
+                        return@SocketConnector dial(nextHost, nextPort, minOf(timeout, 4000))
+                    } catch (_: Exception) {
+                        // fall through to the patient retry on the original endpoint
+                    }
+                }
+                // One more attempt at full timeout: a slow link is not a wrong link.
+                try {
+                    dial(host, firstPort, timeout)
+                } catch (_: Exception) {
+                    throw first
+                }
+            }
         }
         val listener = object : TransferListener {
             override fun onState(state: TransferState, detail: String) {
@@ -504,20 +556,9 @@ class TransferService : Service() {
             }
 
             override fun onProgress(progress: TransferProgress) {
-                TransferHub.update { current ->
-                    current.copy(
-                        doneBytes = progress.transferredBytes,
-                        instantBps = progress.instantBytesPerSecond,
-                        averageBps = progress.averageBytesPerSecond,
-                        filesDone = progress.filesDone,
-                        filesTotal = maxOf(progress.filesTotal, current.filesTotal),
-                        etaMs = progress.etaMs,
-                        fileProgress = progress.fileProgress,
-                        pathLabel = progress.pathLabel.ifBlank { current.pathLabel },
-                        state = progress.state,
-                        speedHistory = (current.speedHistory + progress.instantBytesPerSecond).takeLast(120)
-                    )
-                }
+                // Same fold as the receiving side, so the two phones cannot report different totals
+                // or different percentages for one transfer.
+                TransferHub.update { current -> current.absorbProgress(progress) }
             }
 
             override fun onFileDone(result: FileResult) {
@@ -752,17 +793,10 @@ class TransferService : Service() {
                 }
 
                 override fun onProgress(progress: TransferProgress) {
-                    TransferHub.update { current ->
-                        current.copy(
-                            doneBytes = progress.transferredBytes,
-                            instantBps = progress.instantBytesPerSecond,
-                            averageBps = progress.averageBytesPerSecond,
-                            filesDone = progress.filesDone,
-                            filesTotal = maxOf(progress.filesTotal, current.filesTotal),
-                            etaMs = progress.etaMs,
-                            speedHistory = (current.speedHistory + progress.instantBytesPerSecond).takeLast(120)
-                        )
-                    }
+                    // This used to drop progress.totalBytes on the floor: the receiving phone kept a
+                    // total of 0 all session, so its percentage read 0% from start to finish while
+                    // the sender showed a real number.
+                    TransferHub.update { current -> current.absorbProgress(progress) }
                 }
 
                 override fun onFileDone(result: FileResult) {
@@ -847,6 +881,8 @@ class TransferService : Service() {
         )
         engine.bind()
         receiver = engine
+        // Publish the real port for discovery: the beacon must not name a socket that is not listening.
+        ReceiverPort.publish(engine.controlPort)
         val localAddress = binding?.address?.hostAddress ?: "0.0.0.0"
         val info = BeaconInfo(
             name = app.prefs.deviceName,
@@ -1140,6 +1176,7 @@ class TransferService : Service() {
         beacon = null
         receiver?.close()
         receiver = null
+        ReceiverPort.clear()
         // Without this the engine kept transferring after the service was told to stop: no foreground
         // notification, no wake lock, and the OS free to kill the process mid-file.
         runCatching { sender?.requestCancel() }

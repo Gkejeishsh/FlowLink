@@ -434,19 +434,26 @@ interface RandomAccessSource : Closeable {
 
 class FileSource(private val file: File) : RandomAccessSource {
     private val raf = RandomAccessFile(file, "r")
+    private val channel = raf.channel
     override val size: Long = raf.length()
 
+    /**
+     * Positional read, no lock.
+     *
+     * The sender runs several workers over the same file. A shared RandomAccessFile needs a seek
+     * before every read, so it needs a lock around it -- and that lock meant six streams took turns
+     * reading, which is exactly the case a large file hits. FileChannel.read(buf, position) is
+     * stateless from the caller's point of view, so the workers run in parallel without a lock.
+     */
     override fun readAt(buffer: ByteArray, offset: Int, length: Int, position: Long): Int {
-        synchronized(this) {
-            raf.seek(position)
-            var total = 0
-            while (total < length) {
-                val n = raf.read(buffer, offset + total, length - total)
-                if (n < 0) break
-                total += n
-            }
-            return total
+        val bb = java.nio.ByteBuffer.wrap(buffer, offset, length)
+        var pos = position
+        while (bb.hasRemaining()) {
+            val n = channel.read(bb, pos)
+            if (n <= 0) break
+            pos += n
         }
+        return bb.position() - offset
     }
 
     override fun close() {

@@ -109,10 +109,12 @@ class DiscoveryEngine(
             val mc = MulticastBeacon()
             runCatching { mc.start(localAddress) { map, from -> handleAnnounce(map, from) } }
             multicast = mc
+            // 900 ms, not 1.5 s: a sender that opens the peer list was staring at "searching" for up
+            // to two announce periods before the other phone even appeared.
             pool.scheduleAtFixedRate({
                 if (!running.get()) return@scheduleAtFixedRate
                 mc.announce(info.toJson(beaconPort))
-            }, 0, 1500, java.util.concurrent.TimeUnit.MILLISECONDS)
+            }, 0, 900, java.util.concurrent.TimeUnit.MILLISECONDS)
             val helper = NsdHelper(context, prefs.deviceName, controlPort, fingerprintProvider())
             runCatching { helper.register() }
             nsd = helper
@@ -134,7 +136,7 @@ class DiscoveryEngine(
         if (tools.supportsWifiDirect()) {
             p2p.startDiscovery { device -> onP2pPeer(device) }
         }
-        pool.scheduleWithFixedDelay({ scan() }, 400, 6000, java.util.concurrent.TimeUnit.MILLISECONDS)
+        pool.scheduleWithFixedDelay({ scan() }, 150, 2500, java.util.concurrent.TimeUnit.MILLISECONDS)
         pool.scheduleWithFixedDelay({ publish() }, 0, 400, java.util.concurrent.TimeUnit.MILLISECONDS)
         pool.scheduleWithFixedDelay({ sweep() }, 2, 2, java.util.concurrent.TimeUnit.SECONDS)
         listener.onDiscoveryLog("discovery started (advertise=$advertise) on ${localAddress?.hostAddress ?: "no address"}")
@@ -288,12 +290,34 @@ class DiscoveryEngine(
         return Triple(host, port, fingerprint)
     }
 
+    /**
+     * Keeps one entry per phone, with the *reachable* address.
+     *
+     * A sighting can be probe-verified (a beacon answered at that address, so it is definitely
+     * routable back) or merely claimed (BLE hands over whatever address the other phone put in its
+     * advert, which is routinely its hotspot address or a stale Wi-Fi address). Last-writer-wins let
+     * an unverified claim overwrite a verified address seconds before the user tapped the peer, and
+     * the dial then went nowhere. A verified address is now only replaced by another verified one.
+     */
     private fun merge(peer: DiscoveredPeer) {
         if (peer.fingerprint.isNotEmpty() && peer.fingerprint == fingerprintProvider()) return
         val existing = peers[peer.id]
-        peers[peer.id] = if (existing != null && existing.kind == PeerKind.DIRECT && peer.kind == PeerKind.LAN) {
-            peer.copy(p2pDeviceAddress = existing.p2pDeviceAddress)
-        } else peer.copy(lastSeen = System.currentTimeMillis())
+        if (existing == null) {
+            peers[peer.id] = peer.copy(lastSeen = System.currentTimeMillis())
+            return
+        }
+        val keepAddress = existing.rttMicros > 0 && peer.rttMicros <= 0
+        peers[peer.id] = when {
+            // Keep the peer's real address, refresh everything that identifies it.
+            keepAddress -> existing.copy(
+                name = peer.name.ifBlank { existing.name },
+                fingerprint = peer.fingerprint.ifBlank { existing.fingerprint },
+                lastSeen = System.currentTimeMillis()
+            )
+            existing.kind == PeerKind.DIRECT && peer.kind == PeerKind.LAN ->
+                peer.copy(p2pDeviceAddress = existing.p2pDeviceAddress, lastSeen = System.currentTimeMillis())
+            else -> peer.copy(lastSeen = System.currentTimeMillis())
+        }
     }
 
     private fun handleAnnounce(map: Map<String, Any?>, from: String) {

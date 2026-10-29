@@ -264,7 +264,7 @@ class SenderEngine(
             val controlReader = Thread({ readControlLoop() }, "lj-ctl-read").apply { isDaemon = true; start() }
 
             listener.onState(TransferState.TRANSFERRING, "Transferring")
-            val workerCount = max(1, min(maxStreams, 6))
+            val workerCount = max(1, min(maxStreams, 8))
             val workers = ArrayList<Thread>(workerCount)
             for (i in 0 until workerCount) {
                 val t = Thread({ workerLoop(i) }, "lj-send-$i")
@@ -1034,6 +1034,9 @@ class ReceiverEngine(
 
             // Data acceptor.
             val pool = Executors.newFixedThreadPool(maxStreams)
+            // Two threads are enough: verification is sequential I/O per file, and the point is only
+            // to keep it off the streams that carry the bytes.
+            val commitPool = Executors.newFixedThreadPool(2)
             // A local handle: `close()` nulls neither field, but the `!!`s here could still trip if a
             // caller closed the engine between bind() and runOnce().
             val data = dataServer ?: throw IllegalStateException("bind() not called")
@@ -1055,7 +1058,7 @@ class ReceiverEngine(
                         break
                     }
                     try {
-                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, recordCommit, pendingFiles, maybeFinish, pendingCommits) }
+                        pool.execute { handleDataStream(socket, m, sinks, maps, remaining, rate, lastActivity, channel, commitLock, committedFiles, results, recordCommit, pendingFiles, maybeFinish, pendingCommits, commitPool) }
                     } catch (_: Exception) {
                         // The pool is shutting down: do not leave the peer waiting on an unread socket.
                         runCatching { socket.close() }
@@ -1124,6 +1127,8 @@ class ReceiverEngine(
             // committing while a data thread was still writing produced false checksum failures.
             pool.shutdownNow()
             runCatching { pool.awaitTermination(30, TimeUnit.SECONDS) }
+            commitPool.shutdownNow()
+            runCatching { commitPool.awaitTermination(30, TimeUnit.SECONDS) }
             progressState.set(if (remaining.get() <= 0) TransferState.DONE else TransferState.PAUSED)
 
             // Finish whatever is complete, keep partial files for resume.
@@ -1257,7 +1262,8 @@ class ReceiverEngine(
         onCommitted: (TransferFile, java.io.File) -> Unit,
         pendingFiles: ConcurrentHashMap<Int, TransferFile>,
         maybeFinish: Runnable,
-        pendingCommits: AtomicInteger
+        pendingCommits: AtomicInteger,
+        commitPool: java.util.concurrent.ExecutorService
     ) {
         var channel: RecordChannel? = null
         try {
@@ -1309,7 +1315,7 @@ class ReceiverEngine(
                                 }
                             }
                             if (map.isComplete()) {
-                                finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits)
+                                finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits, commitPool)
                             }
                         }
                     }
@@ -1336,7 +1342,7 @@ class ReceiverEngine(
                                     remaining.decrementAndGet()
                                 }
                                 if (map != null && map.isComplete()) {
-                                    finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits)
+                                    finishFile(file, sinks, map, committedFiles, results, control, commitLock, onCommitted, pendingCommits, commitPool)
                                 }
                             }
                             headerOffset += 44
@@ -1372,37 +1378,53 @@ class ReceiverEngine(
         control: RecordChannel,
         commitLock: Any,
         onCommitted: (TransferFile, java.io.File) -> Unit,
-        pendingCommits: AtomicInteger
+        pendingCommits: AtomicInteger,
+        commitPool: java.util.concurrent.ExecutorService
     ) {
         if (!committedFiles.add(file.id)) return
         val sink = sinks.remove(file.id) ?: return
-        var ok = true
-        var message = "received"
-        try {
-            pendingCommits.incrementAndGet()
-            val committed = try {
-                synchronized(sink) { sink.commit(file.sha256) }
+        // Finishing a file means fsync, a full re-read to verify the file hash, and a rename. That is
+        // storage latency, not network work, and it used to run on the data-stream thread -- so the
+        // stream that happened to deliver a large file's last chunk stopped receiving while it
+        // hashed the whole thing. On a phone that reads as the transfer freezing near 99%. It now
+        // runs on a small commit pool, and the stream goes straight back to the socket.
+        pendingCommits.incrementAndGet()
+        val job = Runnable {
+            var ok = true
+            var message = "received"
+            try {
+                val committed = try {
+                    synchronized(sink) { sink.commit(file.sha256) }
+                } finally {
+                    // Nothing else may write this sink now that it is removed from the map.
+                    Unit
+                }
+                onCommitted(file, committed)
+            } catch (e: Exception) {
+                ok = false
+                message = e.message ?: "verification failed"
             } finally {
                 pendingCommits.decrementAndGet()
             }
-            onCommitted(file, committed)
-        } catch (e: Exception) {
-            ok = false
-            message = e.message ?: "verification failed"
-        }
-        synchronized(results) {
-            results.add(FileResult(file.id, file.relPath, file.size, ok, message))
-        }
-        synchronized(commitLock) {
-            runCatching {
-                control.writeJson(
-                    Frame.COMPLETE,
-                    Json.obj("id" to file.id, "ok" to ok, "p" to file.relPath, "s" to file.size, "msg" to message)
-                )
-                control.flush()
+            val result = FileResult(file.id, file.relPath, file.size, ok, message)
+            synchronized(results) { results.add(result) }
+            synchronized(commitLock) {
+                runCatching {
+                    control.writeJson(
+                        Frame.COMPLETE,
+                        Json.obj("id" to file.id, "ok" to ok, "p" to file.relPath, "s" to file.size, "msg" to message)
+                    )
+                    control.flush()
+                }
             }
+            listener.onFileDone(result)
         }
-        listener.onFileDone(FileResult(file.id, file.relPath, file.size, ok, message))
+        try {
+            commitPool.execute(job)
+        } catch (_: Exception) {
+            // Pool already shut down (session ending): finish inline so nothing is lost.
+            job.run()
+        }
     }
 
     /** Adapter so the accepted-socket streams are reused instead of wrapped twice. */
@@ -1413,9 +1435,11 @@ class ReceiverEngine(
     ) : StreamIo {
         init {
             socket.tcpNoDelay = true
+            // Matched to the sender's buffers: on a real link the receive window is what decides how
+            // much can be in flight, and a smaller one here throttles the sending phone.
             runCatching {
-                socket.sendBufferSize = 4 * 1024 * 1024
-                socket.receiveBufferSize = 4 * 1024 * 1024
+                socket.sendBufferSize = 8 * 1024 * 1024
+                socket.receiveBufferSize = 8 * 1024 * 1024
             }
         }
 

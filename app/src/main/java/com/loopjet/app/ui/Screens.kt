@@ -112,6 +112,7 @@ import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.SessionFileUi
 import com.loopjet.app.platform.SessionMode
 import com.loopjet.app.platform.SessionUi
+import com.loopjet.app.platform.percent
 import com.loopjet.app.platform.apps.InstalledApp
 import com.loopjet.app.platform.net.ConnectCode
 import com.loopjet.app.platform.net.DiscoveredPeer
@@ -1315,8 +1316,10 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
     }
     // The role, not the mode: see SessionUi.sending.
     val sending = session.sending
-    val total = session.totalBytes.coerceAtLeast(1L)
-    val progress = (session.doneBytes.toFloat() / total).coerceIn(0f, 1f)
+    // Both phones now carry the same total (see SessionUi.absorbProgress), so this is the same number
+    // on both screens -- which is the point: 16% here used to be 0% on the other phone.
+    val percent = session.percent
+    val progress = percent / 100f
     val live = session.state == TransferState.TRANSFERRING
     val finished = session.state == TransferState.DONE
     // Finished-but-failed files, keyed by id, so a row can show why it did not make it.
@@ -1340,6 +1343,8 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                     peerName = session.peerName.ifBlank { state.selectedPeerName },
                     sending = sending,
                     progress = progress,
+                    percent = percent,
+                    linkLabel = session.linkLabel,
                     doneBytes = session.doneBytes,
                     totalBytes = session.totalBytes,
                     instantBps = session.instantBps,
@@ -1446,6 +1451,8 @@ private fun TransferSummary(
     peerName: String,
     sending: Boolean,
     progress: Float,
+    percent: Int,
+    linkLabel: String,
     doneBytes: Long,
     totalBytes: Long,
     instantBps: Long,
@@ -1456,7 +1463,6 @@ private fun TransferSummary(
     state: TransferState,
     message: String
 ) {
-    val percent = (progress * 100f).toInt()
     val accent = when (state) {
         TransferState.FAILED -> MaterialTheme.colorScheme.error
         TransferState.DONE -> MaterialTheme.colorScheme.primary
@@ -1525,11 +1531,23 @@ private fun TransferSummary(
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            "${Fmt.bytes(doneBytes)} of ${Fmt.bytes(totalBytes)}" +
+            "${Fmt.bytes(doneBytes)} of ${Fmt.bytes(totalBytes)}  ·  $percent%" +
                 if (filesTotal > 0) "  ·  $filesDone of $filesTotal files" else "",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        if (linkLabel.isNotBlank()) {
+            // Which link the bytes are crossing. Without it "why is it slow" has no answer on screen:
+            // a hotspot is a fraction of the speed of both phones sharing one Wi-Fi.
+            Spacer(Modifier.height(2.dp))
+            Text(
+                linkLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
         if (message.isNotBlank() && state != TransferState.DONE) {
             Spacer(Modifier.height(6.dp))
             Text(

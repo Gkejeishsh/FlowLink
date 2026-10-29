@@ -12,6 +12,7 @@ import com.loopjet.app.core.Fmt
 import com.loopjet.app.core.Json
 import com.loopjet.app.platform.Benchmark
 import com.loopjet.app.platform.Perms
+import com.loopjet.app.platform.ReceiverPort
 import com.loopjet.app.platform.ReceivedAppUi
 import com.loopjet.app.platform.HistoryEntry
 import com.loopjet.app.platform.FlowLinkApp
@@ -223,6 +224,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var pendingScan = false
 
     val session get() = TransferHub.session
+    /** Which role the running discovery engine has, so a role change restarts it. */
+    private var discoveryAdvertise: Boolean? = null
     val web get() = WebHub.state
     val sendItems get() = SendQueue.items
 
@@ -233,7 +236,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (screen == Screen.Nearby || screen == Screen.Scanner) startDiscovery(advertise = false)
         // The scanner sits inside Send: stopping discovery there would make a freshly scanned link
         // fail with "Open Send first so discovery is running".
-        if (screen != Screen.Nearby && screen != Screen.Scanner) stopDiscovery()
+        if (screen == Screen.Transfer) {
+            // The phone that is receiving stays findable for the whole session, so a sender whose
+            // first attempt failed can be retried without the user re-opening Receive on this phone.
+            // The phone that is sending stops probing the subnet instead: those probes share the
+            // radio with the transfer.
+            if (TransferHub.session.value.mode != com.loopjet.app.platform.SessionMode.RECEIVE) {
+                stopDiscovery()
+            }
+        } else if (screen != Screen.Nearby && screen != Screen.Scanner) {
+            stopDiscovery()
+        }
         if (screen == Screen.Receive) {
             TransferService.startReceive(getApplication())
             // The receiving phone is the one that has to be findable: it announces itself over mDNS,
@@ -317,7 +330,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // --- discovery -------------------------------------------------------------------------------
 
     fun startDiscovery(advertise: Boolean) {
-        if (discovery != null) return
+        // The role matters. This used to return early whenever an engine already existed, so a phone
+        // that had started discovery as a *sender* (scanning only) kept that role when the user then
+        // opened Receive -- it never announced itself, and the other phone could not find it. That is
+        // the "I pressed Receive and no connection was made" report. A different role now restarts.
+        val existing = discovery
+        if (existing != null && discoveryAdvertise == advertise) return
+        if (existing != null) stopDiscovery()
+        discoveryAdvertise = advertise
         val engine = DiscoveryEngine(getApplication(), prefs, tools, object : DiscoveryListener {
             override fun onPeersChanged(peers: List<DiscoveredPeer>) {
                 _state.value = _state.value.copy(
@@ -332,7 +352,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
         })
         discovery = engine
-        engine.start(advertise = advertise, controlPort = com.loopjet.app.core.ProtocolLimits.DEFAULT_PORT, beaconPort = com.loopjet.app.core.ProtocolLimits.BEACON_PORT)
+        // Announce the port the receiving engine actually bound, not the default one: when the
+        // default pair was still held by the previous session the server moves to the next free
+        // pair, and a beacon advertising the old port sends the other phone to a closed socket.
+        val port = if (advertise && ReceiverPort.current > 0) {
+            ReceiverPort.current
+        } else {
+            com.loopjet.app.core.ProtocolLimits.DEFAULT_PORT
+        }
+        engine.start(advertise = advertise, controlPort = port, beaconPort = com.loopjet.app.core.ProtocolLimits.BEACON_PORT)
         _state.value = _state.value.copy(discovery = DiscoveryState(active = true))
     }
 
@@ -348,6 +376,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun stopDiscovery() {
         discovery?.stop()
         discovery = null
+        discoveryAdvertise = null
         _state.value = _state.value.copy(discovery = DiscoveryState(active = false))
     }
 
@@ -432,6 +461,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             else -> false
         }
         if (!live) return false
+        // The receiving phone must stay findable for as long as the session lives: a sender that
+        // dialled a stale address, or whose first attempt timed out, has to be able to find this
+        // phone again. Re-asserting it here is idempotent (a role change is the only thing that
+        // restarts the engine).
+        if (session.mode == com.loopjet.app.platform.SessionMode.RECEIVE) {
+            startDiscovery(advertise = true)
+        }
         val current = _state.value.screen
         // Never yank the user out of onboarding or out from behind the camera.
         if (current == Screen.Transfer || current == Screen.Onboarding || current == Screen.Scanner) return false
