@@ -846,5 +846,5 @@ own IPv4 address shares the peer's /24 — chosen by address, not by enumeration
 
 ## Tests
 
-33 → 37 unit tests (contrast, motion tokens, session progress, subnet verification). CI on this
+48 → 52 unit tests (contrast, motion tokens, session progress, and now subnet verification). CI on this
 commit builds debug and release and runs the loopback benchmark.
