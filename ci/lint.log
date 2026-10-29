@@ -8,22 +8,60 @@ Daemon will be stopped at the end of the build
 > Task :app:processReleaseNavigationResources UP-TO-DATE
 > Task :app:parseReleaseLocalResources UP-TO-DATE
 > Task :app:generateReleaseRFile UP-TO-DATE
-> Task :app:compileReleaseKotlin UP-TO-DATE
 > Task :app:javaPreCompileRelease UP-TO-DATE
-> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:extractDeepLinksRelease UP-TO-DATE
 > Task :app:processReleaseMainManifest UP-TO-DATE
-> Task :app:generateReleaseLintReportModel
-> Task :app:lintAnalyzeRelease
 
-> Task :app:lintReportRelease
-Wrote HTML report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.html
-Wrote SARIF report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.sarif
+> Task :app:compileReleaseKotlin
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1040:9 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1043:13 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1047:13 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1051:13 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1071:9 Conflicting overloads:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1109:9 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1112:13 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1116:13 Overload resolution ambiguity between candidates:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1136:9 Conflicting overloads:
+fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
 
-> Task :app:lintRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793266689085.json
+> Task :app:compileReleaseKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793277413226.json
 
-BUILD SUCCESSFUL in 56s
-16 actionable tasks: 4 executed, 12 up-to-date
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
+[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: OVERLOAD_RESOLUTION_AMBIGUITY
+       Kotlin compiler error
+         Overload resolution ambiguity between candidates:
+         fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+         fun CredentialRow(label: String, value: String, clipboard: ClipboardManager): Unit
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt line 1040
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 29s
+11 actionable tasks: 1 executed, 10 up-to-date
