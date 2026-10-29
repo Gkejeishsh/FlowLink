@@ -25,12 +25,13 @@ class MotionTokensTest {
     private val defaultEffects = 1.0f to 1600f
     private val slowEffects = 1.0f to 800f
 
-    /** Peak of the step response for a given damping ratio (1.0 = no overshoot). */
+    /**
+     * Peak of the step response, 1.0 = no overshoot. The standard result for a damped spring is
+     * exp(-ζπ / sqrt(1-ζ²)) over the target, which is 9.5 % at ζ = 0.6 and 1.5 % at ζ = 0.8.
+     */
     private fun peak(damping: Double): Double {
         if (damping >= 1.0) return 1.0
-        val zeta = damping
-        val omega = Math.PI * zeta / Math.sqrt(1 - zeta * zeta)
-        return 1 + Math.exp(-zeta * omega)
+        return 1 + Math.exp(-damping * Math.PI / Math.sqrt(1 - damping * damping))
     }
 
     /** Time for the response to settle inside 0.1% of its travel, in milliseconds. */
@@ -79,14 +80,19 @@ class MotionTokensTest {
 
     @Test
     fun durationsAreInTheRangeAHumanCallsFluid() {
-        // Below ~120 ms motion reads as a jump; above ~700 ms it reads as lag. Every token here is
-        // deliberately inside that window, which is what "super fluid" actually means in practice.
-        listOf(fastSpatial, defaultSpatial, slowSpatial, fastEffects, defaultEffects, slowEffects)
-            .forEach { (damping, stiffness) ->
-                val ms = settleMs(damping, stiffness)
-                assertTrue("settle time %.0f ms is too short".format(ms), ms >= 120)
-                assertTrue("settle time %.0f ms is too long".format(ms), ms <= 700)
-            }
+        // Spatial motion has to be seen as movement, so it lives between 250 and 700 ms; below that
+        // it reads as a jump. Opacity and colour are read instantly and can be quicker, but not so
+        // quick that they look like a cut, so effects sit between 100 and 300 ms.
+        listOf(fastSpatial, defaultSpatial, slowSpatial).forEach { (damping, stiffness) ->
+            val ms = settleMs(damping, stiffness)
+            assertTrue("spatial settle %.0f ms is too short".format(ms), ms >= 250)
+            assertTrue("spatial settle %.0f ms is too long".format(ms), ms <= 700)
+        }
+        listOf(fastEffects, defaultEffects, slowEffects).forEach { (damping, stiffness) ->
+            val ms = settleMs(damping, stiffness)
+            assertTrue("effects settle %.0f ms is too short".format(ms), ms >= 100)
+            assertTrue("effects settle %.0f ms is too long".format(ms), ms <= 300)
+        }
     }
 
     @Test

@@ -77,7 +77,7 @@ import androidx.compose.ui.unit.sp
  * "Dark themes get light text" stops being a claim and becomes an assertion.
  */
 object Palette {
-    val Primary: Int = 0xFF2F6BFF.toInt()
+    val Primary: Int = 0xFF255CE8.toInt()
     val OnPrimary: Int = 0xFFFFFFFF.toInt()
     val PrimaryContainer: Int = 0xFFE3EBFF.toInt()
     val OnPrimaryContainer: Int = 0xFF0A1B4A.toInt()
@@ -107,9 +107,9 @@ object Palette {
     val DarkOutline: Int = 0xFF3A4257.toInt()
     val DarkOutlineVariant: Int = 0xFF232A3A.toInt()
 
-    val Success: Int = 0xFF17B26A.toInt()
+    val Success: Int = 0xFF0E8A50.toInt()
     val SuccessDark: Int = 0xFF4ADE80.toInt()
-    val Warning: Int = 0xFFF59E0B.toInt()
+    val Warning: Int = 0xFFB45309.toInt()
     val WarningDark: Int = 0xFFFBBF24.toInt()
 }
 

@@ -85,7 +85,6 @@ class ContrastTest {
 
     @Test
     fun buttonLabelsAreReadableOnTheirOwnContainers() {
-        assertReadable("onPrimary on primary", Palette.OnPrimary, Palette.Primary)
         assertReadable(
             "onPrimaryContainer on primaryContainer",
             Palette.OnPrimaryContainer,
@@ -95,12 +94,27 @@ class ContrastTest {
 
     @Test
     fun semanticColoursAreVisibleAgainstBothBackgrounds() {
-        // Success/warning are used for small marks (a tick, a warning glyph), so 3:1 is the bar for
-        // non-text UI, while their paired text still has to clear 4.5:1 on the surface itself.
-        assertReadable("success mark on light surface", Palette.Success, Palette.LightSurface, 3.0)
-        assertReadable("success mark on dark surface", Palette.SuccessDark, Palette.DarkSurface, 3.0)
-        assertReadable("warning mark on light surface", Palette.Warning, Palette.LightSurface, 3.0)
-        assertReadable("warning mark on dark surface", Palette.WarningDark, Palette.DarkSurface, 3.0)
+        // Success/warning are used for small marks (a tick, a warning glyph), so 3:1 is the floor for
+        // non-text UI — but they are checked on every tier, not just the flat surface, because a mark
+        // can sit on a raised card as easily as on the page.
+        val lightTiers = listOf(
+            Palette.LightBackground, Palette.LightSurface, Palette.LightSurfaceLow,
+            Palette.LightSurfaceContainer, Palette.LightSurfaceHigh, Palette.LightSurfaceHighest
+        )
+        val darkTiers = listOf(
+            Palette.DarkBackground, Palette.DarkSurface, Palette.DarkSurfaceLow,
+            Palette.DarkSurfaceContainer, Palette.DarkSurfaceHigh, Palette.DarkSurfaceHighest
+        )
+        lightTiers.forEach {
+            assertReadable("success mark on %08X".format(it), Palette.Success, it, 3.0)
+            assertReadable("warning mark on %08X".format(it), Palette.Warning, it, 3.0)
+        }
+        darkTiers.forEach {
+            assertReadable("success mark on %08X".format(it), Palette.SuccessDark, it, 3.0)
+            assertReadable("warning mark on %08X".format(it), Palette.WarningDark, it, 3.0)
+        }
+        // The brand blue carries white button labels, so it is held to the text bar, not the mark bar.
+        assertReadable("white label on primary", Palette.OnPrimary, Palette.Primary)
     }
 
     @Test
