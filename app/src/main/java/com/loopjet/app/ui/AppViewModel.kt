@@ -188,9 +188,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (current == Screen.Receive || current == Screen.Transfer) {
             // Leaving the receive screen stops an idle server; an active transfer keeps running in the
             // foreground service and stays reachable from the notification.
-            if (TransferHub.session.value.mode == com.loopjet.app.platform.SessionMode.RECEIVE &&
-                TransferHub.session.value.state != com.loopjet.app.core.TransferState.TRANSFERRING
-            ) {
+            //
+            // An offer that is on screen must survive it: pressing back while the accept dialog was
+            // up used to stop the service, which answered "no" on the user's behalf and left the
+            // sender with a bare "Declined" (or, minutes later, a timeout) for a transfer nobody had
+            // answered. CONNECTING/WAITING_ACCEPT are kept alive for the same reason.
+            val session = TransferHub.session.value
+            val busy = session.offer != null || session.state in setOf(
+                com.loopjet.app.core.TransferState.TRANSFERRING,
+                com.loopjet.app.core.TransferState.CONNECTING,
+                com.loopjet.app.core.TransferState.WAITING_ACCEPT,
+                com.loopjet.app.core.TransferState.PAUSED
+            )
+            if (session.mode == com.loopjet.app.platform.SessionMode.RECEIVE && !busy) {
                 TransferService.stop(getApplication())
             }
         }
@@ -289,7 +299,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Manual pairing by the link inside the receiver's QR code. */
-    fun pairWithLink(link: String) {
+    /**
+     * @param joinedNetwork the network the caller joined for this peer (v2 hotspot code). It is handed
+     *        to [sendTo] so the sockets are bound to it; without that the send goes out of the phone's
+     *        own Wi-Fi and times out, which is exactly how the hotspot path failed.
+     */
+    fun pairWithLink(link: String, joinedNetwork: android.net.Network? = null) {
         if (sendItems.value.isEmpty()) {
             notice("Pick at least one file first")
             return
@@ -300,21 +315,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 notice(message)
             } else {
                 notice(message)
-                sendTo(peer)
+                sendTo(peer, joinedNetwork)
             }
         } ?: notice("Open Send first so discovery is running")
     }
 
-    fun sendTo(peer: DiscoveredPeer) {
+    /**
+     * @param joinedNetwork the network the caller just joined (a v2 hotspot code) and wants the
+     *        sockets bound to. Passing null means "plain discovery peer": any leftover join is
+     *        dropped, otherwise the sockets would leave through the wrong interface.
+     *
+     *        This parameter exists because sendTo() used to clear the join unconditionally -- it was
+     *        called from the join callback, so it wiped the network that had just been joined and the
+     *        hotspot path could never connect.
+     */
+    fun sendTo(peer: DiscoveredPeer, joinedNetwork: android.net.Network? = null) {
         val items = SendQueue.snapshot
         if (items.isEmpty()) {
             notice("Pick at least one file first")
             return
         }
         _state.value = _state.value.copy(selectedPeerName = peer.name)
-        // A peer found by discovery is dialed on the normal interface; a leftover join from an earlier
-        // hotspot session would send the sockets out of the wrong network.
-        com.loopjet.app.platform.PendingPeer.network = null
+        com.loopjet.app.platform.PendingPeer.network = joinedNetwork
         TransferService.startSend(getApplication(), peer)
         _state.value = _state.value.copy(screen = Screen.Transfer)
     }
@@ -402,11 +424,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             notice(message)
                             return@joinAp
                         }
-                        // The service binds its sockets to this network; without it the session would
-                        // go out of whichever Wi-Fi the phone still thinks is active.
-                        com.loopjet.app.platform.PendingPeer.network = joined
+                        // The network is passed down into sendTo(), which is what binds the sockets
+                        // to it; setting the global here as well was not enough, because sendTo()
+                        // cleared it again in the same call chain.
                         pairWithLink(
-                            com.loopjet.app.platform.net.ConnectCode(
+                            joinedNetwork = joined,
+                            link = com.loopjet.app.platform.net.ConnectCode(
                                 deviceId = parsed.code.deviceId,
                                 fingerprint = parsed.code.fingerprint,
                                 name = parsed.code.name,
@@ -530,7 +553,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun resumeTransfer() = TransferService.resume(getApplication())
 
     fun answerOffer(accepted: Boolean, trust: Boolean) {
-        TransferHub.answerOffer(accepted, trust)
+        // An explicit Decline needs a reason the sender can act on; without one it only says
+        // "Declined", which tells the other person nothing.
+        TransferHub.answerOffer(
+            accepted = accepted,
+            trust = trust,
+            reason = if (accepted) "" else "Declined on the receiving phone — tap Show my code there to retry"
+        )
         if (accepted && trust) {
             // The service persists the trust right after the decision; re-read a moment later.
             viewModelScope.launch {

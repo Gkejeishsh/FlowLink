@@ -225,6 +225,12 @@ interface TransferListener {
      * PackageInstaller session with the base and all splits. The default does nothing (tests, tools).
      */
     fun onAppReady(app: TransferApp, apks: List<File>) {}
+
+    /**
+     * Called on the receiving side as soon as the peer's identity is known, so the screen can name it
+     * and show the pairing code before the offer dialog appears. Default does nothing.
+     */
+    fun onPeer(name: String, sas: String) {}
 }
 
 /** Simple listener that prints — used by tests and the loopback benchmark. */

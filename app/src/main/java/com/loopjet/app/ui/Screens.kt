@@ -940,7 +940,15 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
 @Composable
 fun OfferDialog(offer: IncomingOfferUi, onAnswer: (Boolean, Boolean) -> Unit) {
     var trust by remember(offer.peerName) { mutableStateOf(false) }
-    androidx.compose.ui.window.Dialog(onDismissRequest = { onAnswer(false, false) }) {
+    // A stray tap outside or a back press used to *decline the whole transfer* with a blank reason,
+    // which showed up on the sending phone as a bare "Declined". Answering is now an explicit choice.
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = { },
+        properties = androidx.compose.ui.window.DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
+    ) {
         Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.padding(24.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

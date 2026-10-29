@@ -147,9 +147,17 @@ object TransferHub {
         update { it.copy(offer = offer) }
     }
 
-    fun answerOffer(accepted: Boolean, trust: Boolean) {
+    /**
+     * @param reason shown to the sender when the answer is a refusal. A blank reason is what produced
+     *        the bare "Declined" on the sending phone, which says nothing about what went wrong.
+     */
+    fun answerOffer(
+        accepted: Boolean,
+        trust: Boolean,
+        reason: String = if (accepted) "" else "Declined on the receiving phone"
+    ) {
         update { it.copy(offer = null) }
-        val decision = OfferDecision(accepted, trust)
+        val decision = OfferDecision(accepted, trust, if (accepted) "" else reason)
         val waiter = pending.getAndSet(null)
         if (waiter != null) {
             waiter.complete(decision)
@@ -704,6 +712,15 @@ class TransferService : Service() {
                     updateNotification()
                 }
 
+                override fun onPeer(name: String, sas: String) {
+                    TransferHub.update { current ->
+                        current.copy(
+                            peerName = name.ifBlank { current.peerName },
+                            sas = sas.ifBlank { current.sas }
+                        )
+                    }
+                }
+
                 override fun onProgress(progress: TransferProgress) {
                     TransferHub.update { current ->
                         current.copy(
@@ -736,6 +753,11 @@ class TransferService : Service() {
                     // show every file (with its ring) the moment the session is accepted.
                     TransferHub.update { current ->
                         current.copy(
+                            // The sender's own name, not the placeholder parsed out of the code
+                            // ("Phone at 192.168.10.8"), and the pairing code it is displaying so
+                            // the Code row is not "000 000".
+                            peerName = offer.peerName,
+                            sas = offer.sas.ifBlank { current.sas },
                             files = offer.manifest.files.map {
                                 SessionFileUi(it.id, it.relPath.substringAfterLast('/'), it.size)
                             }
@@ -1050,7 +1072,13 @@ class TransferService : Service() {
 
     private fun cancelSession() {
         TransferHub.update { it.copy(state = TransferState.CANCELLED, message = "Cancelled") }
-        TransferHub.answerOffer(accepted = false, trust = false)
+        // "Stopped" is not "declined": the sender must be able to tell an accidental back press from a
+        // real refusal, and the reason travels to its screen.
+        TransferHub.answerOffer(
+            accepted = false,
+            trust = false,
+            reason = "The other phone stopped receiving"
+        )
         sender?.requestCancel()
         receiver?.close()
         beacon?.close()

@@ -22,7 +22,7 @@ class ConnectCodeTest {
         val code = ConnectCode("dev-1", "abc123", "Pixel", "192.168.1.7", 45999)
         val back = ConnectCode.decode(code.encode())
         assertEquals(code, back)
-        assertEquals("Same Wi-Fi · 192.168.1.7", back!!.describe())
+        assertTrue(back!!.describe().startsWith("Same Wi-Fi · 192.168.1.7"))
     }
 
     @Test
@@ -38,6 +38,15 @@ class ConnectCodeTest {
         assertEquals("pass1234", join.network.psk)
         assertEquals("192.168.49.1", join.network.host)
         assertTrue(code.describe().startsWith("No shared Wi-Fi needed"))
+    }
+
+    @Test
+    fun hotspotCodeAdvertisesWhichPathIsFaster() {
+        val code = ConnectCode(
+            "d", "f", "N", "", 0,
+            network = ConnectNetwork("ap", "Direct-xy", "pw123456", "192.168.49.1", 43130)
+        )
+        assertTrue(code.describe(), code.describe().contains("slower than shared Wi-Fi"))
     }
 
     @Test

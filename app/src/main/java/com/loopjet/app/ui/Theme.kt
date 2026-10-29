@@ -58,6 +58,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -532,18 +533,21 @@ fun StatRow(label: String, value: String, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         // Both halves get a weight and the value is end-aligned: a long peer name or path now wraps
         // inside its half instead of shoving the label off the card.
+        // fill = false let the label shrink to a few characters, so "Remaining" broke into
+        // "Remainin" + "g". A fixed 40/60 split with single-line labels keeps the rows aligned.
         Text(
             label,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f, fill = false)
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.4f)
         )
-        Spacer(Modifier.weight(1f))
         Text(
             value,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.End,
-            modifier = Modifier.weight(2f)
+            modifier = Modifier.weight(0.6f)
         )
     }
 }

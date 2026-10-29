@@ -814,6 +814,10 @@ class ReceiverEngine(
             // already waiting for an answer, which reads as "nothing happened". A listener callback
             // is UI only -- no frame, no round trip, nothing added to the data path.
             listener.onState(TransferState.CONNECTING, "${handshake.peer.name} is connected")
+            // Also publish the identity: the UI's header reads peerName from the hub, and until now
+            // the receiving phone only had the placeholder taken out of the QR code. Listener-only,
+            // so nothing is added to the wire.
+            listener.onPeer(handshake.peer.name, handshake.keys.sas)
 
             val channel = handshake.channel
             var manifest: TransferManifest? = null
