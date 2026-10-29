@@ -20,8 +20,8 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:47:47 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:52:59 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/platform/net/Network.kt:54:58 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:563:68 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ConnectNetwork'.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:565:64 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ConnectNetwork'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:566:68 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ConnectNetwork'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/AppViewModel.kt:568:64 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ConnectNetwork'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:146:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:204:41 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:228:69 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
@@ -30,10 +30,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1096:27 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1653:49 Unnecessary safe call on a non-null receiver of type 'FileResult'.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/loopjet/app/ui/Screens.kt:1857:81 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793263898126.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793264447781.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 1m 8s
+BUILD SUCCESSFUL in 57s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
