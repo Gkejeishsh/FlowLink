@@ -177,9 +177,9 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 19 errors and 74 warnings</span>
+      <span class="mdl-layout-title">Lint Report: 19 errors and 73 warnings</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 05:51:24 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Thu Oct 29 06:12:11 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -202,7 +202,7 @@ document.getElementById(id).style.display = 'none';
       <a class="mdl-navigation__link" href="#StaticFieldLeak"><i class="material-icons warning-icon">warning</i>Static Field Leaks (1)</a>
       <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (6)</a>
       <a class="mdl-navigation__link" href="#UsableSpace"><i class="material-icons warning-icon">warning</i>Using getUsableSpace() (2)</a>
-      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (31)</a>
+      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (30)</a>
     </nav>
   </div>
   <main class="mdl-layout__content">
@@ -272,7 +272,7 @@ document.getElementById(id).style.display = 'none';
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Productivity">Productivity</a>
 </td></tr>
 <tr>
-<td class="countColumn">31</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">30</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#UseKtx">UseKtx</a>: Use KTX extension function</td></tr>
 <tr><td></td><td class="categoryColumn"><a href="#ExtraIssues">Included Additional Checks (66)</a>
 </td></tr>
@@ -351,24 +351,24 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:384</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  381 </span>    private <span class="keyword">fun</span> hasWifiPermission(): Boolean {
-<span class="lineno">  382 </span>        <span class="keyword">val</span> ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = <span class="keyword">true</span>)
-<span class="lineno">  383 </span>            .filter {
-<span class="caretline"><span class="lineno">  384 </span>                it.permission == <span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span> ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  385 </span>                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
-<span class="lineno">  386 </span>            }
-<span class="lineno">  387 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:409</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
+<span class="lineno">  406 </span>    private <span class="keyword">fun</span> hasWifiPermission(): Boolean {
+<span class="lineno">  407 </span>        <span class="keyword">val</span> ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = <span class="keyword">true</span>)
+<span class="lineno">  408 </span>            .filter {
+<span class="caretline"><span class="lineno">  409 </span>                it.permission == <span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span> ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  410 </span>                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
+<span class="lineno">  411 </span>            }
+<span class="lineno">  412 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:95</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  92 </span>    private <span class="keyword">val</span> wifiJoinLauncher = registerForActivityResult(
-<span class="lineno">  93 </span>        ActivityResultContracts.RequestMultiplePermissions()
-<span class="lineno">  94 </span>    ) { granted ->
-<span class="caretline"><span class="lineno">  95 </span>        <span class="keyword">val</span> ok = granted[<span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span>] != <span class="keyword">false</span> &amp;&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  96 </span>            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != <span class="keyword">false</span>
-<span class="lineno">  97 </span>        <span class="keyword">if</span> (ok) {
-<span class="lineno">  98 </span>            vmRef?.retryWifiScan()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:96</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
+<span class="lineno">  93 </span>    private <span class="keyword">val</span> wifiJoinLauncher = registerForActivityResult(
+<span class="lineno">  94 </span>        ActivityResultContracts.RequestMultiplePermissions()
+<span class="lineno">  95 </span>    ) { granted ->
+<span class="caretline"><span class="lineno">  96 </span>        <span class="keyword">val</span> ok = granted[<span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span>] != <span class="keyword">false</span> &amp;&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  97 </span>            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != <span class="keyword">false</span>
+<span class="lineno">  98 </span>        <span class="keyword">if</span> (ok) {
+<span class="lineno">  99 </span>            vmRef?.retryWifiScan()
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:162</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
@@ -1051,14 +1051,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:354</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
-<span class="lineno"> 351 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
-<span class="lineno"> 352 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
-<span class="lineno"> 353 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
-<span class="caretline"><span class="lineno"> 354 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 355 </span>  <span class="keyword">val</span> asked = LoopJetApp.instance.prefs.askedPermissions
-<span class="lineno"> 356 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
-<span class="lineno"> 357 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:370</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
+<span class="lineno"> 367 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
+<span class="lineno"> 368 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
+<span class="lineno"> 369 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
+<span class="caretline"><span class="lineno"> 370 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 371 </span>  <span class="keyword">val</span> asked = LoopJetApp.instance.prefs.askedPermissions
+<span class="lineno"> 372 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
+<span class="lineno"> 373 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
 </pre>
 
 </div>
@@ -1101,14 +1101,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:207</span>: <span class="message">Modifier parameter should be the first optional parameter</span><br /><pre class="errorlines">
-<span class="lineno"> 204 </span><span class="javadoc"> * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
-</span><span class="lineno"> 205 </span><span class="javadoc"> */</span>
-<span class="lineno"> 206 </span><span class="annotation">@Composable</span>
-<span class="caretline"><span class="lineno"> 207 </span><span class="keyword">fun</span> LoopJetMark(size: Int = <span class="number">72</span>, <span class="warning">modifier</span>: Modifier = Modifier, roundedBackground: Boolean = <span class="keyword">true</span>) {&nbsp;</span>
-<span class="lineno"> 208 </span>    Canvas(modifier = modifier.size(size.dp)) {
-<span class="lineno"> 209 </span>        <span class="keyword">val</span> s = <span class="keyword">this</span>.size.minDimension
-<span class="lineno"> 210 </span>        <span class="keyword">if</span> (roundedBackground) {
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:219</span>: <span class="message">Modifier parameter should be the first optional parameter</span><br /><pre class="errorlines">
+<span class="lineno"> 216 </span><span class="javadoc"> * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
+</span><span class="lineno"> 217 </span><span class="javadoc"> */</span>
+<span class="lineno"> 218 </span><span class="annotation">@Composable</span>
+<span class="caretline"><span class="lineno"> 219 </span><span class="keyword">fun</span> LoopJetMark(size: Int = <span class="number">72</span>, <span class="warning">modifier</span>: Modifier = Modifier, roundedBackground: Boolean = <span class="keyword">true</span>) {&nbsp;</span>
+<span class="lineno"> 220 </span>    Canvas(modifier = modifier.size(size.dp)) {
+<span class="lineno"> 221 </span>        <span class="keyword">val</span> s = <span class="keyword">this</span>.size.minDimension
+<span class="lineno"> 222 </span>        <span class="keyword">if</span> (roundedBackground) {
 </pre>
 
 </div>
@@ -1506,14 +1506,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:141</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno">  138 </span>            deviceName = prefs.deviceName,
-<span class="lineno">  139 </span>            avatar = prefs.avatar,
-<span class="lineno">  140 </span>            trustedCount = prefs.trustedDevices.size,
-<span class="caretline"><span class="lineno">  141 </span>            freeSpace = Fmt.bytes(application.filesDir.<span class="warning">usableSpace</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  142 </span>        )
-<span class="lineno">  143 </span>    )
-<span class="lineno">  144 </span>    <span class="keyword">val</span> state: StateFlow&lt;AppState> = _state
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:166</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
+<span class="lineno">  163 </span>            deviceName = prefs.deviceName,
+<span class="lineno">  164 </span>            avatar = prefs.avatar,
+<span class="lineno">  165 </span>            trustedCount = prefs.trustedDevices.size,
+<span class="caretline"><span class="lineno">  166 </span>            freeSpace = Fmt.bytes(application.filesDir.<span class="warning">usableSpace</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  167 </span>        )
+<span class="lineno">  168 </span>    )
+<span class="lineno">  169 </span>    <span class="keyword">val</span> state: StateFlow&lt;AppState> = _state
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/core/Files.kt">../../src/main/java/com/loopjet/app/core/Files.kt</a>:468</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
@@ -1613,7 +1613,7 @@ Dismiss</button>            </div>
 <span class="lineno"> 175 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
 </pre>
 
-<button class="mdl-button mdl-js-button mdl-button--primary" id="UseKtxDivLink" onclick="reveal('UseKtxDiv');" />+ 26 More Occurrences...</button>
+<button class="mdl-button mdl-js-button mdl-button--primary" id="UseKtxDivLink" onclick="reveal('UseKtxDiv');" />+ 25 More Occurrences...</button>
 <div id="UseKtxDiv" style="display: none">
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:176</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
 <span class="lineno"> 173 </span>
@@ -1762,16 +1762,6 @@ Dismiss</button>            </div>
 <span class="lineno"> 326 </span>}
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:909</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  906 </span>
-<span class="lineno">  907 </span>    <span class="keyword">fun</span> browseFolder(uri: String, label: String) {
-<span class="lineno">  908 </span>        viewModelScope.launch {
-<span class="caretline"><span class="lineno">  909 </span>            <span class="keyword">val</span> items = withContext(Dispatchers.IO) { listDocuments(<span class="warning">Uri.parse(uri)</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  910 </span>            _state.value = _state.value.copy(
-<span class="lineno">  911 </span>                picker = _state.value.picker.copy(
-<span class="lineno">  912 </span>                    category = PickCategory.Folders,
-</pre>
-
 <span class="location"><a href="../../src/main/java/com/loopjet/app/platform/apps/Apps.kt">../../src/main/java/com/loopjet/app/platform/apps/Apps.kt</a>:253</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
 <span class="lineno"> 250 </span>  }
 <span class="lineno"> 251 </span>
@@ -1832,24 +1822,24 @@ Dismiss</button>            </div>
 <span class="lineno"> 117 </span>      androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:645</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  642 </span>    <span class="keyword">if</span> (drawable <span class="keyword">is</span> android.graphics.drawable.BitmapDrawable) <span class="keyword">return</span> drawable.bitmap
-<span class="lineno">  643 </span>    <span class="keyword">val</span> width = <span class="keyword">if</span> (drawable.intrinsicWidth > <span class="number">0</span>) drawable.intrinsicWidth <span class="keyword">else</span> <span class="number">96</span>
-<span class="lineno">  644 </span>    <span class="keyword">val</span> height = <span class="keyword">if</span> (drawable.intrinsicHeight > <span class="number">0</span>) drawable.intrinsicHeight <span class="keyword">else</span> <span class="number">96</span>
-<span class="caretline"><span class="lineno">  645 </span>    <span class="keyword">return</span> <span class="warning">Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)</span>.also {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  646 </span>        <span class="keyword">val</span> canvas = android.graphics.Canvas(it)
-<span class="lineno">  647 </span>        drawable.setBounds(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height)
-<span class="lineno">  648 </span>        drawable.draw(canvas)
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:734</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  731 </span>    <span class="keyword">if</span> (drawable <span class="keyword">is</span> android.graphics.drawable.BitmapDrawable) <span class="keyword">return</span> drawable.bitmap
+<span class="lineno">  732 </span>    <span class="keyword">val</span> width = <span class="keyword">if</span> (drawable.intrinsicWidth > <span class="number">0</span>) drawable.intrinsicWidth <span class="keyword">else</span> <span class="number">96</span>
+<span class="lineno">  733 </span>    <span class="keyword">val</span> height = <span class="keyword">if</span> (drawable.intrinsicHeight > <span class="number">0</span>) drawable.intrinsicHeight <span class="keyword">else</span> <span class="number">96</span>
+<span class="caretline"><span class="lineno">  734 </span>    <span class="keyword">return</span> <span class="warning">Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)</span>.also {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  735 </span>        <span class="keyword">val</span> canvas = android.graphics.Canvas(it)
+<span class="lineno">  736 </span>        drawable.setBounds(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height)
+<span class="lineno">  737 </span>        drawable.draw(canvas)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:1012</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1009 </span>               pixels[y * matrix.width + x] = <span class="keyword">if</span> (matrix.get(x, y)) fg <span class="keyword">else</span> <span class="number">0xFFFFFFFF.</span>toInt()
-<span class="lineno"> 1010 </span>           }
-<span class="lineno"> 1011 </span>       }
-<span class="caretline"><span class="lineno"> 1012 </span>       <span class="warning">Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)</span>.apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 1013 </span>           setPixels(pixels, <span class="number">0</span>, matrix.width, <span class="number">0</span>, <span class="number">0</span>, matrix.width, matrix.height)
-<span class="lineno"> 1014 </span>       }
-<span class="lineno"> 1015 </span>   }.getOrNull()
+<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:1101</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 1098 </span>               pixels[y * matrix.width + x] = <span class="keyword">if</span> (matrix.get(x, y)) fg <span class="keyword">else</span> <span class="number">0xFFFFFFFF.</span>toInt()
+<span class="lineno"> 1099 </span>           }
+<span class="lineno"> 1100 </span>       }
+<span class="caretline"><span class="lineno"> 1101 </span>       <span class="warning">Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)</span>.apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 1102 </span>           setPixels(pixels, <span class="number">0</span>, matrix.width, <span class="number">0</span>, <span class="number">0</span>, matrix.width, matrix.height)
+<span class="lineno"> 1103 </span>       }
+<span class="lineno"> 1104 </span>   }.getOrNull()
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Thumbnails.kt">../../src/main/java/com/loopjet/app/ui/Thumbnails.kt</a>:47</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
@@ -1862,14 +1852,14 @@ Dismiss</button>            </div>
 <span class="lineno">  50 </span>              context.contentResolver.loadThumbnail(parsed, android.util.Size(<span class="number">96</span>, <span class="number">96</span>), <span class="keyword">null</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1323</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1320 </span>
-<span class="lineno"> 1321 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
-<span class="lineno"> 1322 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
-<span class="caretline"><span class="lineno"> 1323 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
-<span class="lineno"> 1324 </span>          <span class="keyword">return</span> UriSource(LoopJetApp.context, uri)
-<span class="lineno"> 1325 </span>      }
-<span class="lineno"> 1326 </span>  }
+<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1328</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 1325 </span>
+<span class="lineno"> 1326 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
+<span class="lineno"> 1327 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
+<span class="caretline"><span class="lineno"> 1328 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
+<span class="lineno"> 1329 </span>          <span class="keyword">return</span> UriSource(LoopJetApp.context, uri)
+<span class="lineno"> 1330 </span>      }
+<span class="lineno"> 1331 </span>  }
 </pre>
 
 </div>
