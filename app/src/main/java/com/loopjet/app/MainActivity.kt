@@ -302,6 +302,7 @@ class MainActivity : ComponentActivity() {
                                 // "Allow all files" inside the picker opens the system all-files screen.
                                 onPickFolder = { runCatching { settingsLauncher.launch(Perms.allFilesIntent(activity)) } },
                                 onOpenGallery = { runCatching { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } },
+                                onAppSettings = { runCatching { settingsLauncher.launch(Perms.appDetailsIntent(activity)) } },
                                 onGrantMedia = { requestPickerPermissions() }
                             )
                             Screen.Nearby -> NearbyScreen(vm, state)

@@ -121,6 +121,29 @@ object Perms {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Android 14's photo permission has a second, weaker answer: "Select photos and videos".
+     *
+     * It grants READ_MEDIA_VISUAL_USER_SELECTED instead of READ_MEDIA_IMAGES, so media queries
+     * succeed but return only the handful of items the user ticked. Everything else -- the rest of
+     * the library -- stays invisible, and because a query *succeeds* the app has no way to tell the
+     * difference between "empty phone" and "partial permission" unless it asks specifically.
+     */
+    fun mediaAccessIsPartial(context: Context): Boolean {
+        if (hasAllFiles(context)) return false
+        if (Build.VERSION.SDK_INT < 34) return false
+        val partial = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!partial) return false
+        val full = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.READ_MEDIA_IMAGES
+        ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            context, Manifest.permission.READ_MEDIA_VIDEO
+        ) == PackageManager.PERMISSION_GRANTED
+        return !full
+    }
+
     fun missing(context: Context, requirements: List<Requirement>): List<Requirement> =
         requirements.filter { ContextCompat.checkSelfPermission(context, it.permission) != PackageManager.PERMISSION_GRANTED }
 

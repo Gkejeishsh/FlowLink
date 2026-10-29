@@ -122,6 +122,8 @@ data class PickerState(
     val searchScope: SearchScope = SearchScope.Files,
     /** A category is empty only because Android has not granted media access yet. */
     val needsMediaAccess: Boolean = false,
+    /** Android 14 partial photo access: media queries work but show only the ticked few. */
+    val mediaPartial: Boolean = false,
     val webShareMode: Boolean = false,
     /** The category had more rows than the picker loads in one pass. */
     val truncated: Boolean = false
@@ -842,7 +844,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     loading = false,
                     items = results,
                     truncated = false,
-                    needsMediaAccess = results.isEmpty() && !Perms.canListMedia(app)
+                    needsMediaAccess = results.isEmpty() && !Perms.canListMedia(app),
+                    mediaPartial = results.isEmpty() && Perms.mediaAccessIsPartial(app)
                 )
             )
         }
@@ -1032,7 +1035,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     items = items,
                     error = null,
                     truncated = resultTruncated,
-                    needsMediaAccess = items.isEmpty() && mediaCategory && !Perms.canListMedia(app)
+                    needsMediaAccess = items.isEmpty() && mediaCategory && !Perms.canListMedia(app),
+                    mediaPartial = items.isEmpty() && mediaCategory && Perms.mediaAccessIsPartial(app)
                 )
             )
         }

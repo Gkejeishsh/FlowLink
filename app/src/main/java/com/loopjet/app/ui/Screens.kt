@@ -379,7 +379,8 @@ fun PickerScreen(
     state: AppState,
     onPickFolder: () -> Unit,
     onOpenGallery: () -> Unit = {},
-    onGrantMedia: () -> Unit = {}
+    onGrantMedia: () -> Unit = {},
+    onAppSettings: () -> Unit = {}
 ) {
     val picker = state.picker
     val haptics = rememberHaptics()
@@ -559,6 +560,25 @@ fun PickerScreen(
                 )
             }
         }
+        // A partial photo grant is a trap that looks like a bug: the list is short, the permission
+        // reads as granted, and nothing on screen says why. This banner says why, wherever the user
+        // is in a media category -- not only when the list happens to be empty.
+        if (picker.mediaPartial && !picker.searchOpen) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Only the photos you picked are visible",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = onAppSettings) { Text("Allow all") }
+            }
+        }
         Box(Modifier.weight(1f)) {
             val searchApps = picker.searchOpen && picker.searchScope == SearchScope.Apps
             val visibleApps = if (searchApps) vm.filteredApps(picker.query) else picker.apps
@@ -584,6 +604,18 @@ fun PickerScreen(
                     apps = picker.apps,
                     selected = picker.selectedApps,
                     onToggle = { vm.toggleApp(it) }
+                )
+                // Android 14 answers "Allow" with a second question: all photos, or only the ones
+                // the user ticks. A partial grant makes media queries succeed, so the category looks
+                // empty or half-full forever -- unless it is named and pointed at system settings,
+                // where a partial grant can still be widened.
+                picker.items.isEmpty() && picker.mediaPartial -> MediaAccessPrompt(
+                    onGrant = onAppSettings,
+                    title = "Only a few photos are visible",
+                    body = "Android is letting FlowLink see just the items you ticked. Choose " +
+                        "\"Photos and videos\" then \"Allow all\" in settings to browse everything. " +
+                        "The Files and Folders tabs already show the whole phone.",
+                    action = "Open settings"
                 )
                 picker.items.isEmpty() && picker.needsMediaAccess -> MediaAccessPrompt(onGrant = onGrantMedia)
                 picker.items.isEmpty() -> EmptyState(
@@ -845,22 +877,27 @@ private fun SelectionTick(selected: Boolean) {
 
 /** Shown when a media category is empty because Android has not granted access to the library. */
 @Composable
-private fun MediaAccessPrompt(onGrant: () -> Unit) {
+private fun MediaAccessPrompt(
+    onGrant: () -> Unit,
+    title: String = "Allow access to your files",
+    body: String = "Photos, videos, music and documents live behind an Android permission. " +
+        "Folders and Apps already work because they are read a different way.",
+    action: String = "Allow access"
+) {
     Column(
         Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Allow access to your files", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Photos, videos, music and documents live behind an Android permission. Folders and Apps " +
-                "already work because they are read a different way.",
+            body,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(16.dp))
-        PrimaryAction("Allow access", enabled = true) { onGrant() }
+        PrimaryAction(action, enabled = true) { onGrant() }
     }
 }
 
