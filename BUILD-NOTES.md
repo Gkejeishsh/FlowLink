@@ -891,3 +891,18 @@ prints the **average** next to the instantaneous rate for exactly this reason.
 Engine-side change in this build: the receiver's per-stream buffered I/O went from 64 KiB to 1 MiB,
 matching the sender and the 256 KiB record size — four copies of every byte on the receive path
 became one.
+
+## Signing identity changed with this build
+
+The release keystore lived in `keys/`, which is gitignored (a private key must not be in a public
+repository) and was **not included in the workspace snapshot that carried this session over**. The
+private key is therefore gone — the certificate in the APKs up to 1.0.2 is all that survives of it,
+and a certificate cannot sign anything.
+
+A new keystore was generated for 1.0.3: `C=PK, O=FlowLink, OU=Release, CN=FlowLink`, SHA-256
+`3B:B1:6B:04:B3:E4:0D:FA:37:A2:49:2F:5E:5C:F9:E4:B5:4A:51:5F:BC:C6:0F:66:1B:92:8E:D8:90:86:E8:59`.
+
+Consequence, stated plainly: **Android will refuse to install 1.0.3 over 1.0.2** — different signer,
+same package. The old app has to be uninstalled once (which also clears its saved transfers, trusted
+devices and settings). From 1.0.3 onwards upgrades are in place again, as long as this keystore
+survives; it cannot be regenerated and cannot be recovered if lost.
