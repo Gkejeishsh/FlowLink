@@ -66,7 +66,7 @@
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">2.610s</div>
+<div class="counter">2.428s</div>
 <p>duration</p>
 </div>
 </td>
@@ -88,42 +88,38 @@
 <div class="tab">
 <h2>standard output</h2>
 <span class="code">
-<pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=25427968 files=0 chunks=97/96
-[sender-failed] --- engine log (14 lines) ---
-[sender-failed] R: sender Test Phone connected, code 579823
-[sender-failed] S: handshake complete with Receiver, code 579823
+<pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=25165824 files=0 chunks=96/96
+[sender-failed] --- engine log (12 lines) ---
+[sender-failed] R: sender Test Phone connected, code 807294
+[sender-failed] S: handshake complete with Receiver, code 807294
 [sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
 [sender-failed] S: data stream 0 open
 [sender-failed] S: data stream 2 open
 [sender-failed] S: data stream 1 open
 [sender-failed] S: data stream 3 open
-[sender-failed] S: stream 1: Broken pipe (attempt 1)
 [sender-failed] R: data stream ended: connection closed while reading DATA
 [sender-failed] R: data stream ended: connection closed while reading DATA
 [sender-failed] R: data stream ended: connection closed while reading DATA
 [sender-failed] R: data stream ended: connection closed while reading DATA
-[sender-failed] S: data stream 1 open
-[sender-failed] R: stalled for 1978ms, ending session
-[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=2097152 files=0 chunks=8/96 ms=2133 path=/tmp/loopjet-test-resume-270773544869/dst
-[receiver-failed] --- engine log (14 lines) ---
-[receiver-failed] R: sender Test Phone connected, code 579823
-[receiver-failed] S: handshake complete with Receiver, code 579823
+[sender-failed] R: stalled for 1985ms, ending session
+[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2134 path=/tmp/loopjet-test-resume-279134182161/dst
+[receiver-failed] --- engine log (12 lines) ---
+[receiver-failed] R: sender Test Phone connected, code 807294
+[receiver-failed] S: handshake complete with Receiver, code 807294
 [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
 [receiver-failed] S: data stream 0 open
 [receiver-failed] S: data stream 2 open
 [receiver-failed] S: data stream 1 open
 [receiver-failed] S: data stream 3 open
-[receiver-failed] S: stream 1: Broken pipe (attempt 1)
 [receiver-failed] R: data stream ended: connection closed while reading DATA
 [receiver-failed] R: data stream ended: connection closed while reading DATA
 [receiver-failed] R: data stream ended: connection closed while reading DATA
 [receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] S: data stream 1 open
-[receiver-failed] R: stalled for 1978ms, ending session
-[loopback] first attempt: sent=24.3 MB receiver=Interrupted — 1 file(s) can resume
-[sender] ok=true msg=Transfer complete bytes=23068672 files=0 chunks=96/96
-[receiver] ok=true msg=Transfer complete bytes=23068672 files=1 chunks=96/96 ms=258 path=/tmp/loopjet-test-resume-270773544869/dst
-[loopback] resume: sender re-sent 23068672 bytes of 25165824, receiver has 23068672 bytes, ok=true
+[receiver-failed] R: stalled for 1985ms, ending session
+[loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
+[sender] ok=true msg=Transfer complete bytes=23330816 files=0 chunks=96/96
+[receiver] ok=true msg=Transfer complete bytes=23330816 files=1 chunks=96/96 ms=179 path=/tmp/loopjet-test-resume-279134182161/dst
+[loopback] resume: sender re-sent 23330816 bytes of 25165824, receiver has 23330816 bytes, ok=true
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">Copy</button>
 </span>
@@ -139,6 +135,10 @@ Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: slee
 	at java.base/java.lang.Thread.sleep(Native Method)
 	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
 	at java.base/java.lang.Thread.run(Thread.java:840)
+Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: sleep interrupted
+	at java.base/java.lang.Thread.sleep(Native Method)
+	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
+	at java.base/java.lang.Thread.run(Thread.java:840)
 Exception in thread &quot;lj-recv-watchdog&quot; java.lang.InterruptedException: sleep interrupted
 	at java.base/java.lang.Thread.sleep(Native Method)
 	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$11(Engine.kt:1102)
@@ -146,10 +146,6 @@ Exception in thread &quot;lj-recv-watchdog&quot; java.lang.InterruptedException:
 Exception in thread &quot;lj-recv-progress&quot; java.lang.InterruptedException: sleep interrupted
 	at java.base/java.lang.Thread.sleep(Native Method)
 	at com.loopjet.app.core.ReceiverEngine.runOnce$lambda$4(Engine.kt:1031)
-	at java.base/java.lang.Thread.run(Thread.java:840)
-Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: sleep interrupted
-	at java.base/java.lang.Thread.sleep(Native Method)
-	at com.loopjet.app.core.SenderEngine.startReporter$lambda$0(Engine.kt:658)
 	at java.base/java.lang.Thread.run(Thread.java:840)
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-resume after a dropped link only re-sends missing chunks">Copy</button>
@@ -165,7 +161,7 @@ Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: slee
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 8:00:45 AM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 8:12:21 AM</p>
 </div>
 </div>
 </body>
