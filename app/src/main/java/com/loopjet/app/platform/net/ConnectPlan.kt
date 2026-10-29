@@ -70,11 +70,11 @@ data class ConnectCode(
     /** What the Receive screen says under the code, so the path is never a mystery. */
     fun describe(): String = when {
         network != null && network.kind == "ap" ->
-            "No shared Wi-Fi needed · this phone made \"${network.ssid}\" (a hotspot is slower than shared Wi-Fi)"
+            "Hotspot \"${network.ssid}\" · scanning joins it"
         network != null && network.kind == "p2p" ->
-            "No shared Wi-Fi needed · Wi-Fi Direct \"${network.ssid}\""
+            "Wi-Fi Direct \"${network.ssid}\" · scanning joins it"
         network != null -> "Joining your hotspot \"${network.ssid}\""
-        lanHost.isNotBlank() -> "Same Wi-Fi · $lanHost (fastest)"
+        lanHost.isNotBlank() -> "Direct link · $lanHost"
         else -> "Preparing the connection…"
     }
 

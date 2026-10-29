@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -941,94 +942,26 @@ fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitmap {
 @Composable
 fun NearbyScreen(vm: AppViewModel, state: AppState) {
     val discovery = state.discovery
-    // Hotspot is the default: it is the only route that works whatever the two phones happen to be
-    // connected to. Same-Wi-Fi is the faster one, and it is now chosen deliberately.
-    val hotspotMode = state.connectMode != "wifi"
+    // One connection method: the receiving phone's own hotspot.
+    //
+    // A shared Wi-Fi network used to be an option, and it was the source of the worst failures --
+    // two phones that are both "on Wi-Fi" are frequently not on the same one, or the router isolates
+    // its clients, and then every dial times out with nothing on screen to explain it. A hotspot has
+    // none of those variables: whichever phone shows the code owns the network.
     ScreenFrame(title = "Connect", onBack = { vm.back() }) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ConnectModeChip(
-                label = "Hotspot",
-                selected = hotspotMode,
-                modifier = Modifier.weight(1f)
-            ) { vm.setConnectMode("hotspot") }
-            ConnectModeChip(
-                label = "Same Wi-Fi",
-                selected = !hotspotMode,
-                modifier = Modifier.weight(1f)
-            ) { vm.setConnectMode("wifi") }
-        }
-        Spacer(Modifier.height(6.dp))
         Text(
-            if (hotspotMode) {
-                "Tap Receive on the other phone, then join the hotspot it shows."
-            } else {
-                "Both phones must be on the same Wi-Fi. Faster, when it applies."
-            },
+            "Tap Receive on the other phone, then scan its code — or join the hotspot it shows.",
             Modifier.fillMaxWidth().padding(horizontal = 18.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
-            if (hotspotMode) {
-                item { HotspotJoinCard(vm) }
-                item { Spacer(Modifier.height(12.dp)) }
-            } else {
-                item {
-                    Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
-                        RadarPulse(active = discovery.active, modifier = Modifier.size(170.dp))
-                        FlowLinkMark(size = 72)
-                    }
-                    Text(
-                        if (discovery.peers.isEmpty()) "Looking for phones on this Wi-Fi…"
-                        else "${discovery.peers.size} phone(s) found",
-                        Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        discovery.log.ifBlank { "Keep FlowLink open on the other phone" },
-                        Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
-            if (discovery.peers.isNotEmpty()) {
-                item {
-                    Text(
-                        if (hotspotMode) "Found on this hotspot" else "On this network",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-            }
-            items(discovery.peers.size) { index ->
-                val peer = discovery.peers[index]
-                StaggeredEntrance(index) {
-                    PeerRow(peer, verified = if (hotspotMode) null else vm.sameSubnet(peer.address)) {
-                        vm.sendTo(peer)
-                    }
-                }
-            }
             item {
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     PrimerButton(
                         title = "Scan a code",
-                        subtitle = "Fastest way in",
+                        subtitle = "Joins automatically",
                         icon = Icons.Filled.Search,
                         accent = true,
                         modifier = Modifier.weight(1f)
@@ -1040,27 +973,121 @@ fun NearbyScreen(vm: AppViewModel, state: AppState) {
                         modifier = Modifier.weight(1f)
                     ) { vm.receiveHere() }
                 }
+                Spacer(Modifier.height(12.dp))
+            }
+            if (discovery.peers.isNotEmpty()) {
+                item {
+                    Text(
+                        if (discovery.active) "Found on this hotspot" else "Already reachable",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 6.dp)
+                    )
+                }
+                items(discovery.peers.size) { index ->
+                    val peer = discovery.peers[index]
+                    StaggeredEntrance(index) {
+                        PeerRow(peer, verified = vm.sameSubnet(peer.address)) { vm.sendTo(peer) }
+                    }
+                }
+                item { Spacer(Modifier.height(8.dp)) }
+            }
+            item {
+                Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+                    RadarPulse(active = discovery.active, modifier = Modifier.size(140.dp))
+                    FlowLinkMark(size = 60)
+                }
+                Text(
+                    if (discovery.peers.isEmpty()) "Not on the hotspot yet" else "${discovery.peers.size} phone(s) found",
+                    Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(10.dp))
+                HotspotJoinCard(vm)
                 Spacer(Modifier.height(10.dp))
                 SectionCard {
-                    Text(
-                        if (hotspotMode) "No hotspot shown on the other phone?" else "Nothing in the list?",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Text("How the link is made", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        if (hotspotMode) {
-                            "The other phone shows its hotspot name and password under the QR on its " +
-                                "Receive screen. If the Android prompt refuses to join, join it once from " +
-                                "Wi-Fi settings — FlowLink finds the phone by itself after that."
-                        } else {
-                            "Two phones can be on Wi-Fi and still not see each other (guest networks and " +
-                                "client isolation do this). Switch to Hotspot: it does not need any Wi-Fi."
-                        },
+                        "The phone showing the code starts its own hotspot and prints the name and " +
+                            "password under it. Scanning the code joins that hotspot for you and finds " +
+                            "the phone; if the Android prompt refuses, type the two values below and " +
+                            "join once.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * The hotspot the OS created for this phone, spelled out.
+ *
+ * "Which network, which password?" is the question every transfer app answers with "scan the QR".
+ * That is one device away from useless: the camera is busy, the other phone is an iPhone, the code
+ * expired. The credentials Android generated are right here, so the other phone can simply join.
+ */
+@Composable
+private fun HotspotCredentials(ssid: String, passphrase: String, address: String, band: String = "") {
+    val clipboard = LocalClipboardManager.current
+    val haptics = rememberHaptics()
+    SectionCard {
+        Text("This phone's hotspot", style = MaterialTheme.typography.titleSmall)
+        Spacer(Modifier.height(8.dp))
+        CredentialRow("Name", ssid, clipboard)
+        if (passphrase.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            CredentialRow("Password", passphrase, clipboard)
+        }
+        if (address.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            CredentialRow("Address", address, clipboard)
+        }
+        if (band.isNotBlank() && band != "unknown band") {
+            Spacer(Modifier.height(6.dp))
+            CredentialRow("Band", band, clipboard)
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Join it on the other phone (Android shows it in Wi-Fi settings). FlowLink finds this " +
+                "phone on it by itself.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        TextButton(
+            onClick = {
+                haptics.confirm()
+                clipboard.setText(AnnotatedString("$ssid\n$passphrase"))
+            }
+        ) { Text("Copy name and password") }
+    }
+}
+
+@Composable
+private fun CredentialRow(label: String, value: String, clipboard: androidx.compose.ui.platform.ClipboardManager) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            label,
+            Modifier.width(78.dp),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.numeral,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        TextButton(
+            onClick = { clipboard.setText(AnnotatedString(value)) },
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text("Copy", style = MaterialTheme.typography.labelMedium)
         }
     }
 }
@@ -1127,23 +1154,6 @@ private fun CredentialRow(label: String, value: String, clipboard: androidx.comp
         ) {
             Text("Copy", style = MaterialTheme.typography.labelMedium)
         }
-    }
-}
-
-/** The two ways in, side by side. A chip, not a switch: these are peers, not an on/off state. */
-@Composable
-private fun ConnectModeChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val bg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val fg = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-    Box(
-        modifier
-            .clip(MaterialTheme.shapes.large)
-            .background(bg)
-            .clickable(role = Role.Button) { onClick() }
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, color = fg, maxLines = 1)
     }
 }
 
@@ -1270,12 +1280,12 @@ private fun PeerRow(peer: DiscoveredPeer, verified: Boolean? = null, onClick: ()
             Text(peer.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 when {
-                    verified == false -> "Different network · ${peer.address}"
-                    verified == true -> "Same Wi-Fi verified · ${peer.rttMillis.toInt()} ms"
+                    verified == false -> "Not on this hotspot · ${peer.address}"
+                    verified == true -> "On this hotspot · ${peer.rttMillis.toInt()} ms"
                     peer.kind == PeerKind.DIRECT -> "Wi-Fi Direct · ${peer.address}"
                     peer.kind == PeerKind.HOTSPOT -> "Hotspot · ${peer.address}"
                     peer.kind == PeerKind.BLE -> "Bluetooth discovery"
-                    else -> "Same Wi-Fi · ${peer.rttMillis.toInt()} ms"
+                    else -> "Nearby · ${peer.rttMillis.toInt()} ms"
                 },
                 style = MaterialTheme.typography.labelMedium,
                 color = if (verified == false) MaterialTheme.colorScheme.error
@@ -1342,10 +1352,32 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                     // user cannot scan.
                     KeepScreenOn()
                     QrPanel(session.receiveQr.ifBlank { "loopjet://waiting" })
+                    if (session.hotspotSsid.isBlank()) {
+                        // The code is published before the hotspot exists so a scan is never refused;
+                        // say so, or someone scans the LAN-only code and wonders why nothing joined.
+                        Spacer(Modifier.height(6.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Starting this phone's hotspot…",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                     Text(
                         ConnectCode.decode(session.receiveQr)?.describe()
-                            ?: "Same Wi-Fi · ${session.linkLabel.ifBlank { "finding this phone" }}",
+                            ?: session.linkLabel.ifBlank { "finding this phone" },
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
@@ -1357,7 +1389,8 @@ fun ReceiveScreen(vm: AppViewModel, state: AppState) {
                         HotspotCredentials(
                             ssid = session.hotspotSsid,
                             passphrase = session.hotspotPass,
-                            address = session.hotspotAddress
+                            address = session.hotspotAddress,
+                            band = session.hotspotBand
                         )
                         Spacer(Modifier.height(10.dp))
                     }
@@ -1547,6 +1580,7 @@ fun TransferScreen(vm: AppViewModel, state: AppState) {
                     doneBytes = session.doneBytes,
                     totalBytes = session.totalBytes,
                     instantBps = session.instantBps,
+                    averageBps = session.averageBps,
                     etaMs = session.etaMs,
                     filesDone = session.filesDone,
                     filesTotal = maxOf(session.filesTotal, session.files.size),
@@ -1655,6 +1689,7 @@ private fun TransferSummary(
     doneBytes: Long,
     totalBytes: Long,
     instantBps: Long,
+    averageBps: Long,
     etaMs: Long,
     filesDone: Int,
     filesTotal: Int,
@@ -1735,6 +1770,17 @@ private fun TransferSummary(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        // The instant rate is a 1.5 s window, and the first seconds of a transfer include whatever
+        // the kernel buffers were holding. The average is what the link sustained, so it is shown
+        // next to it rather than instead of it.
+        if (live && averageBps > 0) {
+            Spacer(Modifier.height(2.dp))
+            Text(
+                "average ${Fmt.rate(averageBps.toDouble())}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         if (linkLabel.isNotBlank()) {
             // Which link the bytes are crossing. Without it "why is it slow" has no answer on screen:
             // a hotspot is a fraction of the speed of both phones sharing one Wi-Fi.

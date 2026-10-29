@@ -1268,8 +1268,10 @@ class ReceiverEngine(
         var channel: RecordChannel? = null
         try {
             socket.soTimeout = DATA_READ_TIMEOUT_MS
-            val input = socket.getInputStream().buffered(64 * 1024)
-            val output = socket.getOutputStream().buffered(64 * 1024)
+            // 1 MiB, matching the sender's SocketIo: a 256 KiB record pulled through a 64 KiB
+            // buffer costs four passes over the same bytes, per stream, at line rate.
+            val input = socket.getInputStream().buffered(1024 * 1024)
+            val output = socket.getOutputStream().buffered(1024 * 1024)
             val clientNonce = ByteArray(8)
             readFully(input, clientNonce, 0, 8)
             val serverNonce = Sha256.randomBytes(8)

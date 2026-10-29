@@ -246,7 +246,8 @@ fun QrScannerScreen(vm: AppViewModel, onClose: () -> Unit) {
                         )
                     }
                     Text(
-                        "Point the camera at the code on the other phone's Receive screen.",
+                        "Point the camera at the code on the other phone's Receive screen — it joins " +
+                            "their hotspot for you.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.85f),
                         textAlign = TextAlign.Center,

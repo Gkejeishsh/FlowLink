@@ -171,17 +171,6 @@ class Prefs(context: Context) {
         get() = prefs.getString("speed", "fast") ?: "fast"
         set(value) = prefs.edit().putString("speed", value).apply()
 
-    /**
-     * How this phone expects to reach the other one: "hotspot" (this phone joins the other phone's
-     * own access point, which exists whatever the Wi-Fi situation is) or "wifi" (both phones on the
-     * same network, faster, but only when the user knows they are).
-     *
-     * Hotspot is the default because a shared network is an assumption and the hotspot is not.
-     */
-    var connectMode: String
-        get() = prefs.getString("connect.mode", "hotspot") ?: "hotspot"
-        set(value) = prefs.edit().putString("connect.mode", value).apply()
-
     var autoAcceptTrusted: Boolean
         get() = prefs.getBoolean("autoAccept", false)
         set(value) = prefs.edit().putBoolean("autoAccept", value).apply()

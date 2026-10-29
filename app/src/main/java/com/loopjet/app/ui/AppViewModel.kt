@@ -182,9 +182,7 @@ data class AppState(
     /** Session count, cached: the count used to be a JSON file read inside composition. */
     val historyCount: Int = 0,
     val notice: String? = null,
-    val selectedPeerName: String = "",
-    /** "hotspot" (default) or "wifi": how this phone expects to reach the other one. */
-    val connectMode: String = "hotspot"
+    val selectedPeerName: String = ""
 )
 
 private const val PICKER_ROW_LIMIT = 20_000
@@ -214,8 +212,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             trustedCount = prefs.trustedDevices.size,
             freeSpace = Fmt.bytes(application.filesDir.usableSpace),
             historyCount = runCatching { app.history.all().size }.getOrDefault(0),
-            networkSummary = runCatching { deviceSummary() }.getOrDefault(""),
-            connectMode = prefs.connectMode
+            networkSummary = runCatching { deviceSummary() }.getOrDefault("")
         )
     )
     val state: StateFlow<AppState> = _state
@@ -536,17 +533,37 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val app = getApplication<android.app.Application>()
+        val link = "loopjet://${net.host}:${net.port}#${code.fingerprint}#${code.deviceId}"
+        // Wi-Fi has to be on for any join, and no app can switch it on since Android 10. Saying so
+        // beats a request that fails two seconds later with "could not join".
+        if (!tools.wifiEnabled() && tools.ssid() != net.ssid) {
+            notice("Turn Wi-Fi on to join \"${net.ssid}\" — opening Wi-Fi settings")
+            openWifiSettings()
+            return
+        }
+        // Already on that hotspot (joined it by hand, or this is a second scan): do not ask Android
+        // for a network we are sitting on, just connect over it.
+        if (tools.ssid() == net.ssid) {
+            notice("Already on \"${net.ssid}\" — connecting")
+            pairWithLink(link, joinedNetwork = com.loopjet.app.platform.net.HotspotController.of(app).joinedNetwork)
+            return
+        }
         notice("Joining \"${net.ssid}\" — confirm the Android prompt")
         com.loopjet.app.platform.net.HotspotController.of(app)
             .joinAp(net.ssid, net.psk.ifBlank { null }) { joined, message ->
-                if (joined == null) {
-                    notice(message)
+                if (joined != null) {
+                    pairWithLink(link, joinedNetwork = joined)
                     return@joinAp
                 }
-                pairWithLink(
-                    link = "loopjet://${net.host}:${net.port}#${code.fingerprint}#${code.deviceId}",
-                    joinedNetwork = joined
-                )
+                // The join can be refused (OEM policy, Wi-Fi off) while the code also carries a
+                // plain LAN address. Try that before reporting failure: the two phones may after all
+                // share a network, and a working transfer beats a correct explanation.
+                if (code.lanHost.isNotBlank() && code.lanPort > 0) {
+                    notice("$message · trying the direct link instead")
+                    pairWithLink("loopjet://${code.lanHost}:${code.lanPort}#${code.fingerprint}#${code.deviceId}")
+                } else {
+                    notice("$message · join the hotspot from Wi-Fi settings, then scan again")
+                }
             }
     }
 
@@ -564,11 +581,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 // phones have a perfectly good address on two different networks.
                 val plan = com.loopjet.app.platform.net.ConnectPlanner.plan(c, localIpv4Addresses())
                 val link = "loopjet://${c.lanHost}:${c.lanPort}#${c.fingerprint}#${c.deviceId}"
+                // Hotspot first, always. A code that carries one is a promise that a network exists
+                // which the other phone controls, and joining it costs one Android prompt. Guessing
+                // from subnets ("we look like we are on the same Wi-Fi") is exactly the guess that
+                // produced silent timeouts, so it is only used when the code carries no hotspot.
                 when {
-                    plan.route == com.loopjet.app.platform.net.ConnectPlanner.Route.HOTSPOT &&
-                        c.network != null -> joinThenSend(c.network!!, c)
-                    c.lanHost.isNotBlank() && c.lanPort > 0 -> pairWithLink(link)
                     c.network != null -> joinThenSend(c.network!!, c)
+                    c.lanHost.isNotBlank() && c.lanPort > 0 -> pairWithLink(link)
                     else -> notice(plan.reason)
                 }
             }
@@ -1028,18 +1047,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // --- how we connect -------------------------------------------------------------------------
-
-    /**
-     * Hotspot and same-Wi-Fi are not two settings, they are two answers to "where is the other
-     * phone?". Hotspot is the default because it is the only one that does not assume anything
-     * about the Wi-Fi both phones happen to be on; same-Wi-Fi is faster when the user knows the two
-     * phones share a network, and it is now something they choose rather than something the app
-     * guesses.
-     */
-    fun setConnectMode(mode: String) {
-        prefs.connectMode = mode
-        _state.value = _state.value.copy(connectMode = mode)
-    }
 
     /**
      * Joins a hotspot whose name and password the user read off the other phone's screen.

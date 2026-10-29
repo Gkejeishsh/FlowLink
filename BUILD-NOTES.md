@@ -848,3 +848,46 @@ own IPv4 address shares the peer's /24 — chosen by address, not by enumeration
 
 48 → 52 unit tests (contrast, motion tokens, session progress, and now subnet verification). CI on this
 commit builds debug and release and runs the loopback benchmark.
+
+---
+
+# 1.0.3 — hotspot only
+
+The Wi-Fi mode is gone. One connection method, as the user asked: the phone showing the code hosts
+a hotspot, the other phone joins it, and scanning the code does both without a second decision.
+
+## What changed
+
+* **Connect screen is hotspot-only.** The Hotspot / Same-Wi-Fi chips are removed, along with the
+  preference behind them. What is left is the thing that works: scan a code (which joins the other
+  phone's hotspot automatically), or type the hotspot name and password the other phone displays.
+* **A scan always joins, never guesses.** A code that carries a network is joined first, every time.
+  The old path compared subnets and preferred "LAN" when the two phones merely *looked* like they
+  shared a Wi-Fi network — the exact guess that produced silent six-second timeouts with nothing on
+  screen. If the join is refused and the code also carries a LAN address, that is used as a
+  fallback, but only after the hotspot attempt.
+* **Already joined? No prompt.** A second scan on the same hotspot detects the SSID and connects
+  straight over the existing network instead of asking Android for a network the phone is sitting on.
+* **Wi-Fi off is named**, not discovered five seconds later: the app says so and opens Wi-Fi settings
+  (no app can switch Wi-Fi on since Android 10).
+* **The receiving screen says when the hotspot is not up yet** ("Starting this phone's hotspot…"),
+  because the code is published a second before the access point exists — scanning in that window was
+  a silent failure.
+* The hotspot card now also shows the **band** (2.4 GHz / 5 GHz). Android's public API cannot choose
+  the band for a local-only hotspot, so the honest thing is to show which one was granted: 2.4 GHz
+  caps out around 8–10 MB/s, 5 GHz around 40–50 MB/s.
+* The QR line no longer says "Same Wi-Fi · host (fastest)". It says what a scan will do:
+  `Hotspot "AndroidAP_1234" · scanning joins it`.
+
+## Speed, stated honestly
+
+The loopback benchmark numbers in this log (160–380 MB/s) measure the engine on a CI machine with no
+radio. They are not a promise about a phone-to-phone transfer, and they were never meant to read as
+one. What the radio can do is the ceiling, and the burst-then-slowdown that shows up in real tests is
+the kernel buffers draining: at a 50 MB/s line with 8 MiB per stream in flight, the first seconds
+report the rate at which the buffers empty, not the rate the air can carry. The transfer screen now
+prints the **average** next to the instantaneous rate for exactly this reason.
+
+Engine-side change in this build: the receiver's per-stream buffered I/O went from 64 KiB to 1 MiB,
+matching the sender and the 256 KiB record size — four copies of every byte on the receive path
+became one.

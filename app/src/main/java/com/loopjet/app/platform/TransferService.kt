@@ -124,6 +124,8 @@ data class SessionUi(
     val hotspotSsid: String = "",
     val hotspotPass: String = "",
     val hotspotAddress: String = "",
+    /** "2.4 GHz", "5 GHz" or "unknown band" — the ceiling on any transfer speed lives here. */
+    val hotspotBand: String = "",
     val offer: IncomingOfferUi? = null,
     val deviceName: String = "",
     val receivedApps: List<ReceivedAppUi> = emptyList(),
@@ -1037,10 +1039,15 @@ class TransferService : Service() {
         hotspot = controller
         controller.start { info, message ->
             if (info == null) {
-                // Not fatal: the LAN path is still advertised, and the message no longer claims
-                // there is "no shared Wi-Fi" when there may well be one.
+                // The hotspot is the only advertised route now, so this used to leave the screen
+                // silent about why. Say exactly what failed and what is still possible.
                 Log.d(TAG, "local-only hotspot unavailable: $message")
-                TransferHub.update { it.copy(message = "Same Wi-Fi only — the hotspot could not start ($message)") }
+                TransferHub.update {
+                    it.copy(
+                        message = "Hotspot could not start ($message). Join this phone from Wi-Fi " +
+                            "settings if it is on the same network, or tap Restart."
+                    )
+                }
                 return@start
             }
             hotspotInfo = info
@@ -1052,7 +1059,8 @@ class TransferService : Service() {
                 it.copy(
                     hotspotSsid = info.ssid,
                     hotspotPass = info.passphrase.orEmpty(),
-                    hotspotAddress = info.address.orEmpty()
+                    hotspotAddress = info.address.orEmpty(),
+                    hotspotBand = info.band
                 )
             }
             val host = info.address
@@ -1213,7 +1221,9 @@ class TransferService : Service() {
         runCatching { hotspot?.stop() }
         hotspot = null
         hotspotInfo = null
-        TransferHub.update { it.copy(hotspotSsid = "", hotspotPass = "", hotspotAddress = "") }
+        TransferHub.update {
+            it.copy(hotspotSsid = "", hotspotPass = "", hotspotAddress = "", hotspotBand = "")
+        }
         addressWatch?.interrupt()
         addressWatch = null
         // A joined network is released only when the session is over: unregistering the callback
