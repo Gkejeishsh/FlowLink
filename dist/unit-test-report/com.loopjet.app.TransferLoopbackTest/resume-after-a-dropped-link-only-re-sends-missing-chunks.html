@@ -66,7 +66,7 @@
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">2.505s</div>
+<div class="counter">2.640s</div>
 <p>duration</p>
 </div>
 </td>
@@ -88,38 +88,54 @@
 <div class="tab">
 <h2>standard output</h2>
 <span class="code">
-<pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=25165824 files=0 chunks=96/96
-[sender-failed] --- engine log (12 lines) ---
-[sender-failed] S: handshake complete with Receiver, code 788111
-[sender-failed] R: sender Test Phone connected, code 788111
+<pre id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">[sender] ok=false msg=The receiver did not confirm 1 file(s) bytes=26214400 files=0 chunks=100/96
+[sender-failed] --- engine log (20 lines) ---
+[sender-failed] R: sender Test Phone connected, code 640591
+[sender-failed] S: handshake complete with Receiver, code 640591
 [sender-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+[sender-failed] S: data stream 0 open
 [sender-failed] S: data stream 1 open
 [sender-failed] S: data stream 3 open
 [sender-failed] S: data stream 2 open
+[sender-failed] R: data stream ended: connection closed while reading DATA
+[sender-failed] R: data stream ended: connection closed while reading DATA
+[sender-failed] R: data stream ended: connection closed while reading DATA
+[sender-failed] S: stream 1: Broken pipe (attempt 1)
+[sender-failed] S: stream 3: Broken pipe (attempt 1)
+[sender-failed] S: stream 0: Broken pipe (attempt 1)
+[sender-failed] R: data stream ended: connection closed while reading DATA
+[sender-failed] S: stream 2: Broken pipe (attempt 1)
+[sender-failed] S: data stream 1 open
+[sender-failed] S: data stream 2 open
+[sender-failed] S: data stream 3 open
 [sender-failed] S: data stream 0 open
-[sender-failed] R: data stream ended: connection closed while reading DATA
-[sender-failed] R: data stream ended: connection closed while reading DATA
-[sender-failed] R: data stream ended: connection closed while reading DATA
-[sender-failed] R: data stream ended: connection closed while reading DATA
-[sender-failed] R: stalled for 1987ms, ending session
-[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=1835008 files=0 chunks=7/96 ms=2130 path=/tmp/loopjet-test-resume-171514223964/dst
-[receiver-failed] --- engine log (12 lines) ---
-[receiver-failed] S: handshake complete with Receiver, code 788111
-[receiver-failed] R: sender Test Phone connected, code 788111
+[sender-failed] R: stalled for 1958ms, ending session
+[receiver] ok=false msg=Interrupted — 1 file(s) can resume bytes=2097152 files=0 chunks=8/96 ms=2159 path=/tmp/loopjet-test-resume-210939473746/dst
+[receiver-failed] --- engine log (20 lines) ---
+[receiver-failed] R: sender Test Phone connected, code 640591
+[receiver-failed] S: handshake complete with Receiver, code 640591
 [receiver-failed] S: queued 96 items for 25165824 bytes (96 chunks)
+[receiver-failed] S: data stream 0 open
 [receiver-failed] S: data stream 1 open
 [receiver-failed] S: data stream 3 open
 [receiver-failed] S: data stream 2 open
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] S: stream 1: Broken pipe (attempt 1)
+[receiver-failed] S: stream 3: Broken pipe (attempt 1)
+[receiver-failed] S: stream 0: Broken pipe (attempt 1)
+[receiver-failed] R: data stream ended: connection closed while reading DATA
+[receiver-failed] S: stream 2: Broken pipe (attempt 1)
+[receiver-failed] S: data stream 1 open
+[receiver-failed] S: data stream 2 open
+[receiver-failed] S: data stream 3 open
 [receiver-failed] S: data stream 0 open
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: data stream ended: connection closed while reading DATA
-[receiver-failed] R: stalled for 1987ms, ending session
-[loopback] first attempt: sent=24.0 MB receiver=Interrupted — 1 file(s) can resume
-[sender] ok=true msg=Transfer complete bytes=23330816 files=0 chunks=96/96
-[receiver] ok=true msg=Transfer complete bytes=23330816 files=1 chunks=96/96 ms=273 path=/tmp/loopjet-test-resume-171514223964/dst
-[loopback] resume: sender re-sent 23330816 bytes of 25165824, receiver has 23330816 bytes, ok=true
+[receiver-failed] R: stalled for 1958ms, ending session
+[loopback] first attempt: sent=25.0 MB receiver=Interrupted — 1 file(s) can resume
+[sender] ok=true msg=Transfer complete bytes=23068672 files=0 chunks=96/96
+[receiver] ok=true msg=Transfer complete bytes=23068672 files=1 chunks=96/96 ms=289 path=/tmp/loopjet-test-resume-210939473746/dst
+[loopback] resume: sender re-sent 23068672 bytes of 25165824, receiver has 23068672 bytes, ok=true
 </pre>
 <button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-resume after a dropped link only re-sends missing chunks">Copy</button>
 </span>
@@ -157,7 +173,7 @@ Exception in thread &quot;lj-progress&quot; java.lang.InterruptedException: slee
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 12:40:37 PM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 29, 2026, 12:48:38 PM</p>
 </div>
 </div>
 </body>
