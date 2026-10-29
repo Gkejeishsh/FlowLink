@@ -576,3 +576,16 @@ no screen falls back to the OEM face; `core/` and `platform/net/` are byte-ident
 round-3 commit, which is the only trustworthy "no slower" signal available without a device;
 and the release APK carries the same signing certificate as the previous build, so it installs
 as an update.
+
+---
+
+# Final build
+
+`dist/LoopJet-1.0.0.apk` — 2,442,687 bytes, sha256 `f0f827c0aecc852266e48b0c2922341459fd85625716b8b995d702092b44d07d`
+
+Built from commit 428172e by CI (compile 0 errors, 31/31 tests, release assembly OK), signed
+from that run's own `dist/unsigned` payload after checking it against the `SHA256.txt` the
+workflow published. One dex, no `debuggable` attribute, v2 + v3 signatures valid,
+certificate `C=PK, O=LoopJet, OU=Release, CN=LoopJet` — the same key as the previous build, so
+it installs as an update. Permissions were read out of the binary manifest's string pool, not
+grepped as raw bytes: `MANAGE_EXTERNAL_STORAGE` is present, which the in-app file tree needs.
