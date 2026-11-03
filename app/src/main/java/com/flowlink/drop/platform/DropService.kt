@@ -182,7 +182,7 @@ class DropService : Service() {
      */
     private fun probe(address: String, port: Int) {
         if (address.isBlank()) return
-        Thread {
+        Thread({
             val ok = runCatching {
                 Socket().use { socket ->
                     socket.connect(InetSocketAddress(address, port), 900)
@@ -264,7 +264,9 @@ class DropService : Service() {
             Log.d(TAG, "upload failed: $name — $reason")
         }
 
-        override fun onLog(message: String) = Log.d(TAG, message)
+        override fun onLog(message: String) {
+            Log.d(TAG, message)
+        }
     }
 
     private fun onJoined(remote: String, source: String) {

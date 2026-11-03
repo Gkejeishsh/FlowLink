@@ -196,7 +196,7 @@ private fun Header(state: DropState) {
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                state.phoneName.
+                state.phoneName,
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

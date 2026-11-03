@@ -109,29 +109,23 @@ class JoinWatcher(
             }
         }
         val thread = Thread({
-            val socket = try {
-                DatagramSocket(null).apply {
+            val multicast = try {
+                java.net.MulticastSocket(5353).apply {
                     reuseAddress = true
-                    bind(InetSocketAddress(5353))
                     soTimeout = 2_000
                 }
             } catch (t: Throwable) {
                 Log.d(TAG, "mDNS unavailable: ${t.message}")
                 return@Thread
             }
-            mdnsSocket = socket
+            mdnsSocket = multicast
             val group = runCatching { InetAddress.getByName("224.0.0.251") }.getOrNull() ?: return@Thread
-            runCatching {
-                for (iface in java.util.Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                    if (!iface.isUp || iface.isLoopback) continue
-                    runCatching { socket.joinGroup(InetSocketAddress(group, 5353), iface) }
-                }
-            }
+            runCatching { multicast.joinGroup(group) }
             val buffer = ByteArray(2_048)
             while (running) {
                 val packet = DatagramPacket(buffer, buffer.size)
                 try {
-                    socket.receive(packet)
+                    multicast.receive(packet)
                 } catch (t: Throwable) {
                     if (!running) break
                     continue
@@ -141,7 +135,7 @@ class JoinWatcher(
                 if (prefix.isNotEmpty() && !from.startsWith("$prefix.")) continue
                 emit(from, "mdns")
             }
-            runCatching { socket.close() }
+            runCatching { multicast.close() }
         }, "drop-mdns").apply { isDaemon = true }
         mdnsThread = thread
         thread.start()
