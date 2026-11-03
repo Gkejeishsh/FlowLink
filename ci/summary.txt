@@ -1,13 +1,8 @@
-compile=0 tests=1 debug=0 release=0 wrapper=0
+compile=0 tests=0 debug=0 release=0 wrapper=0
 
 == first compile errors ==
 
 == test failures ==
-DropServerTest > pingAnswersWithThePhoneName FAILED
-        at org.junit.Assert.assertTrue(Assert.java:42)
-        at org.junit.Assert.assertTrue(Assert.java:53)
-> Task :app:testDebugUnitTest FAILED
-BUILD FAILED in 37s
 
 == benchmark lines ==
 
@@ -29,10 +24,10 @@ w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/dro
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:289:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:329:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:381:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719229466.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719694939.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 54s
+BUILD SUCCESSFUL in 55s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
