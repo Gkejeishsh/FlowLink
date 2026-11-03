@@ -8,15 +8,15 @@ plugins {
 val releaseKeystore: String? = System.getenv("LJ_KEYSTORE")
 
 android {
-    namespace = "com.loopjet.app"
+    namespace = "com.flowlink.drop"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.loopjet.app"
+        applicationId = "com.flowlink.drop"
         minSdk = 26
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.0.3"
+        versionCode = 1
+        versionName = "1.0.0"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -97,21 +97,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.documentfile)
     implementation(libs.kotlinx.coroutines.android)
+    // QR encoding only. The guest uses their own camera, so there is no scanner and no CameraX.
     implementation(libs.zxing.core)
-    // CameraX + zxing-core: live QR scanning. Deliberately not ML Kit, which would drag Google
-    // Play services onto a phone that is documented to transfer without it.
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

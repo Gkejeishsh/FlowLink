@@ -1,6 +1,6 @@
 <resources>
     <!-- The product name lives in exactly one place. -->
-    <string name="app_name">FlowLink</string>
+    <string name="app_name">FlowLink Drop</string>
     <string name="channel_transfer">Transfers</string>
     <string name="channel_server">Sharing servers</string>
     <string name="notif_pause">Pause</string>
