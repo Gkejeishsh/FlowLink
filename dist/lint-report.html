@@ -177,9 +177,9 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 20 errors, 34 warnings and 3 hints</span>
+      <span class="mdl-layout-title">Lint Report: 20 errors, 33 warnings and 3 hints</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 15:25:44 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 15:55:59 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -197,7 +197,7 @@ document.getElementById(id).style.display = 'none';
       <a class="mdl-navigation__link" href="#ObsoleteSdkInt"><i class="material-icons warning-icon">warning</i>Obsolete SDK_INT Version Check (1)</a>
       <a class="mdl-navigation__link" href="#AutoboxingStateCreation"><i class="material-icons warning-icon">warning</i><code>State&lt;T></code> will autobox values assigned to this state. Use a specialized state type instead. (3)</a>
       <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (7)</a>
-      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (8)</a>
+      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (7)</a>
     </nav>
   </div>
   <main class="mdl-layout__content">
@@ -252,7 +252,7 @@ document.getElementById(id).style.display = 'none';
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Productivity">Productivity</a>
 </td></tr>
 <tr>
-<td class="countColumn">8</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">7</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#UseKtx">UseKtx</a>: Use KTX extension function</td></tr>
 <tr><td></td><td class="categoryColumn"><a href="#ExtraIssues">Included Additional Checks (66)</a>
 </td></tr>
@@ -285,24 +285,24 @@ Dismiss</button>            </div>
 <span class="lineno">  90 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:121</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno"> 118 </span>        <span class="keyword">var</span> captured: Info? = <span class="keyword">null</span>
-<span class="lineno"> 119 </span>        <span class="keyword">val</span> latch = java.util.concurrent.CountDownLatch(<span class="number">1</span>)
-<span class="lineno"> 120 </span>        runCatching {
-<span class="caretline"><span class="lineno"> 121 </span>            <span class="error">manager.requestGroupInfo(channel) { group -></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 122 </span>                <span class="keyword">if</span> (group != <span class="keyword">null</span>) {
-<span class="lineno"> 123 </span>                    p2pGroup = group
-<span class="lineno"> 124 </span>                    <span class="keyword">val</span> ssid = runCatching { group.networkName }.getOrNull().orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:124</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 121 </span>        <span class="keyword">var</span> captured: Info? = <span class="keyword">null</span>
+<span class="lineno"> 122 </span>        <span class="keyword">val</span> latch = java.util.concurrent.CountDownLatch(<span class="number">1</span>)
+<span class="lineno"> 123 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 124 </span>            <span class="error">manager.requestGroupInfo(channel) { group -></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 125 </span>                <span class="keyword">if</span> (group != <span class="keyword">null</span>) {
+<span class="lineno"> 126 </span>                    p2pGroup = group
+<span class="lineno"> 127 </span>                    <span class="keyword">val</span> ssid = runCatching { group.networkName }.getOrNull().orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:189</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno"> 186 </span>            }
-<span class="lineno"> 187 </span>        }
-<span class="lineno"> 188 </span>        runCatching {
-<span class="caretline"><span class="lineno"> 189 </span>            <span class="error">wifi.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 190 </span>        }.onFailure {
-<span class="lineno"> 191 </span>            running = <span class="keyword">false</span>
-<span class="lineno"> 192 </span>            onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"the hotspot could not start"</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:192</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 189 </span>            }
+<span class="lineno"> 190 </span>        }
+<span class="lineno"> 191 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 192 </span>            <span class="error">wifi.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 193 </span>        }.onFailure {
+<span class="lineno"> 194 </span>            running = <span class="keyword">false</span>
+<span class="lineno"> 195 </span>            onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"the hotspot could not start"</span>)
 </pre>
 
 </div>
@@ -343,44 +343,44 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:99</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno">  96 </span>
-<span class="lineno">  97 </span>    private <span class="keyword">fun</span> target(name: String, mime: String): Target = <span class="keyword">when</span> {
-<span class="lineno">  98 </span>        Names.isImage(mime) -> Target(
-<span class="caretline"><span class="lineno">  99 </span>            MediaStore.Images.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 100 </span>            <span class="string">"${</span>Environment.DIRECTORY_PICTURES<span class="string">}/$folder"</span>,
-<span class="lineno"> 101 </span>            <span class="string">"Pictures/$folder"</span>
-<span class="lineno"> 102 </span>        )
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:107</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 104 </span>
+<span class="lineno"> 105 </span>    private <span class="keyword">fun</span> target(name: String, mime: String): Target = <span class="keyword">when</span> {
+<span class="lineno"> 106 </span>        Names.isImage(mime) -> Target(
+<span class="caretline"><span class="lineno"> 107 </span>            MediaStore.Images.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 108 </span>            <span class="string">"${</span>Environment.DIRECTORY_PICTURES<span class="string">}/$folder"</span>,
+<span class="lineno"> 109 </span>            <span class="string">"Pictures/$folder"</span>
+<span class="lineno"> 110 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:104</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 101 </span>            <span class="string">"Pictures/$folder"</span>
-<span class="lineno"> 102 </span>        )
-<span class="lineno"> 103 </span>        Names.isVideo(mime) -> Target(
-<span class="caretline"><span class="lineno"> 104 </span>            MediaStore.Video.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 105 </span>            <span class="string">"${</span>Environment.DIRECTORY_MOVIES<span class="string">}/$folder"</span>,
-<span class="lineno"> 106 </span>            <span class="string">"Movies/$folder"</span>
-<span class="lineno"> 107 </span>        )
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:112</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 109 </span>            <span class="string">"Pictures/$folder"</span>
+<span class="lineno"> 110 </span>        )
+<span class="lineno"> 111 </span>        Names.isVideo(mime) -> Target(
+<span class="caretline"><span class="lineno"> 112 </span>            MediaStore.Video.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 113 </span>            <span class="string">"${</span>Environment.DIRECTORY_MOVIES<span class="string">}/$folder"</span>,
+<span class="lineno"> 114 </span>            <span class="string">"Movies/$folder"</span>
+<span class="lineno"> 115 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:109</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 106 </span>            <span class="string">"Movies/$folder"</span>
-<span class="lineno"> 107 </span>        )
-<span class="lineno"> 108 </span>        Names.isAudio(mime) -> Target(
-<span class="caretline"><span class="lineno"> 109 </span>            MediaStore.Audio.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 110 </span>            <span class="string">"${</span>Environment.DIRECTORY_MUSIC<span class="string">}/$folder"</span>,
-<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
-<span class="lineno"> 112 </span>        )
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:117</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 114 </span>            <span class="string">"Movies/$folder"</span>
+<span class="lineno"> 115 </span>        )
+<span class="lineno"> 116 </span>        Names.isAudio(mime) -> Target(
+<span class="caretline"><span class="lineno"> 117 </span>            MediaStore.Audio.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 118 </span>            <span class="string">"${</span>Environment.DIRECTORY_MUSIC<span class="string">}/$folder"</span>,
+<span class="lineno"> 119 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 120 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:114</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
-<span class="lineno"> 112 </span>        )
-<span class="lineno"> 113 </span>        <span class="keyword">else</span> -> Target(
-<span class="caretline"><span class="lineno"> 114 </span>            MediaStore.Downloads.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 115 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
-<span class="lineno"> 116 </span>            <span class="string">"Download/$folder"</span>
-<span class="lineno"> 117 </span>        )
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:122</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 119 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 120 </span>        )
+<span class="lineno"> 121 </span>        <span class="keyword">else</span> -> Target(
+<span class="caretline"><span class="lineno"> 122 </span>            MediaStore.Downloads.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 123 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
+<span class="lineno"> 124 </span>            <span class="string">"Download/$folder"</span>
+<span class="lineno"> 125 </span>        )
 </pre>
 
 </div>
@@ -423,13 +423,13 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/server/DropServer.kt">../../src/main/java/com/flowlink/drop/server/DropServer.kt</a>:397</span>: <span class="message">Call requires API level 34 (current min is 26): <code>java.io.InputStream#skipNBytes</code></span><br /><pre class="errorlines">
-<span class="lineno"> 394 </span>    private <span class="keyword">fun</span> drain(input: InputStream, request: Request) {
-<span class="lineno"> 395 </span>        <span class="keyword">val</span> length = contentLength(request)
-<span class="lineno"> 396 </span>        <span class="keyword">if</span> (length <span class="keyword">in</span> <span class="number">1..</span>(<span class="number">1024</span> * <span class="number">1024</span>)) {
-<span class="caretline"><span class="lineno"> 397 </span>            runCatching { input.<span class="error">skipNBytes</span>(length) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 398 </span>        }
-<span class="lineno"> 399 </span>    }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/server/DropServer.kt">../../src/main/java/com/flowlink/drop/server/DropServer.kt</a>:440</span>: <span class="message">Call requires API level 34 (current min is 26): <code>java.io.InputStream#skipNBytes</code></span><br /><pre class="errorlines">
+<span class="lineno"> 437 </span>    private <span class="keyword">fun</span> drain(input: InputStream, request: Request) {
+<span class="lineno"> 438 </span>        <span class="keyword">val</span> length = contentLength(request)
+<span class="lineno"> 439 </span>        <span class="keyword">if</span> (length <span class="keyword">in</span> <span class="number">1..</span>(<span class="number">1024</span> * <span class="number">1024</span>)) {
+<span class="caretline"><span class="lineno"> 440 </span>            runCatching { input.<span class="error">skipNBytes</span>(length) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 441 </span>        }
+<span class="lineno"> 442 </span>    }
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:79</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder()</code></span><br /><pre class="errorlines">
@@ -482,54 +482,54 @@ Dismiss</button>            </div>
 <span class="lineno">  90 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:225</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
-<span class="lineno"> 222 </span>            }
-<span class="lineno"> 223 </span>        }
-<span class="lineno"> 224 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
-<span class="caretline"><span class="lineno"> 225 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 226 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
-<span class="lineno"> 227 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
-<span class="lineno"> 228 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:228</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
+<span class="lineno"> 225 </span>            }
+<span class="lineno"> 226 </span>        }
+<span class="lineno"> 227 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
+<span class="caretline"><span class="lineno"> 228 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 229 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 230 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 231 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:229</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 226 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
-<span class="lineno"> 227 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
-<span class="lineno"> 228 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
-<span class="caretline"><span class="lineno"> 229 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 230 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 232 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:232</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 229 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 230 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 231 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
+<span class="caretline"><span class="lineno"> 232 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 233 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 235 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:232</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 229 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull().orEmpty()
-<span class="lineno"> 230 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="caretline"><span class="lineno"> 232 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 233 </span>            }
-<span class="lineno"> 234 </span>            pass = runCatching { config.passphrase }.getOrNull().orEmpty()
-<span class="lineno"> 235 </span>        }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:235</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 232 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull().orEmpty()
+<span class="lineno"> 233 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="caretline"><span class="lineno"> 235 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 236 </span>            }
+<span class="lineno"> 237 </span>            pass = runCatching { config.passphrase }.getOrNull().orEmpty()
+<span class="lineno"> 238 </span>        }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:234</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
-<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 232 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
-<span class="lineno"> 233 </span>            }
-<span class="caretline"><span class="lineno"> 234 </span>            pass = runCatching { config.<span class="error">passphrase</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 235 </span>        }
-<span class="lineno"> 236 </span>        <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 237 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:237</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
+<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 235 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
+<span class="lineno"> 236 </span>            }
+<span class="caretline"><span class="lineno"> 237 </span>            pass = runCatching { config.<span class="error">passphrase</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 238 </span>        }
+<span class="lineno"> 239 </span>        <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 240 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:114</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.provider.MediaStore.Downloads#getContentUri</code></span><br /><pre class="errorlines">
-<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
-<span class="lineno"> 112 </span>        )
-<span class="lineno"> 113 </span>        <span class="keyword">else</span> -> Target(
-<span class="caretline"><span class="lineno"> 114 </span>            MediaStore.Downloads.<span class="error">getContentUri</span>(MediaStore.VOLUME_EXTERNAL_PRIMARY),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 115 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
-<span class="lineno"> 116 </span>            <span class="string">"Download/$folder"</span>
-<span class="lineno"> 117 </span>        )
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:122</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.provider.MediaStore.Downloads#getContentUri</code></span><br /><pre class="errorlines">
+<span class="lineno"> 119 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 120 </span>        )
+<span class="lineno"> 121 </span>        <span class="keyword">else</span> -> Target(
+<span class="caretline"><span class="lineno"> 122 </span>            MediaStore.Downloads.<span class="error">getContentUri</span>(MediaStore.VOLUME_EXTERNAL_PRIMARY),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 123 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
+<span class="lineno"> 124 </span>            <span class="string">"Download/$folder"</span>
+<span class="lineno"> 125 </span>        )
 </pre>
 
 <span class="location"><a href="../../src/main/res/values/themes.xml">../../src/main/res/values/themes.xml</a>:6</span>: <span class="message"><code>android:windowLayoutInDisplayCutoutMode</code> requires API level 27 (current min is 26)</span><br /><pre class="errorlines">
@@ -1006,24 +1006,24 @@ Dismiss</button>            </div>
 <span class="lineno">  86 </span>    LaunchedEffect(state.phase) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:99</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno">  96 </span>    onRestart: () -> Unit
-<span class="lineno">  97 </span>) {
-<span class="lineno">  98 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
-<span class="caretline"><span class="lineno">  99 </span>    <span class="keyword">var</span> tab by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 100 </span>    <span class="keyword">var</span> refresh by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
-<span class="lineno"> 101 </span>
-<span class="lineno"> 102 </span>    Scaffold(
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:100</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  97 </span>    onRestart: () -> Unit
+<span class="lineno">  98 </span>) {
+<span class="lineno">  99 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="caretline"><span class="lineno"> 100 </span>    <span class="keyword">var</span> tab by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 101 </span>    <span class="keyword">var</span> refresh by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="lineno"> 102 </span>
+<span class="lineno"> 103 </span>    Scaffold(
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:100</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno">  97 </span>) {
-<span class="lineno">  98 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
-<span class="lineno">  99 </span>    <span class="keyword">var</span> tab by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
-<span class="caretline"><span class="lineno"> 100 </span>    <span class="keyword">var</span> refresh by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 101 </span>
-<span class="lineno"> 102 </span>    Scaffold(
-<span class="lineno"> 103 </span>        containerColor = MaterialTheme.colorScheme.background,
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:101</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  98 </span>) {
+<span class="lineno">  99 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="lineno"> 100 </span>    <span class="keyword">var</span> tab by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="caretline"><span class="lineno"> 101 </span>    <span class="keyword">var</span> refresh by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 102 </span>
+<span class="lineno"> 103 </span>    Scaffold(
+<span class="lineno"> 104 </span>        containerColor = MaterialTheme.colorScheme.background,
 </pre>
 
 </div>
@@ -1224,48 +1224,38 @@ Dismiss</button>            </div>
 <span class="lineno"> 100 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
 <span class="caretline"><span class="lineno"> 101 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.pass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    <span class="keyword">var</span> preferPort80: Boolean
-<span class="lineno"> 104 </span>        get() = prefs.getBoolean(<span class="string">"port.eighty"</span>, <span class="keyword">true</span>)
+<span class="lineno"> 103 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 104 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:105</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
 <span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    <span class="keyword">var</span> preferPort80: Boolean
-<span class="lineno"> 104 </span>        get() = prefs.getBoolean(<span class="string">"port.eighty"</span>, <span class="keyword">true</span>)
-<span class="caretline"><span class="lineno"> 105 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"port.eighty"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 103 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 104 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
+<span class="caretline"><span class="lineno"> 105 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"phone.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno"> 106 </span>
-<span class="lineno"> 107 </span>    <span class="keyword">var</span> phoneName: String
-<span class="lineno"> 108 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
+<span class="lineno"> 107 </span>    <span class="javadoc">/** Kept small on purpose: the files themselves live in the gallery or Downloads. */</span>
+<span class="lineno"> 108 </span>    <span class="keyword">fun</span> history(): List&lt;ReceivedItem> {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:109</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 106 </span>
-<span class="lineno"> 107 </span>    <span class="keyword">var</span> phoneName: String
-<span class="lineno"> 108 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
-<span class="caretline"><span class="lineno"> 109 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"phone.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 110 </span>
-<span class="lineno"> 111 </span>    <span class="javadoc">/** Kept small on purpose: the files themselves live in the gallery or Downloads. */</span>
-<span class="lineno"> 112 </span>    <span class="keyword">fun</span> history(): List&lt;ReceivedItem> {
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:129</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 126 </span>            listOf(it.name, it.bytes.toString(), it.time.toString(), it.where)
+<span class="lineno"> 127 </span>                .joinToString(<span class="string">"\u001f"</span>)
+<span class="lineno"> 128 </span>        }
+<span class="caretline"><span class="lineno"> 129 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"history"</span>, text).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 130 </span>    }
+<span class="lineno"> 131 </span>
+<span class="lineno"> 132 </span>    <span class="keyword">fun</span> clearHistory() = prefs.edit().remove(<span class="string">"history"</span>).apply()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:133</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 130 </span>            listOf(it.name, it.bytes.toString(), it.time.toString(), it.where)
-<span class="lineno"> 131 </span>                .joinToString(<span class="string">"\u001f"</span>)
-<span class="lineno"> 132 </span>        }
-<span class="caretline"><span class="lineno"> 133 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"history"</span>, text).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 134 </span>    }
-<span class="lineno"> 135 </span>
-<span class="lineno"> 136 </span>    <span class="keyword">fun</span> clearHistory() = prefs.edit().remove(<span class="string">"history"</span>).apply()
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:136</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 133 </span>        prefs.edit().putString(<span class="string">"history"</span>, text).apply()
-<span class="lineno"> 134 </span>    }
-<span class="lineno"> 135 </span>
-<span class="caretline"><span class="lineno"> 136 </span>    <span class="keyword">fun</span> clearHistory() = <span class="warning">prefs.edit()</span>.remove(<span class="string">"history"</span>).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 137 </span>
-<span class="lineno"> 138 </span>    private <span class="keyword">fun</span> defaultName(): String {
-<span class="lineno"> 139 </span>        <span class="keyword">val</span> model = runCatching { Build.MODEL }.getOrNull().orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:132</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 129 </span>        prefs.edit().putString(<span class="string">"history"</span>, text).apply()
+<span class="lineno"> 130 </span>    }
+<span class="lineno"> 131 </span>
+<span class="caretline"><span class="lineno"> 132 </span>    <span class="keyword">fun</span> clearHistory() = <span class="warning">prefs.edit()</span>.remove(<span class="string">"history"</span>).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 133 </span>
+<span class="lineno"> 134 </span>    private <span class="keyword">fun</span> defaultName(): String {
+<span class="lineno"> 135 </span>        <span class="keyword">val</span> model = runCatching { Build.MODEL }.getOrNull().orEmpty()
 </pre>
 
 </div>
