@@ -906,3 +906,72 @@ Consequence, stated plainly: **Android will refuse to install 1.0.3 over 1.0.2**
 same package. The old app has to be uninstalled once (which also clears its saved transfers, trusted
 devices and settings). From 1.0.3 onwards upgrades are in place again, as long as this keystore
 survives; it cannot be regenerated and cannot be recovered if lost.
+
+---
+
+# FlowLink Drop 1.0.0 — the app rebuilt around a hotspot and a browser
+
+The peer-to-peer app ends here. `com.loopjet.app` is replaced by **`com.flowlink.drop`**, written from
+scratch to the design in `docs/DROP-PLAN.md`: this phone hosts a hotspot, the other person joins it,
+opens a page, and drops files into it. They do not install anything.
+
+Only the four proven ideas survived from the old codebase — the local-only hotspot call, the HTTP
+server shape, MediaStore writing, and the QR encoder. The engine, discovery, beacons, crypto sessions,
+device pairing, the picker, the web-share mode switch: deleted. Roughly 4 000 lines became 3 800,
+and the remaining ones all serve one flow.
+
+## What a person does
+
+1. Open the app. The hotspot starts by itself; a QR appears within a couple of seconds.
+2. **Step 1 — Join this Wi-Fi**: the QR is a `WIFI:` code, so the other phone's camera offers to
+   connect. The network name and password are printed underneath either way.
+3. Tap **Next** (or tap step 2 in the stepper).
+4. **Step 2 — Open this page**: a URL QR, plus the address in full. Chrome or Safari opens it.
+5. Drop files. They appear on the phone live and land in Photos or Downloads.
+
+The `Next` button is the flow, not a fallback: detection of a joined device only *highlights* it
+("Next · someone joined"), because no Android API reliably reports clients on a local-only hotspot.
+A screen that waits for an event that may never come is worse than a button.
+
+## Engineering decisions worth keeping
+
+* **Uploads stream to disk.** No whole-file buffering, 256 KiB copies, `Expect: 100-continue` answered
+  (Chrome sends it), chunked bodies decoded, multipart parsed so the page still works with JavaScript
+  off. All of it is tested over a real loopback socket in CI.
+* **Storage needs no permission on Android 10+.** Media goes to `Pictures|Movies|Music/FlowLink`,
+  everything else to `Download/FlowLink`, all through MediaStore with `IS_PENDING=1` — the file is
+  invisible until its last byte lands, so the "no .part files" rule is enforced by the OS. Android 8–9
+  falls back to `.part` + rename.
+* **`specialUse` foreground service**, not `dataSync`: the platform time-limits data-sync services,
+  and a phone waiting to receive something is not a data sync.
+* **The address is proven, not guessed.** The AP interface is found by ranking known hotspot gateways,
+  then any non-cellular address that is not the Wi-Fi client, then name heuristics — and then the app
+  connects to its own port and reports the result in Settings. A guess that fails is visible instead
+  of silent.
+* **The page makes zero external requests** (asserted by a test). It runs on a network whose whole
+  purpose is having no internet, and it says so in its own copy.
+* **Ports:** 80 first when enabled (so the typed address is just the IP), then 8080–8095.
+
+## Tests
+
+22 unit tests, all green, including: WIFI-payload escaping round-trip, path traversal, name
+de-duplication, MIME-by-extension, URL decoding of unicode names, the page's no-network property,
+plus socket-level upload tests — 512 KiB byte-for-byte integrity, `100-continue`, chunked bodies,
+multipart without JavaScript, an abandoned upload leaving nothing behind, 404/405 handling, and the
+request log.
+
+## Signing
+
+New keystore: `CN=FlowLink Drop`, SHA-256
+`F0:6A:DE:FC:27:00:29:AE:48:E6:0A:8A:D3:31:5F:F0:05:A8:5A:08:14:CA:C7:F8:49:EC:7D:33:11:1F:05:27`.
+Different package id from the old app, so nothing has to be uninstalled for this one — but the old
+`com.loopjet.app` install can be removed at leisure. Export `keys/flowlink-release.p12` somewhere
+safe: it is gitignored, it has already been lost twice in sandbox resets, and it cannot be
+regenerated.
+
+## Known limits, stated before testing rather than after
+
+* The hotspot band is chosen by Android; a 2.4 GHz grant caps a transfer at roughly 8–10 MB/s.
+* Join detection depends on the ROM (mDNS, ARP); when neither works, the `Next` button still does.
+* Resumable uploads are specified but not yet implemented — a dropped connection retries from zero.
+* Nothing here has run on a phone yet. That is what the checklist in `docs/TEST-ON-DEVICE.md` is for.
