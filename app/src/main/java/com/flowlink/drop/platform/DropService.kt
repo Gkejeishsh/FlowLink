@@ -89,7 +89,16 @@ class DropService : Service() {
         // startForeground must happen within seconds of the start request, before any network work.
         promoteToForeground(if (host.running) currentUrl() else "Starting the hotspot…")
         if (action == ACTION_RESTART) shutDownResources()
-        begin()
+        try {
+            begin()
+        } catch (t: Throwable) {
+            // A service that dies silently is worse than one that fails loudly: the app used to
+            // vanish here with nothing on screen to explain it.
+            Log.e(TAG, "hosting failed", t)
+            DropHub.update {
+                it.copy(phase = "failed", error = t.message ?: t.javaClass.simpleName)
+            }
+        }
         return START_STICKY
     }
 
@@ -122,11 +131,38 @@ class DropService : Service() {
             updateNotification("Waiting for someone to join", currentUrl())
             return
         }
+        // Check the preconditions that make the platform throw, before it gets the chance to.
+        val blocker = host.blocker()
+        if (blocker != null) {
+            DropHub.update {
+                it.copy(
+                    phase = "blocked",
+                    blocker = when (blocker) {
+                        Blocker.LocationPermission -> "location-permission"
+                        Blocker.LocationOff -> "location-off"
+                        Blocker.WifiOff -> "wifi-off"
+                    },
+                    error = "",
+                    message = LocationGate.detail(blocker),
+                    ssid = "",
+                    password = "",
+                    address = "",
+                    port = 0
+                )
+            }
+            updateNotification(LocationGate.title(blocker), LocationGate.detail(blocker))
+            return
+        }
+        host.onPlatformFailure = { message ->
+            DropHub.update { it.copy(phase = "failed", error = message) }
+            updateNotification("Hotspot failed", message)
+        }
         DropHub.update {
             it.copy(
                 phase = "starting",
                 message = "Starting the hotspot…",
                 error = "",
+                blocker = "",
                 reachable = null,
                 clients = emptyList()
             )
@@ -366,9 +402,19 @@ class DropService : Service() {
         } else {
             0
         }
-        runCatching {
+        val started = runCatching {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
-        }.onFailure { Log.d(TAG, "startForeground failed: ${it.message}") }
+        }.isSuccess || runCatching {
+            // Some OEM builds reject the special-use type outright. Falling back to "no type" keeps
+            // the hotspot alive; staying silent would let the system kill the app ~5 s later.
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
+        }.isSuccess
+        if (!started) {
+            DropHub.update {
+                it.copy(phase = "failed", error = "This phone refused to keep the service running.")
+            }
+            stopSelf()
+        }
     }
 
     private fun updateNotification(title: String, text: String) {

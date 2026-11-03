@@ -55,6 +55,17 @@ class HotspotHost(private val context: Context) {
             onResult(null, "Allow \"Nearby devices\" so this phone can host a hotspot")
             return
         }
+        // Refuse up front when the platform is certain to throw: on several ROMs a hotspot request
+        // with location services off raises from inside the system's own handler, which takes the
+        // whole app down rather than returning a failure.
+        LocationGate.blocker(
+            hasLocationPermission = true,
+            locationEnabled = isLocationEnabled(),
+            wifiEnabled = isWifiEnabled()
+        )?.let { blocker ->
+            onResult(null, LocationGate.detail(blocker))
+            return
+        }
         if (Build.VERSION.SDK_INT >= 29 && fixedName != null && fixedPass != null) {
             if (startFixedGroup(fixedName, fixedPass, onResult)) return
         }
@@ -71,7 +82,7 @@ class HotspotHost(private val context: Context) {
         val manager = runCatching { context.getSystemService(WifiP2pManager::class.java) }.getOrNull()
             ?: return false
         val channel = runCatching {
-            manager.initialize(context, Looper.getMainLooper(), null)
+            manager.initialize(context, callbackLooper(), null)
         }.getOrNull() ?: return false
         p2pManager = manager
         p2pChannel = channel
@@ -82,7 +93,7 @@ class HotspotHost(private val context: Context) {
                 .build()
         }.getOrNull() ?: return false
         var answered = false
-        val handler = Handler(Looper.getMainLooper())
+        val handler = Handler(callbackLooper())
         runCatching {
             manager.createGroup(channel, config, object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
@@ -158,7 +169,7 @@ class HotspotHost(private val context: Context) {
             override fun onStarted(res: WifiManager.LocalOnlyHotspotReservation) {
                 reservation = res
                 running = true
-                val handler = Handler(Looper.getMainLooper())
+                val handler = Handler(callbackLooper())
                 var attempts = 0
                 val poll = object : Runnable {
                     override fun run() {
@@ -189,7 +200,7 @@ class HotspotHost(private val context: Context) {
             }
         }
         runCatching {
-            wifi.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))
+            wifi.startLocalOnlyHotspot(callback, Handler(callbackLooper()))
         }.onFailure {
             running = false
             onResult(null, it.message ?: "the hotspot could not start")
@@ -317,9 +328,72 @@ class HotspotHost(private val context: Context) {
         runCatching { reservation?.close() }
         reservation = null
         stopFixedGroup()
+        runCatching { looperThread?.quitSafely() }
+        looperThread = null
         p2pManager = null
         p2pChannel = null
     }
+
+    /**
+     * Callbacks run on a thread of our own so that an exception thrown by the platform while
+     * dispatching them kills that thread — not the app. The uncaught handler turns it into a
+     * sentence the user can act on, which is the difference between "it crashed" and "it said
+     * location was off".
+     */
+    @Volatile
+    private var looperThread: android.os.HandlerThread? = null
+
+    @Volatile
+    var onPlatformFailure: ((String) -> Unit)? = null
+
+    private fun callbackLooper(): Looper {
+        looperThread?.let { if (it.isAlive) return it.looper }
+        val thread = android.os.HandlerThread("drop-hotspot").apply { start() }
+        looperThread = thread
+        thread.looper?.setUncaughtExceptionHandler { _, error ->
+            running = false
+            Log.e(TAG, "hotspot callback failed", error)
+            onPlatformFailure?.invoke(error.message ?: error.javaClass.simpleName)
+        }
+        return thread.looper
+    }
+
+    fun isWifiEnabled(): Boolean =
+        runCatching { context.getSystemService(WifiManager::class.java)?.isWifiEnabled == true }
+            .getOrDefault(false)
+
+    fun isLocationEnabled(): Boolean {
+        if (Build.VERSION.SDK_INT >= 28) {
+            val manager = runCatching {
+                context.getSystemService(android.location.LocationManager::class.java)
+            }.getOrNull() ?: return true
+            return runCatching { manager.isLocationEnabled }.getOrDefault(true)
+        }
+        @Suppress("DEPRECATION")
+        return runCatching {
+            android.provider.Settings.Secure.getInt(
+                context.contentResolver,
+                android.provider.Settings.Secure.LOCATION_MODE,
+                android.provider.Settings.Secure.LOCATION_MODE_OFF
+            ) != android.provider.Settings.Secure.LOCATION_MODE_OFF
+        }.getOrDefault(true)
+    }
+
+    fun hasLocationPermission(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= 33) {
+            android.Manifest.permission.NEARBY_WIFI_DEVICES
+        } else {
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        }
+        return ContextCompat.checkSelfPermission(context, permission) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
+    fun blocker(): Blocker? = LocationGate.blocker(
+        hasLocationPermission = hasLocationPermission(),
+        locationEnabled = isLocationEnabled(),
+        wifiEnabled = isWifiEnabled()
+    )
 
     private fun hasPermission(): Boolean {
         val permission = if (Build.VERSION.SDK_INT >= 33) {

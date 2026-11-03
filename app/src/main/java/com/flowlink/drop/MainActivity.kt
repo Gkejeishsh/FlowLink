@@ -1,6 +1,7 @@
 package com.flowlink.drop
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -58,7 +59,12 @@ class MainActivity : ComponentActivity() {
                         requestNeeded()
                     },
                     onStop = { DropService.stop(this) },
-                    onRestart = { DropService.restart(this) }
+                    onRestart = { DropService.restart(this) },
+                    onOpenLocationSettings = {
+                        startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    },
+                    onOpenWifiSettings = { openWifiSettings() },
+                    onRequestPermission = { requestNeeded(force = true) }
                 )
             }
         }
@@ -70,7 +76,30 @@ class MainActivity : ComponentActivity() {
         DropService.start(this)
     }
 
-    private fun requestNeeded() {
+    override fun onResume() {
+        super.onResume()
+        // The user has just come back from Settings. If the thing that was blocking hosting is fixed,
+        // start it without making them press anything.
+        val state = DropHub.state.value
+        if (state.phase == "blocked" || state.phase == "idle") DropService.restart(this)
+    }
+
+    /**
+     * The system Wi-Fi panel is a toggle attached to the notification shade (API 29+); older
+     * versions only have the settings screen. Either way the user lands on something they can flip,
+     * rather than being told "turn Wi-Fi on" with no way to do it.
+     */
+    private fun openWifiSettings() {
+        val intent = if (Build.VERSION.SDK_INT >= 29) {
+            Intent(android.provider.Settings.Panel.ACTION_WIFI)
+        } else {
+            Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+        }
+        runCatching { startActivity(intent) }
+            .onFailure { runCatching { startActivity(Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)) } }
+    }
+
+    private fun requestNeeded(force: Boolean = false) {
         val needed = ArrayList<String>()
         if (Build.VERSION.SDK_INT >= 33) {
             if (!granted(Manifest.permission.NEARBY_WIFI_DEVICES)) {
@@ -82,7 +111,12 @@ class MainActivity : ComponentActivity() {
         } else if (!granted(Manifest.permission.ACCESS_FINE_LOCATION)) {
             needed.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        if (needed.isNotEmpty()) permissions.launch(needed.toTypedArray())
+        if (needed.isNotEmpty()) {
+            permissions.launch(needed.toTypedArray())
+        } else if (force) {
+            // Nothing left to ask for: the setting lives in the system UI, so open it.
+            startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        }
     }
 
     private fun granted(permission: String): Boolean =
@@ -94,7 +128,10 @@ private fun AppRoot(
     prefs: Prefs,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onRestart: () -> Unit
+    onRestart: () -> Unit,
+    onOpenLocationSettings: () -> Unit,
+    onOpenWifiSettings: () -> Unit,
+    onRequestPermission: () -> Unit
 ) {
     val state by DropHub.state.collectAsState()
     var tab by rememberSaveable { mutableStateOf(0) }
@@ -132,7 +169,15 @@ private fun AppRoot(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             when (tab) {
-                0 -> HostScreen(state = state, onStart = onStart, onStop = onStop, onRestart = onRestart)
+                0 -> HostScreen(
+                    state = state,
+                    onStart = onStart,
+                    onStop = onStop,
+                    onRestart = onRestart,
+                    onOpenLocationSettings = onOpenLocationSettings,
+                    onOpenWifiSettings = onOpenWifiSettings,
+                    onRequestPermission = onRequestPermission
+                )
                 1 -> ReceivedScreen(state = state, onClear = {
                     prefs.clearHistory()
                     DropHub.update { it.copy(history = emptyList()) }
@@ -149,6 +194,10 @@ private fun AppRoot(
                                 // The name is shown on the guest's page, so the hub must know now,
                                 // not at the next service start.
                                 DropHub.update { it.copy(phoneName = prefs.phoneName) }
+                            },
+                            onClearCrash = {
+                                java.io.File(this@MainActivity.filesDir, "last-crash.txt").delete()
+                                DropHub.update { it.copy(lastCrash = "") }
                             }
                         )
                     }

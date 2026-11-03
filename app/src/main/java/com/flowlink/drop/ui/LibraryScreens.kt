@@ -32,7 +32,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
 import com.flowlink.drop.platform.MediaOpen
@@ -132,7 +134,13 @@ private fun ReceivedRow(item: ReceivedItem) {
 }
 
 @Composable
-fun SettingsScreen(prefs: Prefs, state: DropState, onChanged: () -> Unit) {
+fun SettingsScreen(
+    prefs: Prefs,
+    state: DropState,
+    onChanged: () -> Unit,
+    onClearCrash: () -> Unit = {}
+) {
+    val clipboard = LocalClipboardManager.current
     var name by remember { mutableStateOf(prefs.phoneName) }
     var keepAwake by remember { mutableStateOf(prefs.keepAwake) }
     var fixed by remember { mutableStateOf(prefs.useFixedGroup) }
@@ -215,6 +223,38 @@ fun SettingsScreen(prefs: Prefs, state: DropState, onChanged: () -> Unit) {
             }
         }
 
+        if (state.lastCrash.isNotBlank()) {
+            item { Spacer(Modifier.height(6.dp)); Text("Last crash", style = MaterialTheme.typography.titleLarge) }
+            item {
+                Surface(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.10f))
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text(
+                            "The app stopped unexpectedly last time. This is what it said:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            state.lastCrash,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 8,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Row {
+                            TextButton(onClick = {
+                                clipboard.setText(AnnotatedString(state.lastCrash))
+                            }) { Text("Copy") }
+                            TextButton(onClick = onClearCrash) { Text("Dismiss") }
+                        }
+                    }
+                }
+            }
+        }
+
         item { Spacer(Modifier.height(6.dp)); Text("Session", style = MaterialTheme.typography.titleLarge) }
         item {
             InfoRow(
@@ -233,6 +273,7 @@ fun SettingsScreen(prefs: Prefs, state: DropState, onChanged: () -> Unit) {
                 }
             )
         }
+        item { InfoRow("Android", "${android.os.Build.VERSION.RELEASE} · SDK ${android.os.Build.VERSION.SDK_INT} · ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
         item {
             InfoRow(
                 "Hotspot",

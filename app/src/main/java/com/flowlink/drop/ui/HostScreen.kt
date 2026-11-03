@@ -77,7 +77,10 @@ fun HostScreen(
     state: DropState,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onRestart: () -> Unit
+    onRestart: () -> Unit,
+    onOpenLocationSettings: () -> Unit,
+    onOpenWifiSettings: () -> Unit,
+    onRequestPermission: () -> Unit
 ) {
     val clipboard = LocalClipboardManager.current
     var step by rememberSaveable { mutableStateOf(1) }
@@ -111,6 +114,7 @@ fun HostScreen(
 
             when (state.phase) {
                 "idle" -> IdleCard(onStart)
+                "blocked" -> BlockedCard(state, onOpenLocationSettings, onOpenWifiSettings, onRequestPermission)
                 "starting" -> StartingCard(state)
                 "failed" -> FailedCard(state, onRestart)
                 else -> {
@@ -519,6 +523,65 @@ private fun IdleCard(onStart: () -> Unit) {
         Spacer(Modifier.height(18.dp))
         Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(52.dp)) {
             Text("Start hosting")
+        }
+    }
+}
+
+/**
+ * A required setting is off. Android will not create a hotspot without location services (and the
+ * permission) or with the radio off — on several ROMs the refusal arrives as an exception inside the
+ * platform itself, so the app refuses first and explains, with the switch one tap away.
+ */
+@Composable
+private fun BlockedCard(
+    state: DropState,
+    onOpenLocationSettings: () -> Unit,
+    onOpenWifiSettings: () -> Unit,
+    onRequestPermission: () -> Unit
+) {
+    Spacer(Modifier.height(28.dp))
+    val title = when (state.blocker) {
+        "location-permission" -> "Allow location"
+        "location-off" -> "Turn location on"
+        "wifi-off" -> "Turn Wi-Fi on"
+        else -> "One setting is missing"
+    }
+    Surface(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+    ) {
+        Column(Modifier.padding(18.dp)) {
+            Text(title, style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(8.dp))
+            Text(state.message, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "This is an Android requirement for creating a hotspot, not a FlowLink choice. " +
+                    "Nothing about your location is read or stored.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    when (state.blocker) {
+                        "location-permission" -> onRequestPermission()
+                        "wifi-off" -> onOpenWifiSettings()
+                        else -> onOpenLocationSettings()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) { Text("Open the setting") }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Then come back — hosting starts by itself.",
+                Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

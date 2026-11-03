@@ -44,6 +44,9 @@ data class DropState(
     val message: String = "",
     val error: String = "",
     val requests: Int = 0,
+    /** "location-permission" | "location-off" | "wifi-off" — why hosting cannot start. */
+    val blocker: String = "",
+    val lastCrash: String = "",
     val version: String = "",
     val phoneName: String = "this phone"
 ) {
@@ -144,6 +147,7 @@ class DropApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        installCrashRecorder()
         prefs = Prefs(this)
         DropHub.update {
             it.copy(
@@ -151,6 +155,38 @@ class DropApp : Application() {
                 version = BuildConfig.VERSION_NAME,
                 phoneName = prefs.phoneName
             )
+        }
+    }
+
+    /**
+     * Records the next crash instead of letting it vanish.
+     *
+     * Without this, "the app crashed when I started the hotspot" is all anyone can report — and the
+     * cause (usually a platform exception raised while creating the hotspot) is exactly the kind of
+     * thing that is obvious in a stack trace and invisible without one. The trace is written to
+     * `last-crash.txt` and shown in Settings after the next launch.
+     */
+    private fun installCrashRecorder() {
+        val previous = runCatching {
+            runCatching { java.io.File(filesDir, "last-crash.txt") }.getOrNull()
+        }.getOrNull()
+        val existing = runCatching { previous?.readText()?.takeIf { it.isNotBlank() } }.getOrNull()
+        if (existing != null) {
+            DropHub.update { it.copy(lastCrash = existing.take(4_000)) }
+        }
+        val default = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            val trace = buildString {
+                append("thread ").append(thread.name).append('\n')
+                append(error.toString()).append('\n')
+                error.stackTrace.take(14).forEach { append("  at ").append(it).append('\n') }
+                append("\nAndroid ").append(Build.VERSION.RELEASE)
+                append(" (SDK ").append(Build.VERSION.SDK_INT).append("), ")
+                append(Build.MANUFACTURER).append(' ').append(Build.MODEL)
+            }
+            runCatching { java.io.File(filesDir, "last-crash.txt").writeText(trace) }
+            DropHub.update { it.copy(lastCrash = trace) }
+            default?.uncaughtException(thread, error)
         }
     }
 

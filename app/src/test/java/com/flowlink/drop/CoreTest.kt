@@ -2,6 +2,8 @@ package com.flowlink.drop
 
 import com.flowlink.drop.core.Fmt
 import com.flowlink.drop.core.Names
+import com.flowlink.drop.platform.Blocker
+import com.flowlink.drop.platform.LocationGate
 import com.flowlink.drop.net.WifiQr
 import com.flowlink.drop.web.Page
 import org.junit.Assert.assertEquals
@@ -90,6 +92,26 @@ class NamesTest {
         assertEquals("1.0 KB", Fmt.bytes(1024))
         assertEquals("50%", Fmt.percent(50, 100).toString() + "%")
         assertEquals("0%", Fmt.percent(0, 0).toString() + "%")
+    }
+}
+
+class LocationGateTest {
+
+    @Test
+    fun permissionComesFirstThenServicesThenTheRadio() {
+        assertEquals(Blocker.LocationPermission, LocationGate.blocker(false, true, true))
+        assertEquals(Blocker.LocationPermission, LocationGate.blocker(false, false, false))
+        assertEquals(Blocker.LocationOff, LocationGate.blocker(true, false, true))
+        assertEquals(Blocker.WifiOff, LocationGate.blocker(true, true, false))
+        assertNull(LocationGate.blocker(true, true, true))
+    }
+
+    @Test
+    fun everyBlockerHasAnInstruction() {
+        Blocker.values().forEach {
+            assertTrue(LocationGate.title(it).isNotBlank())
+            assertTrue(LocationGate.detail(it).isNotBlank())
+        }
     }
 }
 
