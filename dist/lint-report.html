@@ -179,7 +179,7 @@ document.getElementById(id).style.display = 'none';
     <div class="mdl-layout__header-row">
       <span class="mdl-layout-title">Lint Report: 20 errors, 33 warnings and 3 hints</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 15:55:59 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 16:12:30 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -275,34 +275,34 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:87</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
-<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
-<span class="lineno">  86 </span>        runCatching {
-<span class="caretline"><span class="lineno">  87 </span>            <span class="error">manager.createGroup(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  88 </span>                override <span class="keyword">fun</span> onSuccess() {
-<span class="lineno">  89 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
-<span class="lineno">  90 </span>                    handler.postDelayed({
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:98</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno">  95 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  96 </span>        <span class="keyword">val</span> handler = Handler(callbackLooper())
+<span class="lineno">  97 </span>        runCatching {
+<span class="caretline"><span class="lineno">  98 </span>            <span class="error">manager.createGroup(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  99 </span>                override <span class="keyword">fun</span> onSuccess() {
+<span class="lineno"> 100 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
+<span class="lineno"> 101 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:124</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno"> 121 </span>        <span class="keyword">var</span> captured: Info? = <span class="keyword">null</span>
-<span class="lineno"> 122 </span>        <span class="keyword">val</span> latch = java.util.concurrent.CountDownLatch(<span class="number">1</span>)
-<span class="lineno"> 123 </span>        runCatching {
-<span class="caretline"><span class="lineno"> 124 </span>            <span class="error">manager.requestGroupInfo(channel) { group -></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 125 </span>                <span class="keyword">if</span> (group != <span class="keyword">null</span>) {
-<span class="lineno"> 126 </span>                    p2pGroup = group
-<span class="lineno"> 127 </span>                    <span class="keyword">val</span> ssid = runCatching { group.networkName }.getOrNull().orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:135</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 132 </span>        <span class="keyword">var</span> captured: Info? = <span class="keyword">null</span>
+<span class="lineno"> 133 </span>        <span class="keyword">val</span> latch = java.util.concurrent.CountDownLatch(<span class="number">1</span>)
+<span class="lineno"> 134 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 135 </span>            <span class="error">manager.requestGroupInfo(channel) { group -></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 136 </span>                <span class="keyword">if</span> (group != <span class="keyword">null</span>) {
+<span class="lineno"> 137 </span>                    p2pGroup = group
+<span class="lineno"> 138 </span>                    <span class="keyword">val</span> ssid = runCatching { group.networkName }.getOrNull().orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:192</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno"> 189 </span>            }
-<span class="lineno"> 190 </span>        }
-<span class="lineno"> 191 </span>        runCatching {
-<span class="caretline"><span class="lineno"> 192 </span>            <span class="error">wifi.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 193 </span>        }.onFailure {
-<span class="lineno"> 194 </span>            running = <span class="keyword">false</span>
-<span class="lineno"> 195 </span>            onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"the hotspot could not start"</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:203</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 200 </span>            }
+<span class="lineno"> 201 </span>        }
+<span class="lineno"> 202 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 203 </span>            <span class="error">wifi.startLocalOnlyHotspot(callback, Handler(callbackLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 204 </span>        }.onFailure {
+<span class="lineno"> 205 </span>            running = <span class="keyword">false</span>
+<span class="lineno"> 206 </span>            onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"the hotspot could not start"</span>)
 </pre>
 
 </div>
@@ -432,94 +432,94 @@ Dismiss</button>            </div>
 <span class="lineno"> 442 </span>    }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:79</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder()</code></span><br /><pre class="errorlines">
-<span class="lineno">  76 </span>        p2pManager = manager
-<span class="lineno">  77 </span>        p2pChannel = channel
-<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
-<span class="caretline"><span class="lineno">  79 </span>            WifiP2pConfig.<span class="error">Builder</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  80 </span>                .setNetworkName(name)
-<span class="lineno">  81 </span>                .setPassphrase(passphrase)
-<span class="lineno">  82 </span>                .build()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:90</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder()</code></span><br /><pre class="errorlines">
+<span class="lineno">  87 </span>        p2pManager = manager
+<span class="lineno">  88 </span>        p2pChannel = channel
+<span class="lineno">  89 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="caretline"><span class="lineno">  90 </span>            WifiP2pConfig.<span class="error">Builder</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  91 </span>                .setNetworkName(name)
+<span class="lineno">  92 </span>                .setPassphrase(passphrase)
+<span class="lineno">  93 </span>                .build()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:80</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setNetworkName</code></span><br /><pre class="errorlines">
-<span class="lineno">  77 </span>        p2pChannel = channel
-<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
-<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
-<span class="caretline"><span class="lineno">  80 </span>                .<span class="error">setNetworkName</span>(name)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  81 </span>                .setPassphrase(passphrase)
-<span class="lineno">  82 </span>                .build()
-<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span></pre>
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:91</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setNetworkName</code></span><br /><pre class="errorlines">
+<span class="lineno">  88 </span>        p2pChannel = channel
+<span class="lineno">  89 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="lineno">  90 </span>            WifiP2pConfig.Builder()
+<span class="caretline"><span class="lineno">  91 </span>                .<span class="error">setNetworkName</span>(name)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  92 </span>                .setPassphrase(passphrase)
+<span class="lineno">  93 </span>                .build()
+<span class="lineno">  94 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span></pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:81</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setPassphrase</code></span><br /><pre class="errorlines">
-<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
-<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
-<span class="lineno">  80 </span>                .setNetworkName(name)
-<span class="caretline"><span class="lineno">  81 </span>                .<span class="error">setPassphrase</span>(passphrase)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  82 </span>                .build()
-<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
-<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span></pre>
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:92</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setPassphrase</code></span><br /><pre class="errorlines">
+<span class="lineno">  89 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="lineno">  90 </span>            WifiP2pConfig.Builder()
+<span class="lineno">  91 </span>                .setNetworkName(name)
+<span class="caretline"><span class="lineno">  92 </span>                .<span class="error">setPassphrase</span>(passphrase)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  93 </span>                .build()
+<span class="lineno">  94 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
+<span class="lineno">  95 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span></pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:82</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#build</code></span><br /><pre class="errorlines">
-<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
-<span class="lineno">  80 </span>                .setNetworkName(name)
-<span class="lineno">  81 </span>                .setPassphrase(passphrase)
-<span class="caretline"><span class="lineno">  82 </span>                .<span class="error">build</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
-<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
-<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:93</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#build</code></span><br /><pre class="errorlines">
+<span class="lineno">  90 </span>            WifiP2pConfig.Builder()
+<span class="lineno">  91 </span>                .setNetworkName(name)
+<span class="lineno">  92 </span>                .setPassphrase(passphrase)
+<span class="caretline"><span class="lineno">  93 </span>                .<span class="error">build</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  94 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
+<span class="lineno">  95 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  96 </span>        <span class="keyword">val</span> handler = Handler(callbackLooper())
 </pre>
 
 <button class="mdl-button mdl-js-button mdl-button--primary" id="NewApiDivLink" onclick="reveal('NewApiDiv');" />+ 11 More Occurrences...</button>
 <div id="NewApiDiv" style="display: none">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:87</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
-<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
-<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
-<span class="lineno">  86 </span>        runCatching {
-<span class="caretline"><span class="lineno">  87 </span>            manager.<span class="error">createGroup</span>(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  88 </span>                override <span class="keyword">fun</span> onSuccess() {
-<span class="lineno">  89 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
-<span class="lineno">  90 </span>                    handler.postDelayed({
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:98</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
+<span class="lineno">  95 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  96 </span>        <span class="keyword">val</span> handler = Handler(callbackLooper())
+<span class="lineno">  97 </span>        runCatching {
+<span class="caretline"><span class="lineno">  98 </span>            manager.<span class="error">createGroup</span>(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  99 </span>                override <span class="keyword">fun</span> onSuccess() {
+<span class="lineno"> 100 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
+<span class="lineno"> 101 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:228</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
-<span class="lineno"> 225 </span>            }
-<span class="lineno"> 226 </span>        }
-<span class="lineno"> 227 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
-<span class="caretline"><span class="lineno"> 228 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 229 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
-<span class="lineno"> 230 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
-<span class="lineno"> 231 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:232</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 229 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
-<span class="lineno"> 230 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
-<span class="lineno"> 231 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
-<span class="caretline"><span class="lineno"> 232 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 233 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 235 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:235</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 232 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull().orEmpty()
-<span class="lineno"> 233 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="caretline"><span class="lineno"> 235 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:239</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
 <span class="lineno"> 236 </span>            }
-<span class="lineno"> 237 </span>            pass = runCatching { config.passphrase }.getOrNull().orEmpty()
-<span class="lineno"> 238 </span>        }
+<span class="lineno"> 237 </span>        }
+<span class="lineno"> 238 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
+<span class="caretline"><span class="lineno"> 239 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 240 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 241 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 242 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:237</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
-<span class="lineno"> 234 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 235 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
-<span class="lineno"> 236 </span>            }
-<span class="caretline"><span class="lineno"> 237 </span>            pass = runCatching { config.<span class="error">passphrase</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 238 </span>        }
-<span class="lineno"> 239 </span>        <span class="keyword">if</span> (ssid.isEmpty()) {
-<span class="lineno"> 240 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:243</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 240 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 241 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 242 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
+<span class="caretline"><span class="lineno"> 243 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 244 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 245 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 246 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:246</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 243 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull().orEmpty()
+<span class="lineno"> 244 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 245 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="caretline"><span class="lineno"> 246 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 247 </span>            }
+<span class="lineno"> 248 </span>            pass = runCatching { config.passphrase }.getOrNull().orEmpty()
+<span class="lineno"> 249 </span>        }
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:248</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
+<span class="lineno"> 245 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 246 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
+<span class="lineno"> 247 </span>            }
+<span class="caretline"><span class="lineno"> 248 </span>            pass = runCatching { config.<span class="error">passphrase</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 249 </span>        }
+<span class="lineno"> 250 </span>        <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 251 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:122</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.provider.MediaStore.Downloads#getContentUri</code></span><br /><pre class="errorlines">
@@ -996,34 +996,34 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/ui/HostScreen.kt">../../src/main/java/com/flowlink/drop/ui/HostScreen.kt</a>:83</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno">  80 </span>    onRestart: () -> Unit
-<span class="lineno">  81 </span>) {
-<span class="lineno">  82 </span>    <span class="keyword">val</span> clipboard = LocalClipboardManager.current
-<span class="caretline"><span class="lineno">  83 </span>    <span class="keyword">var</span> step by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">1</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  84 </span>
-<span class="lineno">  85 </span>    <span class="comment">// A hotspot restart invalidates the credentials: go back to step 1 rather than show a dead QR.</span>
-<span class="lineno">  86 </span>    LaunchedEffect(state.phase) {
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/ui/HostScreen.kt">../../src/main/java/com/flowlink/drop/ui/HostScreen.kt</a>:86</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  83 </span>    onRequestPermission: () -> Unit
+<span class="lineno">  84 </span>) {
+<span class="lineno">  85 </span>    <span class="keyword">val</span> clipboard = LocalClipboardManager.current
+<span class="caretline"><span class="lineno">  86 </span>    <span class="keyword">var</span> step by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">1</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  87 </span>
+<span class="lineno">  88 </span>    <span class="comment">// A hotspot restart invalidates the credentials: go back to step 1 rather than show a dead QR.</span>
+<span class="lineno">  89 </span>    LaunchedEffect(state.phase) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:100</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno">  97 </span>    onRestart: () -> Unit
-<span class="lineno">  98 </span>) {
-<span class="lineno">  99 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
-<span class="caretline"><span class="lineno"> 100 </span>    <span class="keyword">var</span> tab by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 101 </span>    <span class="keyword">var</span> refresh by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
-<span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    Scaffold(
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:144</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno"> 141 </span>    onClearCrash: () -> Unit
+<span class="lineno"> 142 </span>) {
+<span class="lineno"> 143 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="caretline"><span class="lineno"> 144 </span>    <span class="keyword">var</span> tab by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 145 </span>    <span class="keyword">var</span> refresh by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="lineno"> 146 </span>
+<span class="lineno"> 147 </span>    Scaffold(
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:101</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
-<span class="lineno">  98 </span>) {
-<span class="lineno">  99 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
-<span class="lineno"> 100 </span>    <span class="keyword">var</span> tab by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
-<span class="caretline"><span class="lineno"> 101 </span>    <span class="keyword">var</span> refresh by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    Scaffold(
-<span class="lineno"> 104 </span>        containerColor = MaterialTheme.colorScheme.background,
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:145</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno"> 142 </span>) {
+<span class="lineno"> 143 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="lineno"> 144 </span>    <span class="keyword">var</span> tab by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="caretline"><span class="lineno"> 145 </span>    <span class="keyword">var</span> refresh by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 146 </span>
+<span class="lineno"> 147 </span>    Scaffold(
+<span class="lineno"> 148 </span>        containerColor = MaterialTheme.colorScheme.background,
 </pre>
 
 </div>
@@ -1188,74 +1188,74 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:89</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  86 </span>
-<span class="lineno">  87 </span>    <span class="keyword">var</span> keepAwake: Boolean
-<span class="lineno">  88 </span>        get() = prefs.getBoolean(<span class="string">"keep.awake"</span>, <span class="keyword">true</span>)
-<span class="caretline"><span class="lineno">  89 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"keep.awake"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  90 </span>
-<span class="lineno">  91 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
-<span class="lineno">  92 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:92</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  89 </span>
+<span class="lineno">  90 </span>    <span class="keyword">var</span> keepAwake: Boolean
+<span class="lineno">  91 </span>        get() = prefs.getBoolean(<span class="string">"keep.awake"</span>, <span class="keyword">true</span>)
+<span class="caretline"><span class="lineno">  92 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"keep.awake"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  93 </span>
+<span class="lineno">  94 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
+<span class="lineno">  95 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:93</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  90 </span>
-<span class="lineno">  91 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
-<span class="lineno">  92 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno">  93 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"hotspot.fixed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  94 </span>
-<span class="lineno">  95 </span>    <span class="keyword">var</span> fixedName: String
-<span class="lineno">  96 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:96</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  93 </span>
+<span class="lineno">  94 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
+<span class="lineno">  95 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno">  96 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"hotspot.fixed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  97 </span>
+<span class="lineno">  98 </span>    <span class="keyword">var</span> fixedName: String
+<span class="lineno">  99 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:97</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  94 </span>
-<span class="lineno">  95 </span>    <span class="keyword">var</span> fixedName: String
-<span class="lineno">  96 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
-<span class="caretline"><span class="lineno">  97 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  98 </span>
-<span class="lineno">  99 </span>    <span class="keyword">var</span> fixedPass: String
-<span class="lineno"> 100 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:100</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  97 </span>
+<span class="lineno">  98 </span>    <span class="keyword">var</span> fixedName: String
+<span class="lineno">  99 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
+<span class="caretline"><span class="lineno"> 100 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 101 </span>
+<span class="lineno"> 102 </span>    <span class="keyword">var</span> fixedPass: String
+<span class="lineno"> 103 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:101</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  98 </span>
-<span class="lineno">  99 </span>    <span class="keyword">var</span> fixedPass: String
-<span class="lineno"> 100 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
-<span class="caretline"><span class="lineno"> 101 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.pass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    <span class="keyword">var</span> phoneName: String
-<span class="lineno"> 104 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:104</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 101 </span>
+<span class="lineno"> 102 </span>    <span class="keyword">var</span> fixedPass: String
+<span class="lineno"> 103 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
+<span class="caretline"><span class="lineno"> 104 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.pass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 105 </span>
+<span class="lineno"> 106 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 107 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:105</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 102 </span>
-<span class="lineno"> 103 </span>    <span class="keyword">var</span> phoneName: String
-<span class="lineno"> 104 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
-<span class="caretline"><span class="lineno"> 105 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"phone.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 106 </span>
-<span class="lineno"> 107 </span>    <span class="javadoc">/** Kept small on purpose: the files themselves live in the gallery or Downloads. */</span>
-<span class="lineno"> 108 </span>    <span class="keyword">fun</span> history(): List&lt;ReceivedItem> {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:129</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 126 </span>            listOf(it.name, it.bytes.toString(), it.time.toString(), it.where)
-<span class="lineno"> 127 </span>                .joinToString(<span class="string">"\u001f"</span>)
-<span class="lineno"> 128 </span>        }
-<span class="caretline"><span class="lineno"> 129 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"history"</span>, text).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 130 </span>    }
-<span class="lineno"> 131 </span>
-<span class="lineno"> 132 </span>    <span class="keyword">fun</span> clearHistory() = prefs.edit().remove(<span class="string">"history"</span>).apply()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:108</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 105 </span>
+<span class="lineno"> 106 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 107 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
+<span class="caretline"><span class="lineno"> 108 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"phone.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 109 </span>
+<span class="lineno"> 110 </span>    <span class="javadoc">/** Kept small on purpose: the files themselves live in the gallery or Downloads. */</span>
+<span class="lineno"> 111 </span>    <span class="keyword">fun</span> history(): List&lt;ReceivedItem> {
 </pre>
 
 <span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:132</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 129 </span>        prefs.edit().putString(<span class="string">"history"</span>, text).apply()
-<span class="lineno"> 130 </span>    }
-<span class="lineno"> 131 </span>
-<span class="caretline"><span class="lineno"> 132 </span>    <span class="keyword">fun</span> clearHistory() = <span class="warning">prefs.edit()</span>.remove(<span class="string">"history"</span>).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 133 </span>
-<span class="lineno"> 134 </span>    private <span class="keyword">fun</span> defaultName(): String {
-<span class="lineno"> 135 </span>        <span class="keyword">val</span> model = runCatching { Build.MODEL }.getOrNull().orEmpty()
+<span class="lineno"> 129 </span>            listOf(it.name, it.bytes.toString(), it.time.toString(), it.where)
+<span class="lineno"> 130 </span>                .joinToString(<span class="string">"\u001f"</span>)
+<span class="lineno"> 131 </span>        }
+<span class="caretline"><span class="lineno"> 132 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"history"</span>, text).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 133 </span>    }
+<span class="lineno"> 134 </span>
+<span class="lineno"> 135 </span>    <span class="keyword">fun</span> clearHistory() = prefs.edit().remove(<span class="string">"history"</span>).apply()
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:135</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 132 </span>        prefs.edit().putString(<span class="string">"history"</span>, text).apply()
+<span class="lineno"> 133 </span>    }
+<span class="lineno"> 134 </span>
+<span class="caretline"><span class="lineno"> 135 </span>    <span class="keyword">fun</span> clearHistory() = <span class="warning">prefs.edit()</span>.remove(<span class="string">"history"</span>).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 136 </span>
+<span class="lineno"> 137 </span>    private <span class="keyword">fun</span> defaultName(): String {
+<span class="lineno"> 138 </span>        <span class="keyword">val</span> model = runCatching { Build.MODEL }.getOrNull().orEmpty()
 </pre>
 
 </div>
