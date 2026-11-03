@@ -1,2 +1,14 @@
-No signed APK in dist/ yet: dist/unsigned/LoopJet-1.0.0-release-aligned.apk is the aligned payload.
-e3a23530d772ecd4eb3730e91189f9dcf089c8c9e117e70259c98a2728f4a346  dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+no release apk produced
+
+== app/build/outputs ==
+app/build/outputs
+app/build/outputs/logs
+app/build/outputs/logs/manifest-merger-release-report.txt
+app/build/outputs/logs/manifest-merger-debug-report.txt
+app/build/outputs/sdk-dependencies
+app/build/outputs/sdk-dependencies/release
+app/build/outputs/sdk-dependencies/release/sdkDependencies.txt
+
+== release task output ==
+> Task :app:packageReleaseResources
+BUILD FAILED in 21s

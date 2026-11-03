@@ -10,15 +10,35 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugRFile
 
 > Task :app:compileDebugKotlin
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:116:48 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:82:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:289:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:329:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:381:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793721044711.json
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:199:50 Unresolved label.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:199:92 Unresolved reference 'delete'.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:353:24 Unresolved reference 'setUncaughtExceptionHandler' on receiver of type 'Looper'.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:353:54 Cannot infer type for implicit value parameter 'it'. Specify it explicitly.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:353:57 Cannot infer type for value parameter 'error'. Specify it explicitly.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:356:45 Unresolved reference 'message'.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:356:62 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:356:62 'val <T : Any> KClass<T>.javaClass: Class<KClass<T>>' is deprecated. Use 'java' property to get Java class corresponding to this Kotlin class or cast this instance to Any if you really want to get the runtime Java class of this implementation of KClass.
+
+> Task :app:compileDebugKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793721821030.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 52s
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: UNRESOLVED_LABEL
+       Kotlin compiler error
+         Unresolved label.
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt line 199
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 12s
 7 actionable tasks: 7 executed
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
