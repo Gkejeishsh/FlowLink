@@ -350,12 +350,14 @@ class HotspotHost(private val context: Context) {
         looperThread?.let { if (it.isAlive) return it.looper }
         val thread = android.os.HandlerThread("drop-hotspot").apply { start() }
         looperThread = thread
-        thread.looper?.setUncaughtExceptionHandler { _, error ->
+        // `Looper.setUncaughtExceptionHandler` does not exist: the handler belongs to the Thread,
+        // and a crash inside a handler dispatch is routed to it.
+        thread.setUncaughtExceptionHandler { _, error ->
             running = false
             Log.e(TAG, "hotspot callback failed", error)
             onPlatformFailure?.invoke(error.message ?: error.javaClass.simpleName)
         }
-        return thread.looper
+        return thread.looper!!
     }
 
     fun isWifiEnabled(): Boolean =

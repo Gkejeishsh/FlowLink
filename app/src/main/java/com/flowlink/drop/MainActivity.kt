@@ -64,7 +64,8 @@ class MainActivity : ComponentActivity() {
                         startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                     },
                     onOpenWifiSettings = { openWifiSettings() },
-                    onRequestPermission = { requestNeeded(force = true) }
+                    onRequestPermission = { requestNeeded(force = true) },
+                    onClearCrash = ::clearCrash
                 )
             }
         }
@@ -119,6 +120,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun clearCrash() {
+        runCatching { java.io.File(filesDir, "last-crash.txt").delete() }
+        DropHub.update { it.copy(lastCrash = "") }
+    }
+
     private fun granted(permission: String): Boolean =
         checkSelfPermission(permission) == android.content.pm.PackageManager.PERMISSION_GRANTED
 }
@@ -131,7 +137,8 @@ private fun AppRoot(
     onRestart: () -> Unit,
     onOpenLocationSettings: () -> Unit,
     onOpenWifiSettings: () -> Unit,
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    onClearCrash: () -> Unit
 ) {
     val state by DropHub.state.collectAsState()
     var tab by rememberSaveable { mutableStateOf(0) }
@@ -195,10 +202,7 @@ private fun AppRoot(
                                 // not at the next service start.
                                 DropHub.update { it.copy(phoneName = prefs.phoneName) }
                             },
-                            onClearCrash = {
-                                java.io.File(this@MainActivity.filesDir, "last-crash.txt").delete()
-                                DropHub.update { it.copy(lastCrash = "") }
-                            }
+                            onClearCrash = onClearCrash
                         )
                     }
                 }
