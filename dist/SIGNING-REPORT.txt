@@ -1,2 +1,2 @@
 No signed APK in dist/ yet: dist/unsigned/LoopJet-1.0.0-release-aligned.apk is the aligned payload.
-8dd4f77f0c6ecdd4c53db3bebfbd9757ca3fbb2aae62c1666fca62feab7b3c50  dist/unsigned/LoopJet-1.0.0-release-aligned.apk
+ab1a1742232a4f2ed9bb2c0fe13af6242c0153fd7ebdcce9c9b197d04841e86d  dist/unsigned/LoopJet-1.0.0-release-aligned.apk

@@ -10,15 +10,15 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugRFile
 
 > Task :app:compileDebugKotlin
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:115:48 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:116:48 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:82:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:289:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:329:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
 w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:381:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719694939.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793720561199.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 55s
+BUILD SUCCESSFUL in 1m 4s
 7 actionable tasks: 7 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
