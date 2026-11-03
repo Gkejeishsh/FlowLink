@@ -1,365 +1,347 @@
-# FlowLink Drop — plan for a hotspot + browser receive app
+# FlowLink Drop — strategy, v2 (v1 audited and corrected)
 
 **Status: plan only. Nothing built yet. Waiting for approval.**
+v1 of this plan is superseded. What follows states what was wrong with it, why, and what replaces it.
 
-The brief: a new app, fresh from scratch, whose only job is *someone else's browser sends files to my
-phone*. My phone hosts a Wi-Fi hotspot with an OS-generated name and password (the kind NetShare and
-PDANet make), shows both on screen, the other person joins it, then opens a short link in Chrome — or
-scans a QR — and drops apps, documents, photos, anything into a page that lands directly in my app.
-
----
-
-## 1. Why this design is right, in one paragraph
-
-Every connection problem in the previous app came from **not owning the network**. Two phones had to
-find each other across a router neither of them controlled: discovery, subnets, client isolation,
-which interface to bind, whose address was stale. This design deletes that entire class of failure.
-The phone *is* the access point, so there is exactly one possible address (`192.168.49.1`), exactly
-one route (the hotspot), and the client is a browser that already knows how to talk HTTP. There is no
-peer discovery, no key exchange, no firewall, no "both phones on Wi-Fi but not the same Wi-Fi".
-
-It also removes the biggest practical constraint of the old app: **the other person does not need
-FlowLink at all.** Any phone, any laptop, any tablet with a browser works — including iPhones and
-Windows machines, which the peer-to-peer version could never support.
+The brief is unchanged: a new app whose only job is *someone else's browser sends files to my phone*.
+The phone hosts a hotspot with an OS-style random name and password, shows both, the other person
+joins, opens a link or scans a QR, and drops files that land in the app.
 
 ---
 
-## 2. What already exists in this repo (and is worth keeping)
+## 1. What was wrong with v1 — and the fix
 
-The previous app already contains the hard, proven parts of this design. The new app is a *rebuild of
-the product*, not a rewrite of the plumbing:
+These are not style notes. Each one would have cost real time, produced a broken build, or shipped an
+app that fails on the user's actual phones.
 
-| Piece | File | State | Verdict |
+### Storage and build
+
+**1. The save path was illegal on modern Android.**
+v1 said files land in `Downloads/FlowLink` through the File API. Verified in this repo: the current
+app only writes there when it holds **MANAGE_EXTERNAL_STORAGE** ("all files access") — otherwise
+`resolveSaveRoot()` silently falls back to app-private storage, which is invisible in the user's file
+manager (`TransferService.kt:1104-1122`). A clean new app should not need that permission at all.
+→ **Fix:** every received file is written through **MediaStore with `IS_PENDING=1`** — the Downloads
+collection for documents/APKs, Images/Video/Audio for media. Zero storage permissions on Android 10+,
+and the platform's own "invisible until complete" flag replaces the `.part`-then-rename trick. On
+Android 8–9, File API + `WRITE_EXTERNAL_STORAGE`, which is still normal there.
+
+**2. A new Gradle module would break CI.**
+v1 proposed a `drop/` module. The workflow hardcodes `:app:` in five places
+(`.github/workflows/build.yml:110-122`).
+→ **Fix:** keep the module directory and name `app`, change `namespace`/`applicationId`, delete the
+old sources inside it. CI needs no edits.
+
+**3. v1 contradicted its own decisions.**
+The user chose "replace outright", yet v1's phases kept the old module until Phase 7.
+→ **Fix:** old code is deleted in Phase 1. The safety net is the published, checksummed APK artefact
+(`dist/FlowLink-1.0.3.apk`), not a dormant module.
+
+### Networking
+
+**4. The server binds an address that may not exist yet.**
+The existing server resolves the IP and binds to it at start (`WebService.kt:144,183`). On a hotspot
+host the AP interface appears *after* the hotspot starts, so resolving first then binding is a race
+that fails on exactly the phones where it matters.
+→ **Fix:** bind `0.0.0.0`; discover the AP address separately, for display only.
+
+**5. The AP address was guessed from interface names.**
+`Hotspot.kt` finds it by name prefixes (`ap*`, `swlan*`, `wlan1`, `softap`) — OEM-dependent, and wrong
+on devices that name the interface something else.
+→ **Fix:** ranked discovery with proof: (a) known gateway addresses that are locally assigned
+(`192.168.49.1`, `.43.1`, `.232.1`, `.50.1`, …); (b) any non-cellular IPv4 that is *not* the station
+interface; (c) interface-name heuristics last. Then **prove it**: the app connects to its own port on
+that address and shows the result ("reachable on 192.168.49.1:8080 ✓"). A wrong guess is now visible
+in one tap instead of being discovered by a stranger with a phone.
+
+**6. The typed URL was the weakest link, and my "captive portal" idea was not implementable.**
+v1 proposed auto-opening the page by answering Android/iOS captive-portal probes. Correction: that
+requires owning DHCP and DNS on the AP, and both are held by Android's tethering stack with no public
+API to replace them. **Dropped as unviable.**
+→ **Fix, three parts:** (a) try to bind **port 80** first, so the typeable string is just the IP — 12
+characters, and Chrome/Safari default to `http://` for a bare IP (verify on device; fall back to 8080
+and display the port); (b) the **first QR is a `WIFI:` code** — Android 10+ camera joins the network
+outright from it, so the joiner never types the password; (c) the page URL is the second, large,
+copyable line *and* a normal QR for anyone who prefers scanning. iOS cannot join Wi-Fi from a QR, so
+it gets explicit join instructions — that is an iOS platform limit, not something I can design around.
+
+**7. `Expect: 100-continue` was missing.**
+Verified absent in `Http.kt`. Chrome and curl send it for large POST bodies; a server that ignores it
+stalls or fails on exactly the big uploads this app exists for.
+→ **Fix:** answer `HTTP/1.1 100 Continue` before reading the body, and keep it out of the response log.
+
+**8. No multipart parsing meant no fallback when JavaScript fails.**
+→ **Fix:** support `multipart/form-data` so a plain `<form method=post enctype=multipart/form-data>`
+works with JS disabled, blocked by a corporate browser, or broken by an iOS quirk. Raw-body upload
+stays the fast path; multipart is the safety net. Both are covered by tests.
+
+**9. Connection starvation.**
+Browsers open up to six connections per host and keep them alive. A 4-thread pool with long keep-alive
+stalls uploads under real-world conditions.
+→ **Fix:** bounded pool of 12, keep-alive idle timeout of 5 s, uploads streamed straight to the sink
+(never buffered whole), and a queue-depth cap that answers 503 instead of hanging.
+
+### Android platform
+
+**10. Wrong foreground-service type.**
+`dataSync` services are time-limited on Android 15+ (the system stops them after a few hours), which
+is fatal for a session where files arrive sporadically.
+→ **Fix:** `specialUse` + `FOREGROUND_SERVICE_SPECIAL_USE` with a `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`
+declaration, which has no such limit and is honest about what it does. Sideloaded app, so no Play
+review to satisfy.
+
+**11. `startLocalOnlyHotspot` preconditions were unstated.**
+It can be refused when Wi-Fi is off, when tethering is already active, when a VPN owns the network, or
+on OEM builds (MIUI/HyperOS, some Samsung). It may also need the app to be visible to create a
+reservation.
+→ **Fix:** a pre-flight checklist in the UI (Wi-Fi on? airplane mode? tethering already on?), a
+visible failure reason for each case, retry with backoff once, and creation only while the app is in
+the foreground — a lost reservation is presented as "tap to start again", never as a silent death.
+
+**12. The fallback chain was optimistic, and it put the wrong option first.**
+LOH and Wi-Fi Direct both need the radio and fail for many of the same reasons, so "P2P as fallback"
+is weaker than v1 implied. More importantly, **LOH regenerates SSID and password every session**,
+which contradicts the permanent-link expectation behind this product.
+→ **Fix, with a real trade-off surfaced:**
+
+| Route | SSID / password | Address | Support |
 |---|---|---|---|
-| Local-only hotspot with OS-generated SSID + password | `platform/net/Hotspot.kt` | working | **keep**, verify on device |
-| HTTP/1.1 server: keep-alive, range requests, 256 KiB buffers | `core/Http.kt` | 52 tests around it | **keep**, trim routes |
-| Browser→phone upload endpoint (`POST /api/upload?name=`) | `core/Http.kt` | works, writes `.part` then renames | **keep**, extend |
-| HTML page with upload UI | `core/Pages.kt` | functional, plain | **replace** with a designed page |
-| Safe path handling, unique names, disk-space guard | `core/Files.kt` | tested | **keep** |
-| Gallery publishing via MediaStore | `platform/storage/Media.kt` | works | **keep** |
-| QR generation / scanning | `ui/QrScanner.kt`, `ui/Theme.kt` | works | **keep**, redesign |
-| Peer-to-peer engine, discovery, beacons, mDNS, crypto session | `core/Engine.kt`, `core/Crypto.kt`, `platform/net/Discovery.kt` | ~4 000 lines | **delete** |
+| **Wi-Fi Direct group with a fixed name and passphrase** (`WifiP2pConfig.setNetworkName/setPassphrase`, API 29+) | **fixed, chosen once in Settings** — "FlowLink-Talal" | 192.168.49.1 | good, but not universal |
+| **Local-only hotspot** (`startLocalOnlyHotspot`) | random per session, `AndroidShare_1234` | 192.168.43.1 / .49.1 by OEM | the most common |
+| **The user's own hotspot** | whatever they set | read from the AP | always available, manual |
 
-That last row is the point of "start from scratch": roughly 60 % of the current codebase exists to
-solve a problem this app no longer has.
+Phase 1 builds the first two and tests both on the user's phones; whichever works becomes the default,
+the other stays as a menu option. Only the fixed-name route gives a link that is permanent *and*
+password-stable.
+
+**13. Clients with mobile data on may never use our network.**
+Many phones keep cellular as the default route when a Wi-Fi network has no internet, and "smart network
+switch" silently drops no-internet Wi-Fi.
+→ **Fix:** the page detects that it cannot reach the phone (a failed `fetch`) and says what to do; the
+phone screen repeats the same advice next to the credentials instead of pretending everything is fine.
+
+### The browser page
+
+**14. The page runs in a non-secure context, which disables half the modern web APIs.**
+`http://192.168.49.1` is not a secure context, so `navigator.clipboard`, `crypto.randomUUID`,
+`navigator.share`, Wake Lock and service workers are all unavailable. v1 assumed a normal web surface.
+→ **Fix:** zero modern-API dependencies. File identity is a counter, clipboard is a select-and-copy
+fallback, screen-wake is a written instruction ("keep this page open"), and no service worker.
+
+**15. iOS specifics were unaddressed.**
+Safari suspends a tab when the screen locks, killing long uploads; folder upload (`webkitdirectory`) is
+Android-Chrome-only; the Wi-Fi QR cannot be used at all.
+→ **Fix:** chunked upload with resume (so a suspended tab continues where it stopped), explicit
+"keep the screen on" copy, and a folder-upload control that is hidden where it is unsupported.
+
+### Process
+
+**16. I cannot test on a device, and v1's acceptance criteria were all "the user tries it".**
+Every round trip costs the user real time and produces vague failures ("it didn't work").
+→ **Fix:** diagnosis becomes a feature, not an afterthought — a **self-test** button (server reachable
+from its own AP address, port bound, hotspot up), a **request log** on the phone (last 50 requests:
+time, remote, path, bytes, status), and a **copyable diagnostics block**. The next failure report is
+then one paste, not a guessing game.
+
+**17. v1 claimed a one-way door, then kept an invite.**
+"The server has no download route at all" contradicts the user's instruction that invite should stay.
+→ **Fix:** exactly one download route exists (`/app.apk`, the installer, behind an explicit toggle),
+and the page says plainly that files only ever travel *toward* the phone.
 
 ---
 
-## 3. Product definition
+## 2. Revised architecture
 
-### 3.1 The three screens
+### 2.1 Process and component map
 
 ```
-┌──────────────────────────────┐   ┌──────────────────────────────┐   ┌──────────────────────────────┐
-│  HOST (the only screen that  │   │  RECEIVED                    │   │  SETTINGS                    │
-│  matters)                    │   │                              │   │                              │
-│                              │   │  ┌────────────────────────┐  │   │  Save to   Downloads/FlowLink│
-│   ┌──────────────────────┐   │   │  │ report.pdf   2.4 MB  ✓ │  │   │  PIN           none          │
-│   │                      │   │   │  ├────────────────────────┤  │   │  Ask before   off            │
-│   │        QR            │   │   │  │ app-release.apk 61 MB │  │   │  Keep awake   on             │
-│   │                      │   │   │  └────────────────────────┘  │   │  Theme        system         │
-│   └──────────────────────┘   │   │                              │   │                              │
-│   192.168.49.1:8080          │   │  grouped by day, tap to open │   │  About / diagnostics         │
-│                              │   │                              │   │                              │
-│   Hotspot   AndroidShare_12  │   └──────────────────────────────┘   └──────────────────────────────┘
-│   Password  h7Kd2mQp         │
-│   [ copy ]     2.4 GHz       │
-│                              │
-│   ● waiting for a browser    │
-│   ┌────────────────────────┐ │
-│   │ photo.jpg   34% ▓▓▓░░  │ │   ← live, animated, appears only when something is arriving
-│   └────────────────────────┘ │
-└──────────────────────────────┘
+MainActivity ── HostScreen ── ReceivedScreen ── SettingsScreen
+      │
+      └── DropService (foreground, specialUse)
+             ├── HotspotHost  → LocalOnlyHotspot | DirectGroup | user's own AP
+             ├── DropServer   → HTTP on 0.0.0.0:80|8080…8095
+             │     ├── GET  /                → drop page
+             │     ├── POST /api/upload      → raw body, XHR fast path
+             │     ├── POST /api/upload?fmt=multipart → no-JS fallback
+             │     ├── GET  /api/ping        → liveness + phone name + free space
+             │     ├── GET  /api/info        → what the page needs to render
+             │     ├── GET  /app.apk         → installer (only if invite is on)
+             │     └── GET  /favicon.ico     → inline SVG
+             ├── DropSink     → MediaStore (IS_PENDING) | File API on API < 29
+             └── RequestLog   → ring buffer for the diagnostics block
 ```
 
-**Host** is the app. Opening it starts the hotspot and shows everything a human needs in three
-seconds: a QR, a typeable address, the hotspot name and password. No menus, no "Send/Receive"
-choice, no mode switch.
+### 2.2 Hotspot strategy
 
-**Received** is the history: what arrived, when, how big, open it or share it onward.
+Chosen at start, in this order, each with a visible state:
 
-**Settings** is deliberately short. Everything else is a default.
+1. **Fixed-group mode** (if the user enabled it and the device supports P2P): Wi-Fi Direct group with a
+   name and passphrase set once → SSID/password stable across sessions.
+2. **Local-only hotspot**: the widest support, random credentials per session as the OS decides.
+3. **Guided manual**: "turn on your own hotspot, come back" — the app then serves on whatever the AP
+   address turns out to be. Never a dead end, never a lie about automation.
 
-### 3.2 The browser page (this is the "cool" part — it is what people see)
+Preconditions checked before any of them: Wi-Fi radio on, no active tethering, not in airplane mode,
+battery-optimisation exemption offered (not demanded).
 
-The page is the product's face, because the other person spends their entire interaction there.
+### 2.3 Addressing
 
-```
-┌─────────────────────────────────────────────┐
-│  Drop files to Talal's phone                │   ← hero, the phone's own name
-│  They appear instantly. Nothing is uploaded │
-│  to the internet.                           │
-│                                             │
-│   ╭───────────────────────────────────────╮ │
-│   │            ⬇  (drop zone)             │ │   ← breathes when idle,
-│   │    Tap to choose, or drop files here  │ │     glows on drag-over
-│   ╰───────────────────────────────────────╯ │
-│                                             │
-│   report.pdf        2.4 MB   ▓▓▓▓▓▓░░ 78%   │   ← staggered entry, spring progress
-│   holiday.mp4       212 MB   ▓▓▓░░░░░ 31%   │
-│   app-release.apk    61 MB   ✓ sent          │
-│                                             │
-│   3 files · 275 MB · 18 MB/s                │
-└─────────────────────────────────────────────┘
-```
+* Server binds `0.0.0.0`, walks `80 → 8080…8095`, reports the bound port.
+* AP address discovered by proof (self-connect), not by name guessing; shown only when proven.
+* The displayed URL is always complete (`http://192.168.49.1`), because a bare string in the address
+  bar gets searched instead of opened on some browsers.
 
-* Single self-contained HTML file, **zero external requests** (no CDN, no fonts, no analytics) — it
-  must work on a network with no internet, because that is literally the network it runs on.
-* Dark glass/gradient aesthetic matching the app, one accent colour, big generous type.
-* Drag-and-drop, tap-to-pick, multi-select, folder pick (later phase), per-file progress with
-  retry, cancel, and a completion state with a check animation and haptics on the phone.
-* Total budget: **under 30 KB uncompressed**, no build step, works in Chrome/Safari/Firefox/Edge,
-  including iOS Safari.
+### 2.4 Storage
 
-### 3.3 What a person actually does
-
-1. **Phone:** open FlowLink Drop. Hotspot starts, QR appears. (~3 s, automatic.)
-2. **Other person:** joins `AndroidShare_1234` / `h7Kd2mQp`. (Android warns "no internet" — expected,
-   the page says so.)
-3. **Other person:** scans the QR (opens Chrome) *or* types `192.168.49.1:8080` — 15 characters, no
-   path, no token, no scheme needed in modern Chrome.
-4. **Other person:** drops files. Phone shows them arriving live.
-5. **Phone:** files land in `Downloads/FlowLink`, gallery items appear in Photos immediately.
-
----
-
-## 4. Technical architecture
-
-### 4.1 Hotspot — the one genuinely hard part
-
-Android's public API for "an access point with a password the OS invents" is
-`WifiManager.startLocalOnlyHotspot()`. It returns a reservation whose `softApConfiguration` contains
-the SSID (e.g. `AndroidShare_4821`) and a random WPA2 passphrase — exactly the NetShare/PDANet
-behaviour the brief asks for. It does **not** need a SIM and is not tethering.
-
-Constraints I have to design around, all of them real:
-
-| Constraint | Consequence for the design |
-|---|---|
-| Needs `NEARBY_WIFI_DEVICES` (API 33+) / location (older) | ask once, on first launch, with a plain-language reason |
-| Wi-Fi radio must be **on** (not connected, just on) | detect and offer a one-tap "turn on Wi-Fi" intent |
-| The reservation dies with the process | must live in a **foreground service** with `WifiLock` + `PARTIAL_WAKE_LOCK` |
-| Band cannot be chosen (public API) | show the granted band; 2.4 GHz realistically caps ~8–10 MB/s, 5 GHz ~40–50 MB/s |
-| Some OEMs (Xiaomi/HyperOS, some Samsung builds) refuse it | fallback chain below |
-| AP address varies by vendor (`192.168.49.1`, `192.168.43.1`, …) | never hardcode; read it from the AP interface and print it |
-
-**Fallback chain**, tried in order, each with its own visible state on screen:
-
-1. `startLocalOnlyHotspot` — primary. OS-generated SSID + password.
-2. **Wi-Fi Direct group** (`WifiP2pManager.createGroup`) — also gives an OS-generated
-   `DIRECT-xx-…` SSID and random passphrase, and works on most devices that block LOH.
-3. **The user's own hotspot** — the app can't create one, so it explains how to turn it on and then
-   reads the address to serve on. Manual, but never a dead end.
-
-### 4.2 Server
-
-* Bind `0.0.0.0` (the AP interface is not always known at bind time), **advertise only the AP's own
-  IPv4 address** — never print `0.0.0.0`.
-* Fixed port **8080** for a typeable link; if taken, walk `8081…8095` and show whatever was bound.
-* Routes (deliberately few):
-
-| Route | Purpose |
-|---|---|
-| `GET /` | the drop page |
-| `POST /api/upload?name=<urlencoded>` | one file, raw body, `Content-Length`, returns JSON |
-| `GET /api/ping` | used by the page to show "phone reachable" and by tests |
-| `GET /favicon.ico` | inline SVG, kills a 404 in every browser log |
-| `GET /api/info` | phone name, free space, max upload, optional PIN challenge |
-
-* Upload pipeline: `name.part` in a hidden staging dir → fsync → rename into place → MediaStore
-  index for images/video/audio → event to the UI. **No partial file is ever visible**, and the
-  staging folder removes itself when empty (a rule the user set and that stays).
-* Guards: per-file size cap, free-space check with 32 MB headroom, path traversal rejected by the
-  existing `SafePath`, duplicate names de-duplicated (`report (1).pdf`), request read timeout so a
-  client that vanishes cannot pin a thread forever.
-* Concurrency: a small fixed pool (4), so three phones/laptops can upload at once; uploads are
-  independent and can interleave.
-
-### 4.3 Security model, stated honestly
-
-The hotspot password **is** the authentication: only someone given it can route to the phone at all.
-On top of that:
-
-* No session token in the URL (a token is what made the last link change every run — it's the thing
-  the user explicitly hated). The address stays constant.
-* **Optional** four-digit PIN in Settings, off by default, for "I'm hosting at a café" situations.
-* Optional "ask me before a new device uploads" toggle, off by default, on by default only if the
-  user turns the PIN on. Every new client address is remembered for the session either way.
-* No file can be *read* from the phone over HTTP. The server has no download route at all — it is a
-  one-way door by construction, not by policy.
-
-### 4.4 App identity and "delete the previous app from start"
-
-Recommended:
-
-* New `applicationId` **`com.flowlink.drop`**, app name **"FlowLink Drop"**, fresh preferences file,
-  no migration, no legacy history, no import of old settings.
-* New release keystore (the old one is gone anyway — the private key did not survive the sandbox
-  reset, which is why 1.0.3 needed an uninstall).
-* The old app (`com.loopjet.app`) is uninstalled by the user; the two can coexist for one test cycle,
-  which is useful if the new app misbehaves on the actual device.
-* In the repo: a **new module** `drop/` alongside the current `app/`, sharing nothing at the UI layer,
-  copying the four proven core files (Http, Files, Media, Hotspot). The old module is **deleted in the
-  final phase**, after the new app is confirmed working on the user's phones. Until then the old APK
-  is the fallback. This is reversible at every step, which "delete everything first" is not.
-
----
-
-## 5. Design language and motion
-
-Reuse the foundations already built and tested in this repo (palette with WCAG assertions, six spring
-tokens, `hero` numeral style), applied to a much smaller surface.
-
-**Look:** near-black background in both themes (dark-first, light theme available), one accent
-gradient (`#255CE8 → #8B5CF6`), generous 26 dp radii, cards by tone rather than borders, one typeface
-at three weights, tabular digits for anything that counts.
-
-**Motion (all spring-based, all interruptible, all suppressed when the system animation scale is 0
-or the phone is in power-save):**
-
-| Moment | Motion |
-|---|---|
-| App opens, hotspot starting | the QR card scales in from 0.94 with a 1.4 s breathing ring behind it |
-| Hotspot ready | ring settles, credentials slide up with a soft staggered fade, one confirm haptic |
-| Browser connects | radar pulse stops, the status line morphs to "someone's here", haptic tap |
-| File arrives | row springs in from the top, progress bar chases the real value on a fast spring |
-| File done | bar fills, icon flips to a check with a small overshoot, `ToggleOn` haptic |
-| Everything sent | one burst: card lifts 2 %, check draws itself, `Confirm` haptic, then settles |
-| Failure | shake (±4 dp, 3 cycles, 180 ms) + error-tinted row, `Reject` haptic |
-
-Every animation is tied to a real state change — none run on a timer, none run while a transfer is
-copying bytes (the frame budget belongs to the network).
-
----
-
-## 6. Phases, step by step
-
-Each phase ends with something installable and testable on the two phones. No phase depends on a
-later one to be useful.
-
-### Phase 0 — Decisions (blocking, needs the user)
-Confirm the four open questions in §8. ~0 work, but everything after assumes the answers.
-
-### Phase 1 — Skeleton that proves the network
-New module `drop/`, new `applicationId`, foreground service, `startLocalOnlyHotspot`, AP address
-detection, a trivial "hello" page on `:8080`, QR + address + SSID + password on screen.
-**Acceptance:** the other phone joins the hotspot by typing the password, opens the address in
-Chrome, sees "hello", with the phone's screen off and the app in the background.
-No upload code yet — if this phase fails on the user's devices, nothing else matters, and we learn it
-in a day rather than after a rewrite.
-
-### Phase 2 — Uploads that land correctly
-`POST /api/upload`, staging + rename, MediaStore index, de-duplication, size and disk guards, live
-count on the phone, foreground-service notification with progress.
-**Acceptance:** a 2 GB video, a 60 MB APK, and 200 small files all arrive byte-identical (checksum
-verified by the test harness), nothing `.part` left behind, no partial file ever visible, phone
-survives a client that disconnects mid-upload.
-
-### Phase 3 — The browser page
-Designed single-file page: drop zone, multi-file queue, per-file progress, retry, cancel, totals,
-"no internet here, that's normal" note, empty/error/offline states, phone-name greeting, free-space
-line. Budget < 30 KB, zero external requests.
-**Acceptance:** works on Android Chrome, iOS Safari, desktop Chrome and Firefox; 5 files in flight;
-a dropped connection shows a retry that resumes from zero without duplicating the file.
-
-### Phase 4 — The phone UI
-Three screens as drawn in §3.1, the motion table in §5, live per-file progress fed from the server
-events, history with open/share, empty states that teach the flow, settings complete.
-**Acceptance:** 60 fps scrolling while a transfer runs; a non-technical person completes a transfer
-without being told what to tap (tested on the user's own household, not by me).
-
-### Phase 5 — Robustness and the long tail
-OEM fallbacks (Wi-Fi Direct group, own-hotspot instructions), chunked/resumable uploads for files over
-~2 GB, folder upload (`webkitdirectory`), optional PIN, optional per-device approval, reconnects after
-screen-off, hotspot restart without losing the address, "keep this screen awake" while hosting.
-
-### Phase 6 — Proof, not claims
-JVM tests for the whole HTTP surface (adapted from the existing 52-test suite): upload integrity,
-concurrent uploads, aborted uploads, traversal attempts, unicode names, disk-full refusal, port
-fallback. Loopback throughput benchmark. A device checklist the user can run in ten minutes.
-
-### Phase 7 — Release and removal
-CI build, sign, publish APK + sha256, write the notes, then **delete the old module and its leftovers**
-— that is the point where "delete the previous app" is actually true.
-
-Rough effort: Phase 1 is small (a day), 2 and 3 are the bulk, 4 is design-heavy but mechanical, 5 is
-where the surprises are (OEM hotspot quirks), 6 and 7 are routine.
-
----
-
-## 7. Risks, and what I'll do about each
-
-| Risk | Likelihood | Mitigation |
+| Content | Destination | Mechanism |
 |---|---|---|
-| The user's phone refuses `startLocalOnlyHotspot` | medium (OEM-dependent) | Phase 1 proves it on the real devices before anything else is built; Wi-Fi Direct fallback in Phase 5 |
-| Hotspot dies when the app is backgrounded | high if built naively | foreground service + Wi-Fi lock from day one (Phase 1), not bolted on later |
-| 2.4 GHz ceiling makes transfers feel slow | likely | shown honestly (band on screen, real MB/s), and it is still faster than the old app's failing transfers |
-| Clients see "no internet" and think it's broken | certain | the page's first line says it; the phone's screen repeats it |
-| iOS Safari quirks with large uploads | medium | XHR (not fetch) with progress, chunked upload in Phase 5 |
-| Android kills the service on aggressive OEMs | medium | battery-optimisation exemption flow, notification-driven keep-alive, tested in Phase 5 |
-| Someone on the hotspot uploads junk | low | it's a password-protected LAN; add PIN/approval if the user wants them |
+| Images, video, audio | gallery, `Pictures/FlowLink`, `Movies/FlowLink`, `Music/FlowLink` | `MediaStore` + `IS_PENDING` |
+| Documents, archives, APKs, anything else | `Download/FlowLink` | `MediaStore.Downloads` + `IS_PENDING` |
+| API 26–28 | same logical paths | File API + `WRITE_EXTERNAL_STORAGE`, `.part` + rename |
+
+Name collisions get ` (1)`, ` (2)`; a finished file is published in one step (clear `IS_PENDING`), so
+no half-written file is ever visible and there is nothing to clean up after a crash.
+
+### 2.5 Upload protocol
+
+* Fast path: `POST /api/upload?name=<urlencoded>` with `Content-Length`, body streamed to the sink.
+  100-continue answered; `Transfer-Encoding: chunked` also accepted.
+* Fallback path: `multipart/form-data`, so a JS-less form works.
+* Resumable path (Phase 5): `start` → `chunk?offset=N` → `finish`, idempotent per `id`+offset, so an
+  iOS tab that was suspended can continue rather than restart. The URLs are designed in Phase 2 even
+  if the client only starts using them later.
+* Limits: per-file cap (configurable, default 4 GB), per-session cap, free-space headroom of 32 MB,
+  and `507` with a readable message rather than a silent failure.
+
+### 2.6 Security model
+
+Hotspot password only, as decided. Plus, because it is nearly free:
+
+* No read route for user files — upload only. The invite APK is the single exception.
+* Names are sanitised on the server and rendered with `textContent` in the page (never `innerHTML`),
+  so a filename cannot become markup.
+* Optional PIN and optional per-device approval remain in Settings, off by default — the decision was
+  "password only", but leaving the switches present costs one line of UI and covers the café case.
 
 ---
 
-## 8. Decisions — locked (answered)
+## 3. The browser page — corrected specification
 
-| Question | Decision | Consequence |
+* Single HTML file, **no external requests of any kind**, ≤ 30 KB uncompressed.
+* Works with JavaScript disabled (multipart form fallback).
+* Works in Android Chrome, Samsung Internet, iOS Safari, desktop Chrome/Firefox/Edge/Safari.
+* Drag-and-drop, tap-to-pick, multi-select, queue with per-file progress, retry, cancel, totals.
+* Per-file states: queued → uploading (bytes + percentage) → verifying → done / failed (reason + retry).
+* Says, in the first three seconds: whose phone this is, that the network has no internet and that is
+  normal, what to do if the connection drops.
+* Nothing that requires a secure context: no clipboard API, no `crypto.randomUUID`, no Wake Lock.
+* Empty state explains the flow in one sentence; error state names the cause (`507` = disk full,
+  `413` = too large, network error = you left the network).
+* Accessible: real labels, keyboard-operable drop zone, `aria-live` for progress, respects
+  `prefers-reduced-motion`.
+
+---
+
+## 4. The phone app — corrected specification
+
+**Host:** QR (WIFI: first, page URL second) or a single page QR when the network is already joined;
+URL in tabular digits with a copy button; SSID and password each copyable; band; status line that
+changes state (starting → waiting → someone joined → receiving); live per-file rows; a stop button.
+
+**Diagnostics (new, from problem 16):** a self-test that proves server + address + port in one tap, the
+last 50 requests with remote address and byte counts, and a "copy diagnostics" button that produces a
+text block I can act on without another guessing round.
+
+**Received:** grouped by day; name, size, source ("Chrome on Windows"), open / share / show in folder.
+Backed by the same MediaStore entries, so nothing is duplicated.
+
+**Settings:** fixed-group toggle + its name/passphrase, port preference, save location, keep-awake, PIN
+and approval switches, battery-optimisation helper, About.
+
+**Motion:** unchanged in intent from v1 — springs from the existing token set, everything tied to a
+real event, nothing animating while bytes are moving, everything suppressed under reduced motion or
+power-save. The self-test and diagnostics are boring on purpose.
+
+---
+
+## 5. Manifest, exactly
+
+```
+INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE, CHANGE_WIFI_STATE
+NEARBY_WIFI_DEVICES            (API 33+; runtime)
+ACCESS_FINE_LOCATION           (API ≤ 32 only; runtime, maxSdkVersion 32)
+ACCESS_LOCAL_NETWORK           (API 37+ name for local-network access, already used in this repo)
+FOREGROUND_SERVICE, FOREGROUND_SERVICE_SPECIAL_USE
+POST_NOTIFICATIONS, WAKE_LOCK
+WRITE_EXTERNAL_STORAGE         (maxSdkVersion 28 only)
+REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+CAMERA                         (only if the in-app QR scanner is kept; see open question)
+```
+
+No `MANAGE_EXTERNAL_STORAGE`, no `READ_MEDIA_*` (we only write), no `REQUEST_INSTALL_PACKAGES` unless
+invite-install stays.
+
+---
+
+## 6. Revised phases
+
+| Phase | Deliverable | Proven by | Round trips |
+|---|---|---|---|
+| **1. Hotspot + server + diagnostics** | `app` module rewritten, both hotspot routes buildable, "hello" page, self-test, request log | The five checks below, on the user's two phones | 1 (worst case 2) |
+| **2. Uploads that land correctly** | MediaStore sinks, raw + multipart + 100-continue, limits, collisions, crash-safety | JVM socket tests: 2 GB, 200 files, aborted body, unicode, duplicate names, disk full | 0 (CI only) |
+| **3. The browser page** | designed single-file page, all states | Device matrix by the user: Android Chrome, Samsung Internet, iOS Safari, desktop | 1 |
+| **4. The phone UI** | three screens, motion, live progress, history | User runs a real transfer in front of a non-technical person | 1 |
+| **5. Robustness** | resumable chunks, folder upload, PIN/approval, OEM fallbacks, idle/keep-awake policy | Targeted tests per item | 1–2 |
+| **6. Proof and release** | full test suite green, signed APK, checksums, notes | CI + user | 0 |
+
+**Phase 1 acceptance (unchanged in spirit, sharper):**
+
+1. App opens → hotspot up, SSID/password/address/QR visible within 3 s, self-test says reachable.
+2. A different phone joins by typing the password.
+3. Chrome at the address shows the page.
+4. Repeat 2–3 with the host's screen off and the app backgrounded.
+5. Force-stop → hotspot gone, no orphan network, no stuck notification.
+6. Diagnostics block copies to the clipboard in one tap (needed for any failure report).
+
+**Why this order:** Phase 1 is the only part that can fail for reasons outside my control. Phase 2 is
+pure logic and can be proven in CI without a phone. Phase 3 and 4 are the parts users judge. Nothing
+later is blocked by anything earlier failing — except Phase 1, which is the point.
+
+---
+
+## 7. Risks, ranked by what actually kills the project
+
+| Risk | Impact | Mitigation |
 |---|---|---|
-| Separate app or replace? | **Replace outright.** | The old module and its surfaces are deleted; the repo builds exactly one app. New `applicationId` **`com.flowlink.drop`**, name **FlowLink Drop**. |
-| Peer-to-peer transfer | **Removed now, may return later.** | No engine, no discovery, no beacons, no device-to-device crypto. The door stays open architecturally (a plain HTTP server and a foreground service are also what a P2P path would need), but no code is kept "just in case". |
-| Security | **Hotspot password only.** | No PIN, no per-device approval, no session token. The WPA2 key is the authentication and the link is permanent. |
-| Storage | **Gallery first.** | Images/video/audio go into the gallery via MediaStore (so they appear in Photos immediately); everything else lands in `Downloads/FlowLink` with predictable names. |
-
-### Safety net for "replace outright"
-
-Replacing means no fallback build on the device, so the safety net moves to the artefacts: the current
-APK stays downloadable from this branch (`dist/FlowLink-1.0.3.apk`, sha256 committed) even after its
-source is deleted. If the new app fails on the phones, the old one can be reinstalled in a minute
-without touching git history.
-
-One caveat I cannot engineer away: the release keystore lives in `keys/`, which is gitignored and was
-lost once already in a sandbox reset. It is regenerated locally for 1.0.3. Since the new app has a new
-`applicationId`, its own installs are unaffected by that identity — but if the keystore is lost again,
-the next update of *that* app needs one uninstall. Worth exporting the `.p12` somewhere safe.
+| Hotspot refused on the user's phone | project-blocking | two independent routes tested in Phase 1; guided manual as the floor |
+| Client cannot reach the phone despite joining | high | self-test proves server↔AP address before the user hands the phone over; page shows a specific failure |
+| iOS Safari suspends long uploads | medium | chunked resume in Phase 5; "keep the page open" copy now |
+| 2.4 GHz ceiling (~8–10 MB/s) | medium | band shown on screen; expectations set in the app, not in a chat message |
+| Port 80 unavailable | low | 8080 fallback, port displayed |
+| Keystore lost again (it already happened once) | medium | export the `.p12` with the release; documented in BUILD-NOTES |
+| OEM battery manager kills the service | medium | foreground service + exemption helper + notification-restart path |
 
 ---
 
-## 9. Phase 1 work order (what actually gets built first)
+## 8. Open questions (only two, both cheap)
 
-Deliberately the smallest thing that proves the risky part. No upload UI, no design work.
-
-**New module** `drop/` in the same Gradle build:
-
-| Item | Detail |
-|---|---|
-| `drop/build.gradle.kts` | `namespace`/`applicationId` `com.flowlink.drop`, minSdk 26, targetSdk 37, Compose, no dependencies beyond what the old module already used |
-| `DropApp.kt` | application class, prefs namespace `drop.settings`, device name default = phone model |
-| `HotspotHost.kt` | wraps `startLocalOnlyHotspot`, returns `ssid`, `passphrase`, `apAddress`, `band`; exposes states Starting / Ready / Failed(reason) |
-| `DropService.kt` | foreground service: starts the hotspot, holds `WifiLock` + partial wake lock, keeps the reservation alive, stops on user request |
-| `HttpServer.kt` | lifted from `core/Http.kt`, trimmed to `/`, `/api/ping`, `/favicon.ico`; binds `0.0.0.0`, walks `8080…8095`, exposes the bound port |
-| `HostScreen.kt` | QR (address), `192.168.49.1:8080` in tabular digits, SSID + password rows with copy, band, a single status line, a "hello" confirmation when a browser hits `/api/ping` |
-| `MainActivity.kt` | one screen, starts the service on launch, permission flow for `NEARBY_WIFI_DEVICES` |
-
-**Acceptance for Phase 1 — the only things that matter:**
-
-1. Open the app on the phone that hosts → within 3 seconds the screen shows an SSID, a password, an
-   address and a QR.
-2. On a completely different phone, join that network by typing the password.
-3. Open the address in Chrome → "FlowLink Drop is running."
-4. Repeat 1–3 with the host phone's screen **off** and the app in the background.
-5. Force-stop the app → the hotspot goes away and the phone is not left hosting an orphan network.
-
-If any of 1–5 fails, we tune the hotspot strategy (Wi-Fi Direct group, own-hotspot instructions) while
-the surface area is still one screen, not after the whole app is written.
+1. **Fixed network name/password** (Wi-Fi Direct group) as the default, giving a stable SSID every
+   session — versus the OS-random name the brief described? Recommended: build both in Phase 1, keep
+   whichever your phones actually support, because only one of them gives a stable link.
+2. **In-app QR scanner:** keep it (needs `CAMERA`, useful when someone wants to scan the other person's
+   screen) or drop it (the app only *shows* a QR now; scanning is the client's job). Recommended: drop
+   it — it is the last remaining permission that does nothing for the core flow.
 
 ---
 
-## 10. What I will not promise
+## 9. What I will not promise
 
-* **Speed.** The engine here is a plain HTTP server writing to flash; the ceiling is the radio. On a
-  2.4 GHz local-only hotspot that is roughly 8–10 MB/s, on 5 GHz 40–50 MB/s, and it will vary by
-  phone. I will show the real number rather than a benchmark from a machine with no radio.
-* **Band selection.** Public Android APIs cannot choose the hotspot band. If the phone grants 2.4 GHz,
-  that is what everyone gets.
-* **Zero-touch.** The other person must join a network and open a page. That is one manual step, and
-  the QR exists to make it one tap — but it cannot be none, because it is a different device.
+* **Speed.** The ceiling is the radio: roughly 8–10 MB/s on a 2.4 GHz local hotspot, 40–50 MB/s on
+  5 GHz, and Android's public API cannot choose the band. The app will show the real number.
+* **A permanent password** on every phone. With local-only hotspot the OS regenerates SSID and
+  passphrase each session — that is the API, not a choice. The fixed-name route fixes it where the
+  hardware allows.
+* **Zero steps for the other person.** They must join a network and open a page. The QR makes that one
+  tap on Android; iOS needs two (join in Settings, then the URL).
+* **Automatic captive-portal opening.** v1 promised it; it cannot be done from an app without owning
+  DHCP/DNS, so it is withdrawn.
