@@ -1,9 +1,12 @@
-# FlowLink Drop — strategy v3
+# FlowLink Drop — strategy v4
 
 **Status: plan only. Nothing built yet. Waiting for approval.**
-Supersedes v1 and v2. The change in v3 is the **two-QR flow** the user proposed, plus a full, aspect-by-aspect
-specification. Where the proposal could not work as literally described, this document says so and gives the
-version that does.
+Supersedes v1, v2 and v3.
+
+* v3 introduced the two-QR flow (join, then open).
+* **v4 makes the advance explicit: a `Next` button moves from the Wi-Fi QR to the page-link QR.** Detection of a
+  joined device still exists, but it only lights the button up — it never switches the screen on its own. That
+  removes the last dependency on an API Android does not really provide.
 
 ---
 
@@ -22,17 +25,22 @@ allow reading `/proc/net/arp`; many do not. Wi-Fi Direct *does* have a client li
 (`WifiP2pManager.requestGroupInfo().clientList`), but that only exists for the P2P-group route, not the
 local-only-hotspot route.
 
-So the design is **two-stage with detection as an accelerator, never as a gate**:
+So the flow is a **two-step wizard with an explicit `Next` button**, and detection is decoration, not a gate:
 
-* Stage 1 (**Join**) is shown first and forever: the Wi-Fi QR, the SSID, the password.
-* Stage 2 (**Open**) is *always reachable*: the URL text is visible from the start in small type, and one tap
-  ("I'm on the Wi-Fi") promotes it to full size.
-* If detection fires — by any of the four independent signals in §3 — Stage 2 promotes itself, with a haptic,
-  a spring animation and a status line naming the device.
+* **Step 1 (Join)** is what the app opens on: the Wi-Fi QR, the SSID, the password, and a `Next` button.
+* Tapping `Next` — always available, from the first second — slides to **Step 2 (Open)**: the page-URL QR,
+  the address, and a `Back` button.
+* Detection (the four signals in §3, where they exist) does **one** thing: it turns the `Next` button into its
+  highlighted state with the label `Next · Talal's iPhone joined` and fires a haptic. It never changes the
+  screen by itself.
 
-If detection fails on a given phone, the user loses nothing: they tap one button, or simply read the URL that
-was already on screen. A gated design would have bricked the whole app on exactly the devices where detection
-fails, which is the sort of thing you only discover when a stranger is holding your phone.
+Why the user keeps the wheel: the phone is often handed to someone else, or lying on a table, or the guest is
+older and needs a spoken instruction. A screen that rearranges itself under a finger is worse than one that
+waits for a tap — and a screen that *refuses* to advance when detection fails is worse still. A button is the
+only control that behaves identically on every phone and every ROM.
+
+Detection is therefore worth having but never worth depending on. If none of the four signals works on a given
+device, `Next` still works, the flow is identical, and the only thing lost is the sentence naming the guest.
 
 ### The two payloads, exactly
 
@@ -49,6 +57,36 @@ The existing `WifiQr.payload()` already does this and has a unit test; it is reu
 **Correction to v2:** v2 claimed iOS cannot join a Wi-Fi network from a QR code. That is wrong — iOS 11+
 Camera joins Wi-Fi from a `WIFI:` QR. Android 10+ does the same. So Stage 1 is a single scan on both platforms.
 What iOS *cannot* do is chain the two scans automatically, which is exactly why Stage 2 is a second, separate QR.
+
+### The wizard, precisely
+
+| | Step 1 — Join | Step 2 — Open |
+|---|---|---|
+| **Big element** | Wi-Fi QR (`WIFI:T:WPA;S:…;P:…;;`) | URL QR (`http://192.168.43.1:8080/`) |
+| **Text under it** | `Network` + `Password`, each with a copy button | the full URL, tabular digits, copy button |
+| **Hint line** | "Scan with the camera — Android and iPhone both offer to join" | "Or type the address in Chrome" |
+| **Primary button** | `Next` (highlighted once a device is detected) | `Done` — closes the wizard back to a compact summary |
+| **Secondary button** | `Copy instructions` | `Back` |
+| **Back gesture / key** | leaves the screen (stop hosting, with a confirm if a transfer is running) | returns to Step 1 |
+
+Rules that make it predictable:
+
+* **`Next` is enabled from the first frame.** It never waits for detection, a timer, or a network event.
+* **A stepper is always visible** — `1 Join · 2 Open` — with the current step filled. It doubles as navigation:
+  tapping a step jumps to it, so a guest can be walked back to the Wi-Fi QR without hunting for `Back`.
+* **Back from Step 2 re-shows the Wi-Fi QR with the same credentials.** Nothing regenerates: the SSID,
+  password and address are stable for the life of the hotspot, so a guest who forgot the password can be shown
+  it again without breaking the browser page they may already have open.
+* **The hotspot does not restart on navigation.** Steps are pure UI state; the service is untouched.
+* **The step survives backgrounding and rotation** (saved state), so returning to the app shows where the user
+  left it.
+* **If the hotspot restarts** (reservation lost, user tapped restart, address changed), the wizard returns to
+  Step 1 with freshly generated credentials, because the old QR is now dead and showing it would be a lie.
+  The status line says why.
+* **If a guest arrives while Step 2 is on screen**, nothing changes except the status chip and the file rows —
+  the page they already opened keeps working.
+* **Keyboard/assistive navigation**: the stepper and both buttons are real focusable controls; the step change
+  is announced ("Step 2 of 2, open this page").
 
 ### Why two QRs beat one
 
@@ -76,6 +114,7 @@ Two QRs, one action each, in the order the human actually performs them.
 | 7 | No specification of what happens when the hotspot dies mid-session | recovery ladder and user-visible states (§8.3) |
 | 8 | No performance or memory budgets | numbers in §11 |
 | 9 | No privacy statement | §12: zero telemetry, zero external requests, verified in tests |
+| 10 | v3 advanced the wizard on detection, which no API guarantees | **v4: explicit `Next` button; detection only highlights it (§0, §4.1)** |
 
 Everything else from v2 stands: MediaStore storage, `app` module kept (CI hardcodes `:app:`), bind `0.0.0.0`,
 port 80 preferred, `Expect: 100-continue`, multipart fallback, `specialUse` foreground service, secure-context
@@ -90,15 +129,17 @@ HOST PHONE                                   GUEST PHONE / LAPTOP
 ──────────                                   ────────────────────
 open app
   └ hotspot up (1–3 s)
-      ├ Stage 1 QR (Wi-Fi)      ──── scan ───▶ joins "AndroidShare_1234"
+      ├ Step 1 QR (Wi-Fi)       ──── scan ───▶ joins "AndroidShare_1234"
       ├ SSID + password printed                  │
-      └ "waiting for someone…"                   │
-                                                 │  (no internet — expected)
-  detection fires (≈0.5–2 s) ◀───────────────────┘
-      ├ haptic + Stage 2 promotes
-      ├ Stage 2 QR (URL)        ──── scan ───▶ Safari/Chrome opens the page
-      └ "Talal's iPhone joined"                  │
-                                                 │  drops 3 files
+      └ "waiting for someone…"  [ Next ]         │  (no internet — expected)
+                                  │              │
+      detection fires (if the phone allows it) ◀──┘
+          └ the Next button lights up + haptic ("Talal's iPhone joined")
+                                  │
+                                  ▼  ← the user taps Next, always available
+      ├ Step 2 QR (URL)         ──── scan ───▶ Safari/Chrome opens the page
+      └ address printed                          │  drops 3 files
+                                                 │
   rows appear with live progress ◀───────────────┘
       └ files land in gallery / Download
 ```
@@ -107,9 +148,10 @@ Total for the guest: scan, tap "Join", scan, drag files. Four touches, no typing
 
 ---
 
-## 3. Detection — four independent signals
+## 3. Detection — five signals, none of them load-bearing
 
-All four run concurrently; the first one to fire wins, and the app records which one fired (diagnostics use it).
+All of them run concurrently; the first to fire wins, and the app records which one fired (diagnostics use it).
+**None of them advances the wizard** — that is the `Next` button's job (see the rules below).
 
 | # | Signal | Coverage | Cost | Notes |
 |---|---|---|---|---|
@@ -117,11 +159,14 @@ All four run concurrently; the first one to fire wins, and the app records which
 | D2 | **mDNS listener** on the AP interface (`MulticastLock`, group `224.0.0.251:5353`) | catches most iOS and Android guests in 0.5–3 s — they emit mDNS on join | one socket, one thread | needs no root; the old app already had the socket code |
 | D3 | ARP table poll (`/proc/net/arp`) every 1.5 s | works on many ROMs, blocked on others | cheap read | never load-bearing; absence is not an error |
 | D4 | First HTTP request | definitive | free | also flips "connected" if the guest skipped the QR and typed the URL |
-| D5 | Manual: "I'm on the Wi-Fi" button | 100 % | free | shown from the first second, not hidden |
+| D5 | The `Next` button itself | 100 % | free | always present; this is the flow, D1–D4 are the garnish |
 
 **Rules**
 
-* Detection only changes *presentation*. It never enables or disables a capability.
+* Detection only changes *presentation*. It never enables or disables a capability and never changes the step.
+* When any signal fires, exactly three things happen: the status chip becomes `1 device joined · <name>`, the
+  `Next` button switches to its highlighted variant with the name in its label, and one `ToggleOn` haptic. That
+  is all.
 * A false positive is worse than a miss: D3 requires an entry with a non-zero, non-broadcast MAC whose IP is
   inside the AP subnet, and latches only after the second consecutive poll. Guessing "someone joined" when
   nobody did would promote a QR to a stranger who is not there.
@@ -133,40 +178,58 @@ All four run concurrently; the first one to fire wins, and the app records which
 
 ## 4. Screen specifications
 
-### 4.1 Host screen — state machine
+### 4.1 Host screen — the wizard
 
 ```
-        ┌──────────┐  hotspot.start()   ┌───────────┐  detection   ┌────────────┐
- launch │ STARTING │ ─────────────────▶ │  WAITING  │ ───────────▶ │  CONNECTED │
-        └──────────┘                    └───────────┘              └────────────┘
-             │ failure                        ▲                          │ upload starts
-             ▼                                │ hotspot lost             ▼
-        ┌──────────┐                          └──────────────────── ┌───────────┐
-        │  FAILED  │ ── retry / fallback ────────────────────────▶ │ RECEIVING │
-        └──────────┘                                                └───────────┘
+                  ┌──────────────────────────────┐
+   launch ───────▶│ STARTING  (hotspot coming up)│
+                  └──────────────┬───────────────┘
+                                 │ ready
+                                 ▼
+                  ┌──────────────────────────────┐   tap Next   ┌──────────────────┐
+                  │ STEP 1 · Join this Wi-Fi     │ ───────────▶ │ STEP 2 · Open     │
+                  │  QR + SSID + password        │ ◀─────────── │  QR + URL         │
+                  │  [ Next ]  [Copy details]    │    Back      │ [Done] [Back]     │
+                  └──────────────┬───────────────┘              └────────┬─────────┘
+                                 │                                       │
+                    device detected (any signal)                        │
+                                 └──▶ Next lights up + haptic ───────────┘
+                                                                        │ upload starts
+                                                                        ▼
+                                                              ┌──────────────────┐
+   hotspot lost / restarted ───────────────────────────────────│ RECEIVING (rows) │
+   (back to STEP 1, new credentials)                           └──────────────────┘
 ```
 
-**Layout, top to bottom** (one scroll, no tabs, no drawer):
+**Layout, top to bottom** (single scroll, no tabs):
 
-1. **Header** — phone name and a live status chip: `starting…` / `waiting` / `2 joined` / `receiving`.
-2. **Primary card** — the current stage, 62 % of the screen height.
-   * Stage 1: label `1 · Join this Wi-Fi`, big QR, then `Network` and `Password` rows with copy buttons.
-   * Stage 2: label `2 · Open this page`, big QR, then the URL in tabular digits with a copy button,
-     and a line "tip: type it in Chrome if the camera won't open it".
-   * Collapsed stage is a single-line chip under the active card (`1 · AndroidShare_1234 ✓`), tappable to swap.
-3. **Join strip** — as soon as a device is detected: avatar + name + "joined" + a subtle pulse; tap for
-   details (address, user agent once known).
-4. **Incoming** — one row per file: name, size, animated progress, source ("Chrome on Windows"). Empty until
-   something arrives; then the card lifts into view with a spring.
-5. **Footer** — `Copy instructions` (see 4.2), `Stop hosting`.
+1. **Header** — phone name, status chip (`starting…` / `waiting` / `1 joined` / `receiving`), and the **stepper**
+   `1 Join · 2 Open` with the active step filled; the stepper is tappable.
+2. **Step card** — the only large element, ~62 % of the height:
+   * Step 1: Wi-Fi QR, `Network` row, `Password` row (each with copy), then `Next` (full width) and
+     `Copy details` (text button).
+   * Step 2: URL QR, the address in tabular digits with copy, `Back` and `Done`.
+3. **Join strip** — appears only when a device is detected: avatar, name, "joined", subtle pulse; tap for
+   address and user agent.
+4. **Incoming** — one row per file with live progress and source ("Chrome on Windows"); nothing until bytes
+   arrive, then the card springs into view.
+5. **Footer** — `Stop hosting`.
 
-**Promotion animation** (Stage 1 → Stage 2): Stage 1 scales to 0.92 and fades to a chip while Stage 2 springs
-up from below with a 40 ms delay; the status chip crossfades to "joined"; one `ToggleOn` haptic. Under
-reduced motion or power-save: instant swap, no scale, haptic kept.
+**Behaviour that must never surprise anyone**
+
+| Situation | Result |
+|---|---|
+| Tap `Next` before anyone joined | Step 2 appears anyway. The guest may simply not have scanned yet. |
+| Tap `Back` | Step 1 with identical credentials. Nothing regenerates, nothing restarts. |
+| Rotate / background / return | Same step, same QR, same credentials. |
+| Guest joins while on Step 2 | Nothing moves except the status chip and, later, the file rows. |
+| Hotspot lost or restarted | Back to Step 1 with **new** credentials, plus a one-line reason. The old QR is dead. |
+| Tap `Done` | Wizard collapses to a compact summary card (address + copy) so the screen can be left showing files arriving. |
 
 ### 4.2 "Copy instructions" — the manual path, in one tap
 
-Host taps once, and the clipboard holds:
+Host taps once (available on both steps; the content is the same either way, so a guest never has to be told
+"scroll up"):
 
 ```
 Join Wi-Fi: AndroidShare_1234
@@ -180,7 +243,8 @@ Pasteable into WhatsApp/SMS. This is the answer to "what if they can't scan at a
 
 Grouped by day. Each row: thumbnail or type icon, name, size, time, source, and actions — **Open**,
 **Share**, **Show in folder**. Long-press selects several for a multi-share. Empty state explains the flow in
-one sentence and repeats the address so a returning guest can just type it.
+one sentence and repeats the address so a returning guest can just type it, and a `Show the QR again` button
+reopens the wizard at Step 2 without restarting the hotspot.
 
 ### 4.4 Settings
 
@@ -374,8 +438,12 @@ Foundations already built and tested in this repo are reused: `Palette` (WCAG-as
 | Event | Motion |
 |---|---|
 | app opens | QR card scales 0.94 → 1 with a 1.4 s breathing ring |
+| step changes | see the four rows below; all suppressed to a fade under reduced motion, buttons stay instant |
 | hotspot ready | ring settles, credentials slide up staggered, `Confirm` haptic |
-| guest joins | Stage 1 shrinks to a chip, Stage 2 springs up, status crossfades, `ToggleOn` haptic |
+| device detected | the `Next` button crossfades to its highlighted variant and pulses once (scale 1 → 1.03 → 1), `ToggleOn` haptic |
+| tap `Next` | shared-axis slide: Step 1 exits left at 0.96 scale while Step 2 enters from the right, 40 ms stagger, stepper dot fills with a spring |
+| tap `Back` | the same motion reversed, 20 % faster — going back always feels quicker than going forward |
+| stepper tap | instant jump, no directional slide, short fade; only the dot animates |
 | file arrives | row springs in, bar chases the value on a fast spring |
 | file done | check draws with slight overshoot, `Confirm` haptic |
 | failure | 180 ms shake, error-tinted row, `Reject` haptic |
@@ -429,7 +497,10 @@ Foundations already built and tested in this repo are reused: `Palette` (WCAG-as
 | guest joins (Android) | scan Stage 1 → prompt → joined; host shows joined within 3 s |
 | guest joins (iOS) | scan Stage 1 → prompt → joined; same |
 | manual join | type SSID + password → joined |
+| Next | tap `Next` with nobody joined → Step 2 appears; `Back` returns to Step 1 with the same credentials |
 | Stage 2 | scan → page opens; or type URL → page opens |
+| detection | after the guest joins, `Next` is highlighted and the status names the device (on phones where any signal works) |
+| no detection | on a phone where nothing fires, the flow still works through `Next` alone |
 | upload single | 50 MB file arrives, checksum matches, appears in gallery/Download |
 | upload many | 20 files, all present, no duplicates |
 | backgrounded | repeat with screen off; still works |
@@ -442,10 +513,10 @@ Foundations already built and tested in this repo are reused: `Palette` (WCAG-as
 
 | Phase | Deliverable | Gate |
 |---|---|---|
-| **1. Hotspot + server + two-QR** | rewritten `app` module, both hotspot routes, Stage 1/Stage 2 screen, detection (D1–D5), self-test, request log | the device matrix above, rows 1–5 and 8–10 |
+| **1. Hotspot + server + two-QR wizard** | rewritten `app` module, both hotspot routes, Step 1/Step 2 wizard with `Next`/`Back`/stepper, detection as a hint (D1–D4), self-test, request log | the device matrix above, rows 1–5 and 8–12 |
 | **2. Uploads that land correctly** | MediaStore sinks, raw + multipart + 100-continue + chunked, limits, collisions, crash-safety | full JVM suite green |
 | **3. The browser page** | designed page, all states, no-JS fallback, budget met | device matrix rows 6–7 on 4 browsers |
-| **4. Phone UI polish** | Received, Settings, motion, live progress, history | user completes a transfer without instructions |
+| **4. Phone UI polish** | Received, Settings, wizard motion (slide + stepper), live progress, history | user completes a transfer without instructions, and reaches Step 2 without being told where `Next` is |
 | **5. Robustness** | resumable client, folder upload, PIN/approval, OEM fallbacks, idle policy | targeted tests + one round trip |
 | **6. Release** | CI green, signed APK, checksums, notes, old code deleted | user installs the published artefact |
 
@@ -481,8 +552,8 @@ first.
 
 ## 17. What I will not promise
 
-* **Instant detection on every phone.** APIs do not exist for it; four signals cover most devices, and the
-  manual promotion button covers the rest.
+* **Instant detection on every phone.** The relevant APIs do not exist; four signals cover most devices, and
+  the `Next` button — which is part of the flow rather than a fallback — covers the rest.
 * **Speed.** The radio is the ceiling: ~8–10 MB/s on 2.4 GHz, 40–50 MB/s on 5 GHz, band not selectable through
   public APIs.
 * **A permanent password** on the local-only-hotspot route — the OS regenerates it every session. Fixed name
