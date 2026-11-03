@@ -975,3 +975,38 @@ regenerated.
 * Join detection depends on the ROM (mDNS, ARP); when neither works, the `Next` button still does.
 * Resumable uploads are specified but not yet implemented — a dropped connection retries from zero.
 * Nothing here has run on a phone yet. That is what the checklist in `docs/TEST-ON-DEVICE.md` is for.
+
+## 1.0.1 — seven defects found by reading the code back
+
+None of these showed up in CI, because CI has no hotspot and no browser. All of them would have
+wasted a device-testing round.
+
+1. **The service started a second server on every resume.** `MainActivity.onStart` asked the service
+   to start, the service did not check whether it already was, and bound the next free port. The
+   address on screen therefore drifted (8080 → 8081 → …) every time the app came back to the
+   foreground, while the old server kept answering on the old port. `begin()` is now idempotent.
+2. **The fixed-group fallback could leave the phone hosting nothing.** When a Wi-Fi Direct group was
+   created but its credentials could not be read back, the code set its "already answered" flag and
+   *then* tested it before falling back to the local-only hotspot — so it never fell back. Fixed.
+3. **The page was reachable from the phone's other networks.** Binding `0.0.0.0` exposes the drop page
+   on the home Wi-Fi the phone is also joined to. The server now binds the hotspot's own address and
+   only falls back to the wildcard if that bind fails.
+4. **Slow bodies were killed.** The 5 s keep-alive timeout also applied while reading a body, so a
+   suspended iOS tab or a weak 2.4 GHz link aborted an upload mid-file. Reads now get 60 s; the idle
+   timeout applies between requests only.
+5. **Speculative browser sockets could starve the pool.** Browsers pre-open connections and say
+   nothing. Six silent sockets per browser × two browsers exhausted the 12 workers before a single
+   byte moved. A connection now has 2 s to produce its first request.
+6. **A killed service left the UI claiming it was still hosting** — address, SSID and QR on screen for
+   a hotspot that no longer existed. `onDestroy` resets the state.
+7. **The no-JavaScript form was visible next to the drop zone.** It is now inside `<noscript>`, which
+   is the only way to have both "works without JS" and "clean when JS is on".
+
+Smaller corrections: `/api/ping` reports free space *now* rather than the value at start-up; the sink
+refuses to start a file when the phone has under 32 MB free (507 before writing, not after); the copy
+buttons copy real values instead of placeholder text ("copy" on an empty password used to put "open
+network" on the clipboard); received rows now open their file (resolved through MediaStore at tap
+time, so no FileProvider and no stale URI); the "prefer port 80" switch is gone, because Android does
+not let an app bind a privileged port and the switch was a promise the platform breaks.
+
+23 unit tests (one more: an oversized body is refused with 413 before a byte is written).
