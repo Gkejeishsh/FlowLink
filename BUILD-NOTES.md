@@ -1010,3 +1010,34 @@ time, so no FileProvider and no stale URI); the "prefer port 80" switch is gone,
 not let an app bind a privileged port and the switch was a promise the platform breaks.
 
 23 unit tests (one more: an oversized body is refused with 413 before a byte is written).
+
+## 1.0.2 — the three things the first device test found
+
+Reported from a real phone: the app asks for location, never turns it on; turning it on by hand
+switches Wi-Fi off; and pressing on, the app stops with "starting hotspot" on screen and no warning.
+
+1. **Location is not a permission, it is two requirements.** Android 8–12 refuse to create a local-only
+   hotspot unless the location permission *and* location services are both on — and several ROMs do not
+   return a failure code, they raise an exception from inside the platform's own handler. The app now
+   checks permission, location services and Wi-Fi *before* calling the API, and shows which one is
+   missing with a single button that opens that exact setting. Nothing is attempted that is known to
+   fail.
+2. **That crash is now contained.** Platform callbacks run on a private `HandlerThread` with its own
+   uncaught-exception handler, so an exception raised while Android dispatches `onStarted`/`onFailed`
+   kills that thread instead of the process, and becomes a sentence on screen.
+3. **If it still dies, it says why.** A default uncaught-exception handler writes the trace to
+   `last-crash.txt` and Settings shows it under "Last crash" with Copy and Dismiss. I cannot see the
+   user's phone; a stack trace is the difference between a guess and a fix.
+4. **`startForeground` no longer fails silently.** It tries the declared `specialUse` type, then an
+   untyped foreground service, and if both are refused the app reports it — previously the system
+   killed the process about five seconds later, which is exactly the "started, then vanished" symptom.
+5. **Returning from Settings resumes hosting by itself**, so fixing the setting is the only action.
+
+25 unit tests, including the precondition gate (permission → services → radio, in that order).
+
+### One thing that is *not* a bug
+
+Turning location on switched Wi-Fi off. Nothing in this app touches either switch — no app can since
+Android 10 — so that is the phone's own power/radio policy (some OEM builds cut Wi-Fi when location or
+battery-saving modes change). The app now handles it the only way it can: it notices Wi-Fi is off,
+says so, and offers the switch.
