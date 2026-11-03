@@ -112,7 +112,9 @@ li.fail .bar i{background:var(--bad)}
 footer{margin-top:18px;text-align:center;color:var(--dim);font-size:12px}
 .ghost{display:inline-block;margin-top:10px;color:var(--dim);text-decoration:none;
   border-bottom:1px dotted var(--line);cursor:pointer}
-form{display:none}
+.nojs p{color:var(--dim);font-size:14px}
+.nojs input,.nojs button{display:block;width:100%;margin-top:10px;font:inherit;padding:12px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card-2);color:var(--text)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -143,11 +145,14 @@ form{display:none}
 
     <input id="picker" type="file" multiple style="display:none">
 
-    <form id="fallback" action="/upload" method="post" enctype="multipart/form-data">
-      <p style="display:block;color:#aeb7cc;font-size:14px">JavaScript is off — this form still works.</p>
-      <input type="file" name="file" multiple required>
-      <button type="submit">Send</button>
-    </form>
+    <noscript>
+      <style>#drop{display:none}</style>
+      <form action="/upload" method="post" enctype="multipart/form-data" class="nojs">
+        <p>JavaScript is off — this form still works.</p>
+        <input type="file" name="file" multiple required>
+        <button type="submit">Send</button>
+      </form>
+    </noscript>
 
     <ul class="list" id="list" aria-live="polite"></ul>
 
@@ -181,10 +186,8 @@ form{display:none}
   var countEl = document.getElementById('count');
   var speedEl = document.getElementById('speed');
   var banner = document.getElementById('banner');
-  var fallback = document.getElementById('fallback');
   var sent = 0, totalBytes = 0, startedAt = 0, queue = 0;
 
-  fallback.style.display = 'block';
 
   function human(n) {
     if (n < 1024) return n + ' B';

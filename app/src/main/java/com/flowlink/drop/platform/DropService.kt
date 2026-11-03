@@ -87,7 +87,7 @@ class DropService : Service() {
             return START_NOT_STICKY
         }
         // startForeground must happen within seconds of the start request, before any network work.
-        promoteToForeground("Starting the hotspot…")
+        promoteToForeground(if (host.running) currentUrl() else "Starting the hotspot…")
         if (action == ACTION_RESTART) shutDownResources()
         begin()
         return START_STICKY
@@ -97,12 +97,31 @@ class DropService : Service() {
 
     override fun onDestroy() {
         shutDownResources()
+        // The service can be killed without ACTION_STOP; without this the screen keeps showing a
+        // hotspot and an address that no longer exist.
+        DropHub.update {
+            it.copy(
+                phase = "idle",
+                ssid = "",
+                password = "",
+                address = "",
+                port = 0,
+                reachable = null,
+                clients = emptyList()
+            )
+        }
         super.onDestroy()
     }
 
     // ------------------------------------------------------------------ startup
 
     private fun begin() {
+        if (host.running && server != null) {
+            // Already hosting. Re-entering here used to bind a second server on the next free port,
+            // which silently changed the address on screen every time the activity resumed.
+            updateNotification("Waiting for someone to join", currentUrl())
+            return
+        }
         DropHub.update {
             it.copy(
                 phase = "starting",
@@ -127,10 +146,9 @@ class DropService : Service() {
 
     private fun startServer(info: HotspotHost.Info) {
         val address = info.address.orEmpty()
-        val ports = buildList {
-            if (prefs.preferPort80) add(80)
-            for (port in 8080..8095) add(port)
-        }
+        // 8080 upward only: Android does not let an app bind a privileged port, so "try 80 first"
+        // was a promise the platform refuses to keep. The port is always shown in the URL.
+        val ports = (8080..8095).toList()
         val factory = AndroidSinkFactory(this, SAVE_FOLDER)
         val dropServer = DropServer(
             sinkFactory = factory,
@@ -141,9 +159,9 @@ class DropService : Service() {
             maxFileBytes = MAX_FILE_BYTES
         )
         dropServer.phoneName = phoneName
-        dropServer.freeSpaceText = freeSpace()
+        dropServer.freeSpace = { freeSpace() }
         val bound = try {
-            dropServer.start(ports)
+            dropServer.start(ports, address.ifBlank { null })
         } catch (t: Throwable) {
             DropHub.update {
                 it.copy(phase = "failed", error = "the page could not start: ${t.message}", message = "")
@@ -193,7 +211,13 @@ class DropService : Service() {
                     line?.contains("200") == true
                 }
             }.getOrDefault(false)
-            DropHub.update { it.copy(reachable = ok) }
+            DropHub.update {
+                it.copy(
+                    reachable = ok,
+                    message = if (ok) it.message
+                    else "The page is not answering on $address — tap Restart."
+                )
+            }
             Log.d(TAG, "reachability on $address:$port = $ok")
         }, "drop-probe").start()
     }
@@ -378,6 +402,11 @@ class DropService : Service() {
             .addAction(0, "Stop hosting", stop)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
+    }
+
+    private fun currentUrl(): String {
+        val state = DropHub.state.value
+        return if (state.url.isBlank()) "the hotspot is running" else state.url
     }
 
     private fun freeSpace(): Long = runCatching {

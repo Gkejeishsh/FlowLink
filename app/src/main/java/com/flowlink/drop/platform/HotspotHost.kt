@@ -94,9 +94,12 @@ class HotspotHost(private val context: Context) {
                             running = true
                             onResult(info, "fixed group up")
                         } else {
-                            // The group exists but cannot be read back; fall back rather than lie.
+                            // The group exists but cannot be read back. Fall back rather than lie —
+                            // and actually do it: this branch used to set `answered` first, so the
+                            // guard below silently refused to start the local-only hotspot and the
+                            // phone ended up hosting nothing at all.
                             stopFixedGroup()
-                            if (!answered) startLocalOnly(onResult)
+                            startLocalOnly(onResult)
                         }
                     }, 900)
                 }

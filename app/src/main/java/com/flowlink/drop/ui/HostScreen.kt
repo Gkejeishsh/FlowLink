@@ -305,9 +305,9 @@ private fun JoinStep(
             QrPanel(state.joinQr, Modifier.fillMaxWidth().aspectRatio(1f))
         }
         Spacer(Modifier.height(14.dp))
-        ValueRow("Network", state.ssid.ifBlank { "—" }, clipboard)
+        ValueRow("Network", state.ssid.ifBlank { "—" }, clipboard, state.ssid)
         Spacer(Modifier.height(8.dp))
-        ValueRow("Password", state.password.ifBlank { "open network" }, clipboard)
+        ValueRow("Password", state.password.ifBlank { "open network" }, clipboard, state.password)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onNext,
@@ -342,7 +342,7 @@ private fun OpenStep(
             QrPanel(state.url, Modifier.fillMaxWidth().aspectRatio(1f))
         }
         Spacer(Modifier.height(14.dp))
-        ValueRow("Address", state.url.ifBlank { "starting…" }, clipboard)
+        ValueRow("Address", state.url.ifBlank { "starting…" }, clipboard, state.url)
         if (state.band.isNotBlank() && state.band != "unknown band") {
             Spacer(Modifier.height(8.dp))
             Text(
@@ -378,7 +378,8 @@ private fun OpenStep(
 private fun ValueRow(
     label: String,
     value: String,
-    clipboard: androidx.compose.ui.platform.ClipboardManager
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    copyValue: String = value
 ) {
     Row(
         Modifier
@@ -401,8 +402,12 @@ private fun ValueRow(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        TextButton(onClick = { clipboard.setText(AnnotatedString(value)) }) {
-            Text("Copy", style = MaterialTheme.typography.labelMedium)
+        // Copy what is real, not the placeholder: copying "open network" into a password field is
+        // a small betrayal of the user's time.
+        if (copyValue.isNotBlank()) {
+            TextButton(onClick = { clipboard.setText(AnnotatedString(copyValue)) }) {
+                Text("Copy", style = MaterialTheme.typography.labelMedium)
+            }
         }
     }
 }

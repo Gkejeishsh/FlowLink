@@ -219,6 +219,36 @@ class DropServerTest {
     }
 
     @Test
+    fun anOversizedBodyIsRefusedBeforeItIsWritten() {
+        val small = DropServer(
+            sinkFactory = factory,
+            pageProvider = { "x" },
+            listener = object : DropServer.Listener {
+                override fun onClientSeen(remote: String, userAgent: String) = Unit
+                override fun onUploadStarted(name: String, remote: String) = Unit
+                override fun onUploadProgress(name: String, bytes: Long, total: Long) = Unit
+                override fun onUploadFinished(name: String, path: String, bytes: Long) = Unit
+                override fun onUploadFailed(name: String, reason: String) = Unit
+                override fun onLog(message: String) = Unit
+            },
+            maxFileBytes = 1024
+        )
+        val tinyPort = small.start(listOf(0))
+        try {
+            val call = (URL("http://127.0.0.1:$tinyPort/api/upload?name=huge.bin")
+                .openConnection() as HttpURLConnection)
+            call.requestMethod = "POST"
+            call.doOutput = true
+            call.setRequestProperty("Content-Length", "4096")
+            call.outputStream.write(ByteArray(4096))
+            assertEquals(413, call.responseCode)
+            call.disconnect()
+        } finally {
+            small.stop()
+        }
+    }
+
+    @Test
     fun theRequestLogRemembersWhatHappened() {
         connection("/api/ping").inputStream.close()
         Thread.sleep(150)

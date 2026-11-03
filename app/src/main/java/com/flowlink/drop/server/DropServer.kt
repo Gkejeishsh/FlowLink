@@ -52,6 +52,11 @@ class DropServer(
     var boundPort: Int = 0
         private set
 
+    /** The interface the page is actually listening on, for the diagnostics screen. */
+    @Volatile
+    var boundOn: String = ""
+        private set
+
     @Volatile
     private var running = false
     private var serverSocket: ServerSocket? = null
@@ -61,12 +66,14 @@ class DropServer(
         { runnable ->
             Thread(runnable, "drop-http-${counter.incrementAndGet()}").apply { isDaemon = true }
         },
-        ThreadPoolExecutor.DiscardPolicy()
+        ThreadPoolExecutor.AbortPolicy()
     )
 
     private companion object {
         val counter = AtomicInteger(0)
         const val IDLE_TIMEOUT_MS = 5_000
+        const val FIRST_REQUEST_TIMEOUT_MS = 2_000
+        const val BODY_TIMEOUT_MS = 60_000
         const val MAX_HEADER_BYTES = 8 * 1024
         const val MAX_HEADERS = 64
         const val COPY_BUFFER = 256 * 1024
@@ -75,29 +82,43 @@ class DropServer(
 
     // ---------------------------------------------------------------- lifecycle
 
-    fun start(ports: List<Int>): Int {
+    /**
+     * Binds the page.
+     *
+     * [address] is the hotspot's own address when it is known: binding there keeps the page off the
+     * phone's other networks, so the café Wi-Fi this phone is *also* joined to cannot reach it. If
+     * that bind fails (a stale address, a vendor quirk) the wildcard is used, because a page on the
+     * wrong interface still beats no page at all.
+     */
+    fun start(ports: List<Int>, address: String? = null): Int {
         if (running) return boundPort
         for (port in ports) {
-            val socket = try {
-                ServerSocket().apply {
-                    reuseAddress = true
-                    bind(InetSocketAddress("0.0.0.0", port), 64)
-                }
-            } catch (t: Throwable) {
-                listener.onLog("port $port unavailable: ${t.message}")
+            val socket = bindOn(port, address) ?: bindOn(port, null)
+            if (socket == null) {
+                listener.onLog("port $port unavailable")
                 continue
             }
             serverSocket = socket
             boundPort = socket.localPort
+            boundOn = socket.inetAddress?.hostAddress ?: "0.0.0.0"
             running = true
             acceptThread = Thread({ acceptLoop(socket) }, "drop-accept").apply {
                 isDaemon = true
                 start()
             }
-            listener.onLog("listening on 0.0.0.0:${socket.localPort}")
+            listener.onLog("listening on $boundOn:${socket.localPort}")
             return socket.localPort
         }
         throw IOException("no free port between ${ports.first()} and ${ports.last()}")
+    }
+
+    private fun bindOn(port: Int, address: String?): ServerSocket? = try {
+        ServerSocket().apply {
+            reuseAddress = true
+            bind(InetSocketAddress(address ?: "0.0.0.0", port), 64)
+        }
+    } catch (t: Throwable) {
+        null
     }
 
     fun stop() {
@@ -116,8 +137,20 @@ class DropServer(
                 if (running) listener.onLog("accept failed: ${t.message}")
                 break
             }
-            runCatching { workers.execute { serveClient(client) } }
-                .onFailure { runCatching { client.close() } }
+            try {
+                workers.execute { serveClient(client) }
+            } catch (t: Throwable) {
+                // Queue full: say so and close, rather than leaving the browser hanging on a dead
+                // socket until its own timeout (which can be a minute).
+                runCatching {
+                    client.getOutputStream().write(
+                        ("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 2\r\n" +
+                            "Content-Length: 0\r\nConnection: close\r\n\r\n").toByteArray()
+                    )
+                    client.getOutputStream().flush()
+                }
+                runCatching { client.close() }
+            }
         }
     }
 
@@ -131,12 +164,19 @@ class DropServer(
                 val input = BufferedInputStream(client.getInputStream(), 64 * 1024)
                 val output = BufferedOutputStream(client.getOutputStream(), 64 * 1024)
                 var keepAlive = true
+                var firstRequest = true
                 while (keepAlive && running) {
+                    // Before the first request a socket may be pure speculation: browsers keep a few
+                    // open "just in case". Do not let those occupy a worker for long.
+                    client.soTimeout = if (firstRequest) FIRST_REQUEST_TIMEOUT_MS else IDLE_TIMEOUT_MS
                     val request = try {
                         readRequest(input)
                     } catch (t: Throwable) {
                         null
                     } ?: break
+                    // Idle timeouts are for the gap between requests; a body may legitimately be
+                    // slow (a suspended iOS tab, a weak 2.4 GHz link), so give reads room.
+                    client.soTimeout = BODY_TIMEOUT_MS
                     val started = System.currentTimeMillis()
                     val remote = client.inetAddress?.hostAddress ?: "unknown"
                     listener.onClientSeen(remote, request.headers["user-agent"].orEmpty())
@@ -164,6 +204,8 @@ class DropServer(
                         )
                     )
                     keepAlive = response.keepAlive && !request.wantsClose
+                    firstRequest = false
+                    client.soTimeout = IDLE_TIMEOUT_MS
                 }
             }
         } catch (t: Throwable) {
@@ -243,12 +285,13 @@ class DropServer(
     }
 
     private fun infoJson(): String {
-        val free = freeSpaceText
+        val free = freeSpace()
         return """{"ok":true,"name":${json(phoneName)},"free":$free,"maxFile":$maxFileBytes,"version":1}"""
     }
 
+    /** Disk headroom, asked each time: a value captured at start-up lies by the second upload. */
     @Volatile
-    var freeSpaceText: Long = -1
+    var freeSpace: () -> Long = { -1 }
 
     private fun handleUpload(request: Request, input: InputStream, remote: String): Response {
         val contentType = request.headers["content-type"].orEmpty()

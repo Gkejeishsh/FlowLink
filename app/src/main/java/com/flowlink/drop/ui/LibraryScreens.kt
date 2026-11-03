@@ -28,10 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
+import com.flowlink.drop.platform.MediaOpen
 import com.flowlink.drop.DropState
 import com.flowlink.drop.Prefs
 import com.flowlink.drop.ReceivedItem
@@ -95,9 +99,16 @@ fun ReceivedScreen(state: DropState, onClear: () -> Unit) {
 @Composable
 private fun ReceivedRow(item: ReceivedItem) {
     val format = remember { SimpleDateFormat("d MMM · HH:mm", Locale.getDefault()) }
+    val context = LocalContext.current
     Surface(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable {
+                // A list of things you cannot open is a list of regrets.
+                if (!MediaOpen.open(context, item)) {
+                    Toast.makeText(context, "Saved to ${'$'}{item.where}", Toast.LENGTH_SHORT).show()
+                }
+            }
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -200,17 +211,6 @@ fun SettingsScreen(prefs: Prefs, state: DropState, onChanged: () -> Unit) {
             ) { value ->
                 keepAwake = value
                 prefs.keepAwake = value
-                onChanged()
-            }
-        }
-        item {
-            ToggleRow(
-                title = "Prefer the standard port",
-                subtitle = "Tries port 80 first, so the address is just the IP. " +
-                    "Falls back to 8080–8095.",
-                checked = prefs.preferPort80
-            ) { value ->
-                prefs.preferPort80 = value
                 onChanged()
             }
         }

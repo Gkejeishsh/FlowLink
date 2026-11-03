@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +41,9 @@ class MainActivity : ComponentActivity() {
     ) { granted ->
         // Whatever the answer, the service starts: it can explain a missing grant far better than a
         // silent screen, and the hotspot error message names the permission by name.
-        DropService.start(this)
-        if (granted.values.any { it }) DropService.restart(this)
+        // Restart, not start-then-restart: a grant that arrived after the first attempt has to be
+        // picked up by a fresh attempt, and starting twice bound two servers.
+        if (granted.values.any { it }) DropService.restart(this) else DropService.start(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +107,7 @@ private fun AppRoot(
                 NavigationBarItem(
                     selected = tab == 0,
                     onClick = { tab = 0 },
-                    icon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    icon = { Icon(Icons.Filled.Home, contentDescription = null) },
                     label = { Text("Host") }
                 )
                 NavigationBarItem(
@@ -140,7 +141,16 @@ private fun AppRoot(
                     // `refresh` is a cheap way to re-read the settings screen after a change writes
                     // to preferences; the screen keeps its own local state.
                     key(refresh) {
-                        SettingsScreen(prefs = prefs, state = state, onChanged = { refresh++ })
+                        SettingsScreen(
+                            prefs = prefs,
+                            state = state,
+                            onChanged = {
+                                refresh++
+                                // The name is shown on the guest's page, so the hub must know now,
+                                // not at the next service start.
+                                DropHub.update { it.copy(phoneName = prefs.phoneName) }
+                            }
+                        )
                     }
                 }
             }

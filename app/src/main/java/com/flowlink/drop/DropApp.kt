@@ -100,10 +100,6 @@ class Prefs(context: Context) {
         get() = prefs.getString("hotspot.pass", "").orEmpty()
         set(value) = prefs.edit().putString("hotspot.pass", value).apply()
 
-    var preferPort80: Boolean
-        get() = prefs.getBoolean("port.eighty", true)
-        set(value) = prefs.edit().putBoolean("port.eighty", value).apply()
-
     var phoneName: String
         get() = prefs.getString("phone.name", "").orEmpty().ifBlank { defaultName() }
         set(value) = prefs.edit().putString("phone.name", value).apply()

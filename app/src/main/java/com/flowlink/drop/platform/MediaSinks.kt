@@ -30,6 +30,14 @@ class AndroidSinkFactory(
 ) : SinkFactory {
 
     override fun create(rawName: String, mime: String): DropSink {
+        // Refuse before writing rather than after: a full disk halfway through a 2 GB video leaves
+        // the phone in a worse state than a clear "phone is full" at the start.
+        val free = runCatching {
+            android.os.StatFs(context.filesDir.absolutePath).availableBytes
+        }.getOrDefault(-1L)
+        if (free in 0..(32L * 1024 * 1024)) {
+            throw java.io.IOException("not enough space on the phone")
+        }
         val name = Names.sanitize(rawName)
         return if (Build.VERSION.SDK_INT >= 29) pendingSink(name, mime) else legacySink(name, mime)
     }
