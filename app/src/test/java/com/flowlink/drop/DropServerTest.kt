@@ -77,6 +77,7 @@ class DropServerTest {
                 override fun onLog(message: String) = Unit
             }
         )
+        server.phoneName = "Test phone"
         port = server.start(listOf(0))
     }
 
