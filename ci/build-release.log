@@ -5,30 +5,30 @@ Daemon will be stopped at the end of the build
 > Task :app:mergeReleaseJniLibFolders
 > Task :app:mergeReleaseNativeLibs
 > Task :app:checkReleaseDuplicateClasses
-> Task :app:generateReleaseBuildConfig
 
 > Task :app:stripReleaseDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
 
-> Task :app:generateReleaseResources FROM-CACHE
+> Task :app:generateReleaseBuildConfig
 > Task :app:extractReleaseNativeSymbolTables
-> Task :app:packageReleaseResources
+> Task :app:generateReleaseResources FROM-CACHE
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:packageReleaseResources
 > Task :app:processReleaseNavigationResources
 > Task :app:parseReleaseLocalResources FROM-CACHE
 > Task :app:generateReleaseRFile FROM-CACHE
 > Task :app:javaPreCompileRelease FROM-CACHE
 > Task :app:mergeReleaseArtProfile
 > Task :app:mapReleaseSourceSetPaths
-> Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:checkReleaseAarMetadata
+> Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:extractProguardFiles
-> Task :app:processReleaseManifestForPackage
 > Task :app:mergeReleaseStartupProfile
+> Task :app:processReleaseManifestForPackage
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
@@ -41,33 +41,31 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:processReleaseResources
 
 > Task :app:compileReleaseKotlin
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:198:10 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:267:22 Return type of 'fun onLog(message: String): Int' is not a subtype of the return type of the overridden member 'fun onLog(message: String): Unit' defined in 'com.flowlink.drop.server.DropServer.Listener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:21 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:42 Unresolved reference 'joinGroup' on receiver of type 'DatagramSocket'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:199:17 Only expressions are allowed in this context.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:200:17 Unresolved reference 'style' on receiver of type 'String'.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:115:48 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:82:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:289:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:329:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
+w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:381:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
 
-> Task :app:compileReleaseKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719026920.json
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:mergeReleaseGeneratedProguardFiles
+> Task :app:processReleaseJavaRes
+> Task :app:expandReleaseArtProfileWildcards
+> Task :app:mergeReleaseJavaResource
+> Task :app:produceReleaseComposeMapping
+> Task :app:reportReleaseComposeMappingErrors
+> Task :app:minifyReleaseWithR8
+> Task :app:mergeReleaseComposeMapping
+> Task :app:convertShrunkResourcesToBinaryRelease
+> Task :app:optimizeReleaseResources
+> Task :app:compileReleaseArtProfile
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719383390.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: SYNTAX
-       Kotlin compiler error
-         Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt line 198
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 24s
-33 actionable tasks: 28 executed, 5 from cache
+BUILD SUCCESSFUL in 1m 48s
+47 actionable tasks: 42 executed, 5 from cache
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

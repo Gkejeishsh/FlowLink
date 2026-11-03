@@ -14,7 +14,7 @@
 <div class="tab-container">
 <ul class="tabLinks">
 <li>
-<a class="successGroup" href="#">Gradle Test Run :app:testDebugUnitTest</a>
+<a class="failureGroup" href="#">Gradle Test Run :app:testDebugUnitTest</a>
 </li>
 </ul>
 <div class="tab">
@@ -38,13 +38,13 @@
 <tr>
 <td>
 <div class="infoBox">
-<div class="counter">52</div>
+<div class="counter">22</div>
 <p>tests</p>
 </div>
 </td>
 <td>
 <div class="infoBox">
-<div class="counter">0</div>
+<div class="counter">1</div>
 <p>failures</p>
 </div>
 </td>
@@ -56,7 +56,7 @@
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">8.527s</div>
+<div class="counter">1.516s</div>
 <p>duration</p>
 </div>
 </td>
@@ -65,14 +65,25 @@
 </div>
 </td>
 <td>
-<div class="infoBox success successRate">
-<div class="percent">100%</div>
+<div class="infoBox failures successRate">
+<div class="percent">95%</div>
 <p>successful</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">Failed</a>
+</li>
+<li>
+<a class="" href="#">All</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Failed</h2>
 <table class="test-results sortable">
 <thead>
 <tr>
@@ -87,106 +98,82 @@
 </thead>
 <tbody>
 <tr>
-<td class="success">
-<a href="com.loopjet.app.ConnectCodeTest/index.html">ConnectCodeTest</a>
+<td class="failures">
+<a href="com.flowlink.drop.DropServerTest/index.html">DropServerTest</a>
 </td>
-<td class="path">com.loopjet.app.ConnectCodeTest</td>
-<td>8</td>
+<td class="path">com.flowlink.drop.DropServerTest</td>
+<td>9</td>
+<td>1</td>
+<td>0</td>
+<td data-sort-value="620">0.620s</td>
+<td class="failures" data-sort-value="88">88%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tab">
+<h2>All</h2>
+<table class="test-results sortable">
+<thead>
+<tr>
+<th>Child</th>
+<th>Name</th>
+<th data-sort-default="desc">Tests</th>
+<th data-sort-default="desc">Failures</th>
+<th data-sort-default="desc">Skipped</th>
+<th data-sort-default="desc">Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="failures">
+<a href="com.flowlink.drop.DropServerTest/index.html">DropServerTest</a>
+</td>
+<td class="path">com.flowlink.drop.DropServerTest</td>
+<td>9</td>
+<td>1</td>
+<td>0</td>
+<td data-sort-value="620">0.620s</td>
+<td class="failures" data-sort-value="88">88%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="com.flowlink.drop.NamesTest/index.html">NamesTest</a>
+</td>
+<td class="path">com.flowlink.drop.NamesTest</td>
+<td>6</td>
 <td>0</td>
 <td>0</td>
-<td data-sort-value="62">0.062s</td>
+<td data-sort-value="12">0.012s</td>
 <td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
 <td class="success">
-<a href="com.loopjet.app.ContrastTest/index.html">ContrastTest</a>
+<a href="com.flowlink.drop.PageTest/index.html">PageTest</a>
 </td>
-<td class="path">com.loopjet.app.ContrastTest</td>
-<td>5</td>
+<td class="path">com.flowlink.drop.PageTest</td>
+<td>3</td>
 <td>0</td>
 <td>0</td>
-<td data-sort-value="14">0.014s</td>
+<td data-sort-value="18">0.018s</td>
 <td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
 <td class="success">
-<a href="com.loopjet.app.MotionTokensTest/index.html">MotionTokensTest</a>
+<a href="com.flowlink.drop.WifiQrTest/index.html">WifiQrTest</a>
 </td>
-<td class="path">com.loopjet.app.MotionTokensTest</td>
+<td class="path">com.flowlink.drop.WifiQrTest</td>
 <td>4</td>
 <td>0</td>
 <td>0</td>
 <td data-sort-value="8">0.008s</td>
 <td class="success" data-sort-value="100">100%</td>
 </tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.PathAndNamingTest/index.html">PathAndNamingTest</a>
-</td>
-<td class="path">com.loopjet.app.PathAndNamingTest</td>
-<td>6</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="49">0.049s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.ReceiveLinkTest/index.html">ReceiveLinkTest</a>
-</td>
-<td class="path">com.loopjet.app.ReceiveLinkTest</td>
-<td>5</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="370">0.370s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.SessionProgressTest/index.html">SessionProgressTest</a>
-</td>
-<td class="path">com.loopjet.app.SessionProgressTest</td>
-<td>6</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="3">0.003s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.SubnetTest/index.html">SubnetTest</a>
-</td>
-<td class="path">com.loopjet.app.SubnetTest</td>
-<td>4</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="2">0.002s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.TransferLoopbackTest/index.html">TransferLoopbackTest</a>
-</td>
-<td class="path">com.loopjet.app.TransferLoopbackTest</td>
-<td>6</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="7269">7.269s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="success">
-<a href="com.loopjet.app.WebServerTest/index.html">WebServerTest</a>
-</td>
-<td class="path">com.loopjet.app.WebServerTest</td>
-<td>8</td>
-<td>0</td>
-<td>0</td>
-<td data-sort-value="98">0.098s</td>
-<td class="success" data-sort-value="100">100%</td>
-</tr>
 </tbody>
 </table>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -199,7 +186,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Nov 3, 2026, 2:28:58 PM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Nov 3, 2026, 3:21:58 PM</p>
 </div>
 </div>
 </body>

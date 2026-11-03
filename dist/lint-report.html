@@ -177,32 +177,27 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 19 errors and 84 warnings</span>
+      <span class="mdl-layout-title">Lint Report: 20 errors, 34 warnings and 3 hints</span>
       <div class="mdl-layout-spacer"></div>
-      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 14:34:06 UTC 2026 by AGP (9.4.1)</nav>
+      <nav class="mdl-navigation mdl-layout--large-screen-only">Check performed at Tue Nov 03 15:25:44 UTC 2026 by AGP (9.4.1)</nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
     <span class="mdl-layout-title">Issue Types</span>
     <nav class="mdl-navigation">
       <a class="mdl-navigation__link" href="#overview"><i class="material-icons">dashboard</i>Overview</a>
-      <a class="mdl-navigation__link" href="#MissingPermission"><i class="material-icons error-icon">error</i>Missing Permissions (2)</a>
-      <a class="mdl-navigation__link" href="#InlinedApi"><i class="material-icons warning-icon">warning</i>Using inlined constants on older versions (21)</a>
-      <a class="mdl-navigation__link" href="#NewApi"><i class="material-icons error-icon">error</i>Calling new methods on older versions (15)</a>
-      <a class="mdl-navigation__link" href="#BatteryLife"><i class="material-icons warning-icon">warning</i>Battery Life Issues (1)</a>
+      <a class="mdl-navigation__link" href="#MissingPermission"><i class="material-icons error-icon">error</i>Missing Permissions (3)</a>
+      <a class="mdl-navigation__link" href="#InlinedApi"><i class="material-icons warning-icon">warning</i>Using inlined constants on older versions (4)</a>
+      <a class="mdl-navigation__link" href="#NewApi"><i class="material-icons error-icon">error</i>Calling new methods on older versions (16)</a>
+      <a class="mdl-navigation__link" href="#CoarseFineLocation"><i class="material-icons error-icon">error</i>Cannot use <code>ACCESS_FINE_LOCATION</code> without <code>ACCESS_COARSE_LOCATION</code> (1)</a>
       <a class="mdl-navigation__link" href="#AndroidGradlePluginVersion"><i class="material-icons warning-icon">warning</i>Obsolete Android Gradle Plugin Version (2)</a>
       <a class="mdl-navigation__link" href="#GradleDependency"><i class="material-icons warning-icon">warning</i>Obsolete Gradle Dependency (9)</a>
       <a class="mdl-navigation__link" href="#NewerVersionAvailable"><i class="material-icons warning-icon">warning</i>Newer Library Versions Available (2)</a>
-      <a class="mdl-navigation__link" href="#UnsafeOptInUsageError"><i class="material-icons error-icon">error</i>Unsafe opt-in usage intended to be error-level severity (1)</a>
-      <a class="mdl-navigation__link" href="#ContextCastToActivity"><i class="material-icons error-icon">error</i>LocalContext should not be cast to Activity, use LocalActivity instead (1)</a>
-      <a class="mdl-navigation__link" href="#ModifierParameter"><i class="material-icons warning-icon">warning</i>Guidelines for Modifier parameters in a Composable function (1)</a>
-      <a class="mdl-navigation__link" href="#DiscouragedApi"><i class="material-icons warning-icon">warning</i>Using discouraged APIs (1)</a>
       <a class="mdl-navigation__link" href="#DataExtractionRules"><i class="material-icons warning-icon">warning</i>Missing data extraction rules (1)</a>
-      <a class="mdl-navigation__link" href="#ObsoleteSdkInt"><i class="material-icons warning-icon">warning</i>Obsolete SDK_INT Version Check (6)</a>
-      <a class="mdl-navigation__link" href="#StaticFieldLeak"><i class="material-icons warning-icon">warning</i>Static Field Leaks (1)</a>
-      <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (6)</a>
-      <a class="mdl-navigation__link" href="#UsableSpace"><i class="material-icons warning-icon">warning</i>Using getUsableSpace() (3)</a>
-      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (30)</a>
+      <a class="mdl-navigation__link" href="#ObsoleteSdkInt"><i class="material-icons warning-icon">warning</i>Obsolete SDK_INT Version Check (1)</a>
+      <a class="mdl-navigation__link" href="#AutoboxingStateCreation"><i class="material-icons warning-icon">warning</i><code>State&lt;T></code> will autobox values assigned to this state. Use a specialized state type instead. (3)</a>
+      <a class="mdl-navigation__link" href="#UnusedResources"><i class="material-icons warning-icon">warning</i>Unused resources (7)</a>
+      <a class="mdl-navigation__link" href="#UseKtx"><i class="material-icons warning-icon">warning</i>Use KTX extension function (8)</a>
     </nav>
   </div>
   <main class="mdl-layout__content">
@@ -218,17 +213,17 @@ document.getElementById(id).style.display = 'none';
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Correctness">Correctness</a>
 </td></tr>
 <tr>
-<td class="countColumn">2</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
+<td class="countColumn">3</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
 <a href="#MissingPermission">MissingPermission</a>: Missing Permissions</td></tr>
 <tr>
-<td class="countColumn">21</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">4</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#InlinedApi">InlinedApi</a>: Using inlined constants on older versions</td></tr>
 <tr>
-<td class="countColumn">15</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
+<td class="countColumn">16</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
 <a href="#NewApi">NewApi</a>: Calling new methods on older versions</td></tr>
 <tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#BatteryLife">BatteryLife</a>: Battery Life Issues</td></tr>
+<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
+<a href="#CoarseFineLocation">CoarseFineLocation</a>: Cannot use <code>ACCESS_FINE_LOCATION</code> without <code>ACCESS_COARSE_LOCATION</code></td></tr>
 <tr>
 <td class="countColumn">2</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#AndroidGradlePluginVersion">AndroidGradlePluginVersion</a>: Obsolete Android Gradle Plugin Version</td></tr>
@@ -238,18 +233,6 @@ document.getElementById(id).style.display = 'none';
 <tr>
 <td class="countColumn">2</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#NewerVersionAvailable">NewerVersionAvailable</a>: Newer Library Versions Available</td></tr>
-<tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
-<a href="#UnsafeOptInUsageError">UnsafeOptInUsageError</a>: Unsafe opt-in usage intended to be error-level severity</td></tr>
-<tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons error-icon">error</i>
-<a href="#ContextCastToActivity">ContextCastToActivity</a>: LocalContext should not be cast to Activity, use LocalActivity instead</td></tr>
-<tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#ModifierParameter">ModifierParameter</a>: Guidelines for Modifier parameters in a Composable function</td></tr>
-<tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#DiscouragedApi">DiscouragedApi</a>: Using discouraged APIs</td></tr>
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Security">Security</a>
 </td></tr>
 <tr>
@@ -258,21 +241,18 @@ document.getElementById(id).style.display = 'none';
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Performance">Performance</a>
 </td></tr>
 <tr>
-<td class="countColumn">6</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#ObsoleteSdkInt">ObsoleteSdkInt</a>: Obsolete SDK_INT Version Check</td></tr>
 <tr>
-<td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#StaticFieldLeak">StaticFieldLeak</a>: Static Field Leaks</td></tr>
-<tr>
-<td class="countColumn">6</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#UnusedResources">UnusedResources</a>: Unused resources</td></tr>
-<tr>
 <td class="countColumn">3</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
-<a href="#UsableSpace">UsableSpace</a>: Using getUsableSpace()</td></tr>
+<a href="#AutoboxingStateCreation">AutoboxingStateCreation</a>: <code>State&lt;T></code> will autobox values assigned to this state. Use a specialized state type instead.</td></tr>
+<tr>
+<td class="countColumn">7</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<a href="#UnusedResources">UnusedResources</a>: Unused resources</td></tr>
 <tr><td class="countColumn"></td><td class="categoryColumn"><a href="#Productivity">Productivity</a>
 </td></tr>
 <tr>
-<td class="countColumn">30</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<td class="countColumn">8</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#UseKtx">UseKtx</a>: Use KTX extension function</td></tr>
 <tr><td></td><td class="categoryColumn"><a href="#ExtraIssues">Included Additional Checks (66)</a>
 </td></tr>
@@ -295,22 +275,34 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:93</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno">  90 </span>            }
-<span class="lineno">  91 </span>        }
-<span class="lineno">  92 </span>        runCatching {
-<span class="caretline"><span class="lineno">  93 </span>            <span class="error">manager.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  94 </span>        }.onFailure { onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"hotspot failed"</span>) }
-<span class="lineno">  95 </span>    }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:87</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
+<span class="lineno">  86 </span>        runCatching {
+<span class="caretline"><span class="lineno">  87 </span>            <span class="error">manager.createGroup(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  88 </span>                override <span class="keyword">fun</span> onSuccess() {
+<span class="lineno">  89 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
+<span class="lineno">  90 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:293</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
-<span class="lineno"> 290 </span>            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-<span class="lineno"> 291 </span>            .build()
-<span class="lineno"> 292 </span>        runCatching {
-<span class="caretline"><span class="lineno"> 293 </span>            <span class="error">NotificationManagerCompat.from(context).notify(FINISHED_ID, notification)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 294 </span>        }
-<span class="lineno"> 295 </span>    }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:121</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 118 </span>        <span class="keyword">var</span> captured: Info? = <span class="keyword">null</span>
+<span class="lineno"> 119 </span>        <span class="keyword">val</span> latch = java.util.concurrent.CountDownLatch(<span class="number">1</span>)
+<span class="lineno"> 120 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 121 </span>            <span class="error">manager.requestGroupInfo(channel) { group -></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 122 </span>                <span class="keyword">if</span> (group != <span class="keyword">null</span>) {
+<span class="lineno"> 123 </span>                    p2pGroup = group
+<span class="lineno"> 124 </span>                    <span class="keyword">val</span> ssid = runCatching { group.networkName }.getOrNull().orEmpty()
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:189</span>: <span class="message">Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with <code>checkPermission</code>) or explicitly handle a potential <code>SecurityException</code></span><br /><pre class="errorlines">
+<span class="lineno"> 186 </span>            }
+<span class="lineno"> 187 </span>        }
+<span class="lineno"> 188 </span>        runCatching {
+<span class="caretline"><span class="lineno"> 189 </span>            <span class="error">wifi.startLocalOnlyHotspot(callback, Handler(Looper.getMainLooper()))</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 190 </span>        }.onFailure {
+<span class="lineno"> 191 </span>            running = <span class="keyword">false</span>
+<span class="lineno"> 192 </span>            onResult(<span class="keyword">null</span>, it.message ?: <span class="string">"the hotspot could not start"</span>)
 </pre>
 
 </div>
@@ -351,217 +343,46 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:496</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  493 </span>    private <span class="keyword">fun</span> hasWifiPermission(): Boolean {
-<span class="lineno">  494 </span>        <span class="keyword">val</span> ask = com.loopjet.app.platform.Perms.runtimeRequirements(app, forReceive = <span class="keyword">true</span>)
-<span class="lineno">  495 </span>            .filter {
-<span class="caretline"><span class="lineno">  496 </span>                it.permission == <span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span> ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  497 </span>                    it.permission == com.loopjet.app.platform.Perms.LOCAL_NETWORK
-<span class="lineno">  498 </span>            }
-<span class="lineno">  499 </span>        <span class="keyword">return</span> com.loopjet.app.platform.Perms.missing(app, ask).isEmpty()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:99</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno">  96 </span>
+<span class="lineno">  97 </span>    private <span class="keyword">fun</span> target(name: String, mime: String): Target = <span class="keyword">when</span> {
+<span class="lineno">  98 </span>        Names.isImage(mime) -> Target(
+<span class="caretline"><span class="lineno">  99 </span>            MediaStore.Images.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 100 </span>            <span class="string">"${</span>Environment.DIRECTORY_PICTURES<span class="string">}/$folder"</span>,
+<span class="lineno"> 101 </span>            <span class="string">"Pictures/$folder"</span>
+<span class="lineno"> 102 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:107</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno"> 104 </span>    private <span class="keyword">val</span> wifiJoinLauncher = registerForActivityResult(
-<span class="lineno"> 105 </span>        ActivityResultContracts.RequestMultiplePermissions()
-<span class="lineno"> 106 </span>    ) { granted ->
-<span class="caretline"><span class="lineno"> 107 </span>        <span class="keyword">val</span> ok = granted[<span class="warning">android.Manifest.permission.NEARBY_WIFI_DEVICES</span>] != <span class="keyword">false</span> &amp;&amp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 108 </span>            granted[android.Manifest.permission.ACCESS_FINE_LOCATION] != <span class="keyword">false</span>
-<span class="lineno"> 109 </span>        <span class="keyword">if</span> (ok) {
-<span class="lineno"> 110 </span>            vmRef?.retryWifiScan()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:104</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 101 </span>            <span class="string">"Pictures/$folder"</span>
+<span class="lineno"> 102 </span>        )
+<span class="lineno"> 103 </span>        Names.isVideo(mime) -> Target(
+<span class="caretline"><span class="lineno"> 104 </span>            MediaStore.Video.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 105 </span>            <span class="string">"${</span>Environment.DIRECTORY_MOVIES<span class="string">}/$folder"</span>,
+<span class="lineno"> 106 </span>            <span class="string">"Movies/$folder"</span>
+<span class="lineno"> 107 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:162</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 159 </span>      mime.startsWith(<span class="string">"image/"</span>) || mime.startsWith(<span class="string">"video/"</span>) || mime.startsWith(<span class="string">"audio/"</span>)
-<span class="lineno"> 160 </span>
-<span class="lineno"> 161 </span>  private <span class="keyword">fun</span> collectionFor(mime: String): Uri = <span class="keyword">when</span> {
-<span class="caretline"><span class="lineno"> 162 </span>      mime.startsWith(<span class="string">"image/"</span>) -> MediaStore.Images.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>)</span>
-<span class="lineno"> 163 </span>      mime.startsWith(<span class="string">"video/"</span>) -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="lineno"> 164 </span>      <span class="keyword">else</span> -> MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="lineno"> 165 </span>  }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:109</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 106 </span>            <span class="string">"Movies/$folder"</span>
+<span class="lineno"> 107 </span>        )
+<span class="lineno"> 108 </span>        Names.isAudio(mime) -> Target(
+<span class="caretline"><span class="lineno"> 109 </span>            MediaStore.Audio.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 110 </span>            <span class="string">"${</span>Environment.DIRECTORY_MUSIC<span class="string">}/$folder"</span>,
+<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 112 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:163</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 160 </span>
-<span class="lineno"> 161 </span>  private <span class="keyword">fun</span> collectionFor(mime: String): Uri = <span class="keyword">when</span> {
-<span class="lineno"> 162 </span>      mime.startsWith(<span class="string">"image/"</span>) -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="caretline"><span class="lineno"> 163 </span>      mime.startsWith(<span class="string">"video/"</span>) -> MediaStore.Video.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>)</span>
-<span class="lineno"> 164 </span>      <span class="keyword">else</span> -> MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="lineno"> 165 </span>  }
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:114</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
+<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 112 </span>        )
+<span class="lineno"> 113 </span>        <span class="keyword">else</span> -> Target(
+<span class="caretline"><span class="lineno"> 114 </span>            MediaStore.Downloads.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 115 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
+<span class="lineno"> 116 </span>            <span class="string">"Download/$folder"</span>
+<span class="lineno"> 117 </span>        )
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/storage/Media.kt">../../src/main/java/com/loopjet/app/platform/storage/Media.kt</a>:164</span>: <span class="message">Field requires API level 29 (current min is 26): <code>android.provider.MediaStore#VOLUME_EXTERNAL_PRIMARY</code></span><br /><pre class="errorlines">
-<span class="lineno"> 161 </span>  private <span class="keyword">fun</span> collectionFor(mime: String): Uri = <span class="keyword">when</span> {
-<span class="lineno"> 162 </span>      mime.startsWith(<span class="string">"image/"</span>) -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="lineno"> 163 </span>      mime.startsWith(<span class="string">"video/"</span>) -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-<span class="caretline"><span class="lineno"> 164 </span>      <span class="keyword">else</span> -> MediaStore.Audio.Media.getContentUri(<span class="warning">MediaStore.VOLUME_EXTERNAL_PRIMARY</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 165 </span>  }
-<span class="lineno"> 166 </span>
-<span class="lineno"> 167 </span>  <span class="javadoc">/**
-</span></pre>
-
-<button class="mdl-button mdl-js-button mdl-button--primary" id="InlinedApiDivLink" onclick="reveal('InlinedApiDiv');" />+ 16 More Occurrences...</button>
-<div id="InlinedApiDiv" style="display: none">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:33</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#NEARBY_WIFI_DEVICES</code></span><br /><pre class="errorlines">
-<span class="lineno">  30 </span>  <span class="keyword">if</span> (sdk >= <span class="number">33</span>) {
-<span class="lineno">  31 </span>      list.add(
-<span class="lineno">  32 </span>          Requirement(
-<span class="caretline"><span class="lineno">  33 </span>              <span class="warning">Manifest.permission.NEARBY_WIFI_DEVICES</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  34 </span>              <span class="string">"Nearby Wi-Fi devices"</span>,
-<span class="lineno">  35 </span>              <span class="string">"Needed to create a direct Wi-Fi link, a hotspot and to find the other phone. Location is not used."</span>
-<span class="lineno">  36 </span>          )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:40</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#POST_NOTIFICATIONS</code></span><br /><pre class="errorlines">
-<span class="lineno">  37 </span>            )
-<span class="lineno">  38 </span>            list.add(
-<span class="lineno">  39 </span>                Requirement(
-<span class="caretline"><span class="lineno">  40 </span>                    <span class="warning">Manifest.permission.POST_NOTIFICATIONS</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  41 </span>                    <span class="string">"Notifications"</span>,
-<span class="lineno">  42 </span>                    <span class="string">"Shows live speed and lets you pause or cancel from the shade."</span>
-<span class="lineno">  43 </span>                )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:47</span>: <span class="message">Field requires API level 31 (current min is 26): <code>android.Manifest.permission#BLUETOOTH_SCAN</code></span><br /><pre class="errorlines">
-<span class="lineno">  44 </span>      )
-<span class="lineno">  45 </span>  }
-<span class="lineno">  46 </span>  <span class="keyword">if</span> (sdk >= <span class="number">31</span>) {
-<span class="caretline"><span class="lineno">  47 </span>      list.add(Requirement(<span class="warning">Manifest.permission.BLUETOOTH_SCAN</span>, <span class="string">"Bluetooth scan"</span>, <span class="string">"Finds phones without any network."</span>))</span>
-<span class="lineno">  48 </span>      list.add(Requirement(Manifest.permission.BLUETOOTH_ADVERTISE, <span class="string">"Bluetooth advertise"</span>, <span class="string">"Makes this phone findable offline."</span>))
-<span class="lineno">  49 </span>  }
-<span class="lineno">  50 </span>  <span class="keyword">if</span> (sdk <span class="keyword">in</span> <span class="number">31..32</span>) {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:48</span>: <span class="message">Field requires API level 31 (current min is 26): <code>android.Manifest.permission#BLUETOOTH_ADVERTISE</code></span><br /><pre class="errorlines">
-<span class="lineno">  45 </span>  }
-<span class="lineno">  46 </span>  <span class="keyword">if</span> (sdk >= <span class="number">31</span>) {
-<span class="lineno">  47 </span>      list.add(Requirement(Manifest.permission.BLUETOOTH_SCAN, <span class="string">"Bluetooth scan"</span>, <span class="string">"Finds phones without any network."</span>))
-<span class="caretline"><span class="lineno">  48 </span>      list.add(Requirement(<span class="warning">Manifest.permission.BLUETOOTH_ADVERTISE</span>, <span class="string">"Bluetooth advertise"</span>, <span class="string">"Makes this phone findable offline."</span>))</span>
-<span class="lineno">  49 </span>  }
-<span class="lineno">  50 </span>  <span class="keyword">if</span> (sdk <span class="keyword">in</span> <span class="number">31..32</span>) {
-<span class="lineno">  51 </span>      list.add(Requirement(Manifest.permission.ACCESS_FINE_LOCATION, <span class="string">"Location"</span>, <span class="string">"Android 12 requires it for Wi-Fi Direct scanning."</span>))
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:71</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_IMAGES</code></span><br /><pre class="errorlines">
-<span class="lineno">  68 </span>      list.add(Requirement(Manifest.permission.READ_EXTERNAL_STORAGE, <span class="string">"Storage read"</span>, <span class="string">"Lets you pick files to send."</span>))
-<span class="lineno">  69 </span>  }
-<span class="lineno">  70 </span>  <span class="keyword">if</span> (sdk >= <span class="number">33</span>) {
-<span class="caretline"><span class="lineno">  71 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_IMAGES</span>, <span class="string">"Photos"</span>, <span class="string">"Browse photos and videos to send."</span>))</span>
-<span class="lineno">  72 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Browse videos to send."</span>))
-<span class="lineno">  73 </span>  }
-<span class="lineno">  74 </span>  <span class="keyword">return</span> list
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:72</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VIDEO</code></span><br /><pre class="errorlines">
-<span class="lineno">  69 </span>      }
-<span class="lineno">  70 </span>      <span class="keyword">if</span> (sdk >= <span class="number">33</span>) {
-<span class="lineno">  71 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Browse photos and videos to send."</span>))
-<span class="caretline"><span class="lineno">  72 </span>          list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_VIDEO</span>, <span class="string">"Videos"</span>, <span class="string">"Browse videos to send."</span>))</span>
-<span class="lineno">  73 </span>      }
-<span class="lineno">  74 </span>      <span class="keyword">return</span> list
-<span class="lineno">  75 </span>  }
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:89</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_IMAGES</code></span><br /><pre class="errorlines">
-<span class="lineno">  86 </span>  <span class="keyword">val</span> list = ArrayList&lt;Requirement>()
-<span class="lineno">  87 </span>  <span class="keyword">when</span> {
-<span class="lineno">  88 </span>      sdk >= <span class="number">34</span> -> {
-<span class="caretline"><span class="lineno">  89 </span>          list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_IMAGES</span>, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))</span>
-<span class="lineno">  90 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))
-<span class="lineno">  91 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_AUDIO, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))
-<span class="lineno">  92 </span>          <span class="comment">// Lets the user grant only chosen photos instead of the whole library.</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:90</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VIDEO</code></span><br /><pre class="errorlines">
-<span class="lineno">  87 </span>  <span class="keyword">when</span> {
-<span class="lineno">  88 </span>      sdk >= <span class="number">34</span> -> {
-<span class="lineno">  89 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))
-<span class="caretline"><span class="lineno">  90 </span>          list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_VIDEO</span>, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))</span>
-<span class="lineno">  91 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_AUDIO, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))
-<span class="lineno">  92 </span>          <span class="comment">// Lets the user grant only chosen photos instead of the whole library.</span>
-<span class="lineno">  93 </span>          list.add(Requirement(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, <span class="string">"Selected photos"</span>, <span class="string">"Adds only the photos you pick."</span>))
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:91</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_AUDIO</code></span><br /><pre class="errorlines">
-<span class="lineno">  88 </span>  sdk >= <span class="number">34</span> -> {
-<span class="lineno">  89 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))
-<span class="lineno">  90 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))
-<span class="caretline"><span class="lineno">  91 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_AUDIO</span>, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))</span>
-<span class="lineno">  92 </span>      <span class="comment">// Lets the user grant only chosen photos instead of the whole library.</span>
-<span class="lineno">  93 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, <span class="string">"Selected photos"</span>, <span class="string">"Adds only the photos you pick."</span>))
-<span class="lineno">  94 </span>  }
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:93</span>: <span class="message">Field requires API level 34 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VISUAL_USER_SELECTED</code></span><br /><pre class="errorlines">
-<span class="lineno">  90 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))
-<span class="lineno">  91 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_AUDIO, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))
-<span class="lineno">  92 </span>      <span class="comment">// Lets the user grant only chosen photos instead of the whole library.</span>
-<span class="caretline"><span class="lineno">  93 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED</span>, <span class="string">"Selected photos"</span>, <span class="string">"Adds only the photos you pick."</span>))</span>
-<span class="lineno">  94 </span>  }
-<span class="lineno">  95 </span>  sdk == <span class="number">33</span> -> {
-<span class="lineno">  96 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:96</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_IMAGES</code></span><br /><pre class="errorlines">
-<span class="lineno">  93 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED, <span class="string">"Selected photos"</span>, <span class="string">"Adds only the photos you pick."</span>))
-<span class="lineno">  94 </span>  }
-<span class="lineno">  95 </span>  sdk == <span class="number">33</span> -> {
-<span class="caretline"><span class="lineno">  96 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_IMAGES</span>, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))</span>
-<span class="lineno">  97 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))
-<span class="lineno">  98 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_AUDIO, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))
-<span class="lineno">  99 </span>  }
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:97</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VIDEO</code></span><br /><pre class="errorlines">
-<span class="lineno">  94 </span>  }
-<span class="lineno">  95 </span>  sdk == <span class="number">33</span> -> {
-<span class="lineno">  96 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))
-<span class="caretline"><span class="lineno">  97 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_VIDEO</span>, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))</span>
-<span class="lineno">  98 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_AUDIO, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))
-<span class="lineno">  99 </span>  }
-<span class="lineno"> 100 </span>  sdk >= <span class="number">30</span> -> list.add(Requirement(Manifest.permission.READ_EXTERNAL_STORAGE, <span class="string">"Storage read"</span>, <span class="string">"Lists files to send."</span>))
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:98</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_AUDIO</code></span><br /><pre class="errorlines">
-<span class="lineno">  95 </span>  sdk == <span class="number">33</span> -> {
-<span class="lineno">  96 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_IMAGES, <span class="string">"Photos"</span>, <span class="string">"Lists photos to send."</span>))
-<span class="lineno">  97 </span>      list.add(Requirement(Manifest.permission.READ_MEDIA_VIDEO, <span class="string">"Videos"</span>, <span class="string">"Lists videos to send."</span>))
-<span class="caretline"><span class="lineno">  98 </span>      list.add(Requirement(<span class="warning">Manifest.permission.READ_MEDIA_AUDIO</span>, <span class="string">"Music"</span>, <span class="string">"Lists music to send."</span>))</span>
-<span class="lineno">  99 </span>  }
-<span class="lineno"> 100 </span>  sdk >= <span class="number">30</span> -> list.add(Requirement(Manifest.permission.READ_EXTERNAL_STORAGE, <span class="string">"Storage read"</span>, <span class="string">"Lists files to send."</span>))
-<span class="lineno"> 101 </span>  <span class="keyword">else</span> -> {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:114</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_IMAGES</code></span><br /><pre class="errorlines">
-<span class="lineno"> 111 </span>  <span class="keyword">if</span> (hasAllFiles(context)) <span class="keyword">return</span> <span class="keyword">true</span>
-<span class="lineno"> 112 </span>  <span class="keyword">val</span> sdk = Build.VERSION.SDK_INT
-<span class="lineno"> 113 </span>  <span class="keyword">if</span> (sdk >= <span class="number">33</span>) {
-<span class="caretline"><span class="lineno"> 114 </span>      <span class="keyword">val</span> images = ContextCompat.checkSelfPermission(context, <span class="warning">Manifest.permission.READ_MEDIA_IMAGES</span>) == PackageManager.PERMISSION_GRANTED</span>
-<span class="lineno"> 115 </span>      <span class="keyword">val</span> video = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
-<span class="lineno"> 116 </span>      <span class="keyword">val</span> partial = sdk >= <span class="number">34</span> &amp;&amp; ContextCompat.checkSelfPermission(
-<span class="lineno"> 117 </span>          context, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:115</span>: <span class="message">Field requires API level 33 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VIDEO</code></span><br /><pre class="errorlines">
-<span class="lineno"> 112 </span>  <span class="keyword">val</span> sdk = Build.VERSION.SDK_INT
-<span class="lineno"> 113 </span>  <span class="keyword">if</span> (sdk >= <span class="number">33</span>) {
-<span class="lineno"> 114 </span>      <span class="keyword">val</span> images = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-<span class="caretline"><span class="lineno"> 115 </span>      <span class="keyword">val</span> video = ContextCompat.checkSelfPermission(context, <span class="warning">Manifest.permission.READ_MEDIA_VIDEO</span>) == PackageManager.PERMISSION_GRANTED</span>
-<span class="lineno"> 116 </span>      <span class="keyword">val</span> partial = sdk >= <span class="number">34</span> &amp;&amp; ContextCompat.checkSelfPermission(
-<span class="lineno"> 117 </span>          context, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
-<span class="lineno"> 118 </span>      ) == PackageManager.PERMISSION_GRANTED
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:117</span>: <span class="message">Field requires API level 34 (current min is 26): <code>android.Manifest.permission#READ_MEDIA_VISUAL_USER_SELECTED</code></span><br /><pre class="errorlines">
-<span class="lineno"> 114 </span>      <span class="keyword">val</span> images = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-<span class="lineno"> 115 </span>      <span class="keyword">val</span> video = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
-<span class="lineno"> 116 </span>      <span class="keyword">val</span> partial = sdk >= <span class="number">34</span> &amp;&amp; ContextCompat.checkSelfPermission(
-<span class="caretline"><span class="lineno"> 117 </span>          context, <span class="warning">Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 118 </span>      ) == PackageManager.PERMISSION_GRANTED
-<span class="lineno"> 119 </span>      <span class="keyword">return</span> images || video || partial
-<span class="lineno"> 120 </span>  }
-</pre>
-
-</div>
 </div>
 <div class="metadata"><div class="explanation" id="explanationInlinedApi" style="display: none;">
 This check scans through all the Android API field references in the application and flags certain constants, such as static final integers and Strings, which were introduced in later versions. These will actually be copied into the class files rather than being referenced, which means that the value is available even when running on older devices. In some cases that's fine, and in other cases it can result in a runtime crash or incorrect behavior. It depends on the context, so consider the code carefully and decide whether it's safe and can be suppressed or whether the code needs to be guarded.<br/>
@@ -602,106 +423,114 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:650</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
-<span class="lineno"> 647 </span>                WifiP2pConfig()
-<span class="lineno"> 648 </span>            }
-<span class="lineno"> 649 </span>            runCatching {
-<span class="caretline"><span class="lineno"> 650 </span>                m.<span class="error">createGroup</span>(c, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 651 </span>                    override <span class="keyword">fun</span> onSuccess() = onResult(<span class="keyword">true</span>, <span class="string">"Group created"</span>)
-<span class="lineno"> 652 </span>                    override <span class="keyword">fun</span> onFailure(reason: Int) = attempt(index + <span class="number">1</span>)
-<span class="lineno"> 653 </span>                })
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/server/DropServer.kt">../../src/main/java/com/flowlink/drop/server/DropServer.kt</a>:397</span>: <span class="message">Call requires API level 34 (current min is 26): <code>java.io.InputStream#skipNBytes</code></span><br /><pre class="errorlines">
+<span class="lineno"> 394 </span>    private <span class="keyword">fun</span> drain(input: InputStream, request: Request) {
+<span class="lineno"> 395 </span>        <span class="keyword">val</span> length = contentLength(request)
+<span class="lineno"> 396 </span>        <span class="keyword">if</span> (length <span class="keyword">in</span> <span class="number">1..</span>(<span class="number">1024</span> * <span class="number">1024</span>)) {
+<span class="caretline"><span class="lineno"> 397 </span>            runCatching { input.<span class="error">skipNBytes</span>(length) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 398 </span>        }
+<span class="lineno"> 399 </span>    }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:107</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
-<span class="lineno"> 104 </span>    <span class="annotation">@SuppressLint</span>(<span class="string">"MissingPermission"</span>)
-<span class="lineno"> 105 </span>    private <span class="keyword">fun</span> readInfo(): HotspotInfo? {
-<span class="lineno"> 106 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
-<span class="caretline"><span class="lineno"> 107 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 108 </span>        <span class="keyword">var</span> ssid: String? = <span class="keyword">null</span>
-<span class="lineno"> 109 </span>        <span class="keyword">var</span> passphrase: String? = <span class="keyword">null</span>
-<span class="lineno"> 110 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:79</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder()</code></span><br /><pre class="errorlines">
+<span class="lineno">  76 </span>        p2pManager = manager
+<span class="lineno">  77 </span>        p2pChannel = channel
+<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="caretline"><span class="lineno">  79 </span>            WifiP2pConfig.<span class="error">Builder</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  80 </span>                .setNetworkName(name)
+<span class="lineno">  81 </span>                .setPassphrase(passphrase)
+<span class="lineno">  82 </span>                .build()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:111</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 108 </span>        <span class="keyword">var</span> ssid: String? = <span class="keyword">null</span>
-<span class="lineno"> 109 </span>        <span class="keyword">var</span> passphrase: String? = <span class="keyword">null</span>
-<span class="lineno"> 110 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
-<span class="caretline"><span class="lineno"> 111 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 112 </span>            <span class="keyword">if</span> (ssid == <span class="keyword">null</span>) {
-<span class="lineno"> 113 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 114 </span>                ssid = runCatching { config.ssid }.getOrNull()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:80</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setNetworkName</code></span><br /><pre class="errorlines">
+<span class="lineno">  77 </span>        p2pChannel = channel
+<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
+<span class="caretline"><span class="lineno">  80 </span>                .<span class="error">setNetworkName</span>(name)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  81 </span>                .setPassphrase(passphrase)
+<span class="lineno">  82 </span>                .build()
+<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span></pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:81</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#setPassphrase</code></span><br /><pre class="errorlines">
+<span class="lineno">  78 </span>        <span class="keyword">val</span> config = runCatching {
+<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
+<span class="lineno">  80 </span>                .setNetworkName(name)
+<span class="caretline"><span class="lineno">  81 </span>                .<span class="error">setPassphrase</span>(passphrase)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  82 </span>                .build()
+<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
+<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span></pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:82</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pConfig.Builder#build</code></span><br /><pre class="errorlines">
+<span class="lineno">  79 </span>            WifiP2pConfig.Builder()
+<span class="lineno">  80 </span>                .setNetworkName(name)
+<span class="lineno">  81 </span>                .setPassphrase(passphrase)
+<span class="caretline"><span class="lineno">  82 </span>                .<span class="error">build</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  83 </span>        }.getOrNull() ?: <span class="keyword">return</span> <span class="keyword">false</span>
+<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:114</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 111 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull()
-<span class="lineno"> 112 </span>            <span class="keyword">if</span> (ssid == <span class="keyword">null</span>) {
-<span class="lineno"> 113 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="caretline"><span class="lineno"> 114 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 115 </span>            }
-<span class="lineno"> 116 </span>            passphrase = runCatching { config.passphrase }.getOrNull()
-<span class="lineno"> 117 </span>        }
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:116</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
-<span class="lineno"> 113 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-<span class="lineno"> 114 </span>                ssid = runCatching { config.ssid }.getOrNull()
-<span class="lineno"> 115 </span>            }
-<span class="caretline"><span class="lineno"> 116 </span>            passphrase = runCatching { config.<span class="error">passphrase</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 117 </span>        }
-<span class="lineno"> 118 </span>        <span class="keyword">if</span> (ssid == <span class="keyword">null</span>) {
-<span class="lineno"> 119 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
-</pre>
-
-<button class="mdl-button mdl-js-button mdl-button--primary" id="NewApiDivLink" onclick="reveal('NewApiDiv');" />+ 10 More Occurrences...</button>
+<button class="mdl-button mdl-js-button mdl-button--primary" id="NewApiDivLink" onclick="reveal('NewApiDiv');" />+ 11 More Occurrences...</button>
 <div id="NewApiDiv" style="display: none">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:207</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.WifiNetworkSpecifier.Builder#setSsid</code></span><br /><pre class="errorlines">
-<span class="lineno"> 204 </span>      deliver(<span class="keyword">null</span>, <span class="string">"Connectivity service unavailable"</span>)
-<span class="lineno"> 205 </span>      <span class="keyword">return</span>
-<span class="lineno"> 206 </span>  }
-<span class="caretline"><span class="lineno"> 207 </span>  <span class="keyword">val</span> specifier = WifiNetworkSpecifier.Builder().<span class="error">setSsid</span>(ssid).apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 208 </span>      <span class="keyword">if</span> (!passphrase.isNullOrBlank() &amp;&amp; passphrase.length >= <span class="number">8</span>) setWpa2Passphrase(passphrase)
-<span class="lineno"> 209 </span>  }.build()
-<span class="lineno"> 210 </span>  <span class="keyword">val</span> request = NetworkRequest.Builder()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:87</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.p2p.WifiP2pManager#createGroup</code></span><br /><pre class="errorlines">
+<span class="lineno">  84 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span>
+<span class="lineno">  85 </span>        <span class="keyword">val</span> handler = Handler(Looper.getMainLooper())
+<span class="lineno">  86 </span>        runCatching {
+<span class="caretline"><span class="lineno">  87 </span>            manager.<span class="error">createGroup</span>(channel, config, <span class="keyword">object</span> : WifiP2pManager.ActionListener {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  88 </span>                override <span class="keyword">fun</span> onSuccess() {
+<span class="lineno">  89 </span>                    <span class="keyword">if</span> (answered) <span class="keyword">return</span>
+<span class="lineno">  90 </span>                    handler.postDelayed({
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:207</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.WifiNetworkSpecifier.Builder()</code></span><br /><pre class="errorlines">
-<span class="lineno"> 204 </span>      deliver(<span class="keyword">null</span>, <span class="string">"Connectivity service unavailable"</span>)
-<span class="lineno"> 205 </span>      <span class="keyword">return</span>
-<span class="lineno"> 206 </span>  }
-<span class="caretline"><span class="lineno"> 207 </span>  <span class="keyword">val</span> specifier = WifiNetworkSpecifier.<span class="error">Builder</span>().setSsid(ssid).apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 208 </span>      <span class="keyword">if</span> (!passphrase.isNullOrBlank() &amp;&amp; passphrase.length >= <span class="number">8</span>) setWpa2Passphrase(passphrase)
-<span class="lineno"> 209 </span>  }.build()
-<span class="lineno"> 210 </span>  <span class="keyword">val</span> request = NetworkRequest.Builder()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:225</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.WifiManager.LocalOnlyHotspotReservation#getSoftApConfiguration</code></span><br /><pre class="errorlines">
+<span class="lineno"> 222 </span>            }
+<span class="lineno"> 223 </span>        }
+<span class="lineno"> 224 </span>        <span class="keyword">val</span> res = reservation ?: <span class="keyword">return</span> <span class="keyword">null</span>
+<span class="caretline"><span class="lineno"> 225 </span>        <span class="keyword">val</span> config = runCatching { res.<span class="error">softApConfiguration</span> }.getOrNull()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 226 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 227 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 228 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:208</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.WifiNetworkSpecifier.Builder#setWpa2Passphrase</code></span><br /><pre class="errorlines">
-<span class="lineno"> 205 </span>      <span class="keyword">return</span>
-<span class="lineno"> 206 </span>  }
-<span class="lineno"> 207 </span>  <span class="keyword">val</span> specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
-<span class="caretline"><span class="lineno"> 208 </span>      <span class="keyword">if</span> (!passphrase.isNullOrBlank() &amp;&amp; passphrase.length >= <span class="number">8</span>) <span class="error">setWpa2Passphrase</span>(passphrase)</span>
-<span class="lineno"> 209 </span>  }.build()
-<span class="lineno"> 210 </span>  <span class="keyword">val</span> request = NetworkRequest.Builder()
-<span class="lineno"> 211 </span>      .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:229</span>: <span class="message">Call requires API level 33 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getWifiSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 226 </span>        <span class="keyword">var</span> ssid = <span class="string">""</span>
+<span class="lineno"> 227 </span>        <span class="keyword">var</span> pass = <span class="string">""</span>
+<span class="lineno"> 228 </span>        <span class="keyword">if</span> (config != <span class="keyword">null</span>) {
+<span class="caretline"><span class="lineno"> 229 </span>            ssid = runCatching { config.<span class="error">wifiSsid</span>?.toString() }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 230 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 232 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:209</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.net.wifi.WifiNetworkSpecifier.Builder#build</code></span><br /><pre class="errorlines">
-<span class="lineno"> 206 </span>  }
-<span class="lineno"> 207 </span>  <span class="keyword">val</span> specifier = WifiNetworkSpecifier.Builder().setSsid(ssid).apply {
-<span class="lineno"> 208 </span>      <span class="keyword">if</span> (!passphrase.isNullOrBlank() &amp;&amp; passphrase.length >= <span class="number">8</span>) setWpa2Passphrase(passphrase)
-<span class="caretline"><span class="lineno"> 209 </span>  }.<span class="error">build</span>()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 210 </span>  <span class="keyword">val</span> request = NetworkRequest.Builder()
-<span class="lineno"> 211 </span>      .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-<span class="lineno"> 212 </span>      .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:232</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getSsid</code></span><br /><pre class="errorlines">
+<span class="lineno"> 229 </span>            ssid = runCatching { config.wifiSsid?.toString() }.getOrNull().orEmpty()
+<span class="lineno"> 230 </span>            <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="caretline"><span class="lineno"> 232 </span>                ssid = runCatching { config.<span class="error">ssid</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 233 </span>            }
+<span class="lineno"> 234 </span>            pass = runCatching { config.passphrase }.getOrNull().orEmpty()
+<span class="lineno"> 235 </span>        }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:213</span>: <span class="message">Implicit cast from <code>WifiNetworkSpecifier</code> to <code>NetworkSpecifier</code> requires API level 29 (current min is 26)</span><br /><pre class="errorlines">
-<span class="lineno"> 210 </span>        <span class="keyword">val</span> request = NetworkRequest.Builder()
-<span class="lineno"> 211 </span>            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-<span class="lineno"> 212 </span>            .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-<span class="caretline"><span class="lineno"> 213 </span>            .setNetworkSpecifier(<span class="error">specifier</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 214 </span>            .build()
-<span class="lineno"> 215 </span>        cancelJoin()
-<span class="lineno"> 216 </span>        <span class="keyword">var</span> answered = <span class="keyword">false</span></pre>
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt">../../src/main/java/com/flowlink/drop/platform/HotspotHost.kt</a>:234</span>: <span class="message">Call requires API level 30 (current min is 26): <code>android.net.wifi.SoftApConfiguration#getPassphrase</code></span><br /><pre class="errorlines">
+<span class="lineno"> 231 </span>                <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+<span class="lineno"> 232 </span>                ssid = runCatching { config.ssid }.getOrNull().orEmpty()
+<span class="lineno"> 233 </span>            }
+<span class="caretline"><span class="lineno"> 234 </span>            pass = runCatching { config.<span class="error">passphrase</span> }.getOrNull().orEmpty()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 235 </span>        }
+<span class="lineno"> 236 </span>        <span class="keyword">if</span> (ssid.isEmpty()) {
+<span class="lineno"> 237 </span>            <span class="annotation">@Suppress</span>(<span class="string">"DEPRECATION"</span>)
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt">../../src/main/java/com/flowlink/drop/platform/MediaSinks.kt</a>:114</span>: <span class="message">Call requires API level 29 (current min is 26): <code>android.provider.MediaStore.Downloads#getContentUri</code></span><br /><pre class="errorlines">
+<span class="lineno"> 111 </span>            <span class="string">"Music/$folder"</span>
+<span class="lineno"> 112 </span>        )
+<span class="lineno"> 113 </span>        <span class="keyword">else</span> -> Target(
+<span class="caretline"><span class="lineno"> 114 </span>            MediaStore.Downloads.<span class="error">getContentUri</span>(MediaStore.VOLUME_EXTERNAL_PRIMARY),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 115 </span>            <span class="string">"${</span>Environment.DIRECTORY_DOWNLOADS<span class="string">}/$folder"</span>,
+<span class="lineno"> 116 </span>            <span class="string">"Download/$folder"</span>
+<span class="lineno"> 117 </span>        )
+</pre>
 
 <span class="location"><a href="../../src/main/res/values/themes.xml">../../src/main/res/values/themes.xml</a>:6</span>: <span class="message"><code>android:windowLayoutInDisplayCutoutMode</code> requires API level 27 (current min is 26)</span><br /><pre class="errorlines">
 <span class="lineno">  3 </span>        <span class="tag">&lt;item</span><span class="attribute"> name</span>=<span class="value">"android:windowBackground"</span>>@color/splash_background<span class="tag">&lt;/item></span>
@@ -784,46 +613,39 @@ To suppress this error, use the issue id "NewApi" as explained in the <a href="#
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="NewApiCardLink" onclick="hideid('NewApiCard');">
 Dismiss</button>            </div>
             </div>
-          </section><a name="BatteryLife"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="BatteryLifeCard" style="display: block;">
+          </section><a name="CoarseFineLocation"></a>
+<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="CoarseFineLocationCard" style="display: block;">
             <div class="mdl-card mdl-cell mdl-cell--12-col">
   <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Battery Life Issues</h2>
+    <h2 class="mdl-card__title-text">Cannot use ACCESS_FINE_LOCATION without ACCESS_COARSE_LOCATION</h2>
   </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:172</span>: <span class="message">Use of <code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code> violates the Play Store Content Policy regarding acceptable use cases, as described in <a href="https://developer.android.com/training/monitoring-device-state/doze-standby.html">https://developer.android.com/training/monitoring-device-state/doze-standby.html</a></span><br /><pre class="errorlines">
-<span class="lineno"> 169 </span>    }
-<span class="lineno"> 170 </span>
-<span class="lineno"> 171 </span>    <span class="keyword">fun</span> batteryIntent(context: Context): Intent = Intent(
-<span class="caretline"><span class="lineno"> 172 </span>        Settings.<span class="warning">ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 173 </span>        Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)
-<span class="lineno"> 174 </span>    )
+<span class="location"><a href="../../src/main/AndroidManifest.xml">../../src/main/AndroidManifest.xml</a>:22</span>: <span class="message">If you need access to FINE location, you must request both <code>ACCESS_FINE_LOCATION</code> and <code>ACCESS_COARSE_LOCATION</code></span><br /><pre class="errorlines">
+<span class="lineno"> 19 </span>        <span class="prefix">tools:</span><span class="attribute">targetApi</span>=<span class="value">"33"</span> />
+<span class="lineno"> 20 </span>
+<span class="lineno"> 21 </span>    <span class="comment">&lt;!-- Android 8–12 still require location for the hotspot / Wi-Fi Direct APIs. --></span>
+<span class="caretline"><span class="lineno"> 22 </span>    <span class="tag">&lt;</span><span class="error"><span class="tag">uses-permission</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="attribute">
+</span><span class="lineno"> 23 </span><span class="attribute">        </span><span class="prefix">android:</span><span class="attribute">name</span>=<span class="value">"android.permission.ACCESS_FINE_LOCATION"</span>
+<span class="lineno"> 24 </span>        <span class="prefix">android:</span><span class="attribute">maxSdkVersion</span>=<span class="value">"32"</span> />
 </pre>
 
 </div>
-<div class="metadata"><div class="explanation" id="explanationBatteryLife" style="display: none;">
-This issue flags code that either<br/>
-* negatively affects battery life, or<br/>
-* uses APIs that have recently changed behavior to prevent background tasks from consuming memory and battery excessively.<br/>
-<br/>
-Generally, you should be using <code>WorkManager</code> instead.<br/>
-<br/>
-For more details on how to update your code, please see <a href="https://developer.android.com/topic/performance/background-optimization">https://developer.android.com/topic/performance/background-optimization</a><br/><div class="moreinfo">More info: <a href="https://developer.android.com/topic/performance/background-optimization">https://developer.android.com/topic/performance/background-optimization</a>
-</div>To suppress this error, use the issue id "BatteryLife" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<div class="metadata"><div class="explanation" id="explanationCoarseFineLocation" style="display: none;">
+If your app requires access to FINE location, on Android 12 and higher you must now request both FINE and COARSE. Users will have the option to grant only COARSE location. Ensure your app can work with just COARSE location.<br/>To suppress this error, use the issue id "CoarseFineLocation" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
 <div class="chips">
 <span class="mdl-chip">
-    <span class="mdl-chip__text">BatteryLife</span>
+    <span class="mdl-chip__text">CoarseFineLocation</span>
 </span>
 <span class="mdl-chip">
     <span class="mdl-chip__text">Correctness</span>
 </span>
 <span class="mdl-chip">
-    <span class="mdl-chip__text">Warning</span>
+    <span class="mdl-chip__text">Error</span>
 </span>
 <span class="mdl-chip">
     <span class="mdl-chip__text">Priority 5/10</span>
@@ -831,8 +653,8 @@ For more details on how to update your code, please see <a href="https://develop
 </div>
               </div>
               <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationBatteryLifeLink" onclick="reveal('explanationBatteryLife');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="BatteryLifeCardLink" onclick="hideid('BatteryLifeCard');">
+<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationCoarseFineLocationLink" onclick="reveal('explanationCoarseFineLocation');">
+Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="CoarseFineLocationCardLink" onclick="hideid('CoarseFineLocationCard');">
 Dismiss</button>            </div>
             </div>
           </section><a name="AndroidGradlePluginVersion"></a>
@@ -1073,223 +895,6 @@ To suppress this error, use the issue id "NewerVersionAvailable" as explained in
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="NewerVersionAvailableCardLink" onclick="hideid('NewerVersionAvailableCard');">
 Dismiss</button>            </div>
             </div>
-          </section><a name="UnsafeOptInUsageError"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="UnsafeOptInUsageErrorCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Unsafe opt-in usage intended to be error-level severity</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/QrScanner.kt">../../src/main/java/com/loopjet/app/ui/QrScanner.kt</a>:338</span>: <span class="message">This declaration is opt-in and its usage should be marked with <code>@androidx.camera.core.ExperimentalGetImage</code> or <code>@OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)</code></span><br /><pre class="errorlines">
-<span class="lineno"> 335 </span><span class="javadoc"> */</span>
-<span class="lineno"> 336 </span>private <span class="keyword">fun</span> decodeFrame(proxy: ImageProxy, reader: MultiFormatReader, onText: (String) -> Unit) {
-<span class="lineno"> 337 </span>    <span class="keyword">try</span> {
-<span class="caretline"><span class="lineno"> 338 </span>        <span class="keyword">val</span> image = proxy.<span class="error">image</span> ?: <span class="keyword">return</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 339 </span>        <span class="keyword">if</span> (image.planes.isEmpty()) <span class="keyword">return</span>
-<span class="lineno"> 340 </span>        <span class="keyword">val</span> plane = image.planes[<span class="number">0</span>]
-<span class="lineno"> 341 </span>        <span class="keyword">val</span> buffer = plane.buffer.duplicate()
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationUnsafeOptInUsageError" style="display: none;">
-This API has been flagged as opt-in with error-level severity.<br/>
-<br/>
-Any declaration annotated with this marker is considered part of an unstable or<br/>
-otherwise non-standard API surface and its call sites should accept the opt-in<br/>
-aspect of it by using the <code>@OptIn</code> annotation, using the marker annotation --<br/>
-effectively causing further propagation of the opt-in aspect -- or configuring<br/>
-the <code>UnsafeOptInUsageError</code> check's options for project-wide opt-in.<br/>
-<br/>
-To configure project-wide opt-in, specify the <code>opt-in</code> option value in <code>lint.xml</code><br/>
-as a comma-delimited list of opted-in annotations:<br/>
-
-<pre>
-&lt;lint>
-    &lt;issue id="UnsafeOptInUsageError">
-        &lt;option name="opt-in" value="com.foo.ExperimentalBarAnnotation" />
-    &lt;/issue>
-&lt;/lint>
-</pre>
-<br/>To suppress this error, use the issue id "UnsafeOptInUsageError" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="vendor">
-Vendor: Android Open Source Project<br/>
-Identifier: androidx.annotation.experimental<br/>
-Feedback: <a href="https://issuetracker.google.com/issues/new?component=459778">https://issuetracker.google.com/issues/new?component=459778</a><br/>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">UnsafeOptInUsageError</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Correctness</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Error</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 4/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationUnsafeOptInUsageErrorLink" onclick="reveal('explanationUnsafeOptInUsageError');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="UnsafeOptInUsageErrorCardLink" onclick="hideid('UnsafeOptInUsageErrorCard');">
-Dismiss</button>            </div>
-            </div>
-          </section><a name="ContextCastToActivity"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="ContextCastToActivityCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">LocalContext should not be cast to Activity, use LocalActivity instead</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/MainActivity.kt">../../src/main/java/com/loopjet/app/MainActivity.kt</a>:459</span>: <span class="message">LocalContext should not be cast to Activity, use LocalActivity instead</span><br /><pre class="errorlines">
-<span class="lineno"> 456 </span>  <span class="keyword">val</span> missing = remember(refresh, context) { Perms.missing(context, requirements) }
-<span class="lineno"> 457 </span>  <span class="comment">// "Blocked for good" is only distinguishable from "not asked yet" once we have asked: Android</span>
-<span class="lineno"> 458 </span>  <span class="comment">// reports false for both. So the app remembers what it has asked for on this install.</span>
-<span class="caretline"><span class="lineno"> 459 </span>  <span class="keyword">val</span> activity = <span class="error">LocalContext.current <span class="keyword">as</span>? android.app.Activity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 460 </span>  <span class="keyword">val</span> asked = FlowLinkApp.instance.prefs.askedPermissions
-<span class="lineno"> 461 </span>  <span class="keyword">val</span> permanentlyBlocked = <span class="keyword">if</span> (activity == <span class="keyword">null</span>) emptyList() <span class="keyword">else</span> missing.filter { requirement ->
-<span class="lineno"> 462 </span>      requirement.permission <span class="keyword">in</span> asked &amp;&amp; !activity.shouldShowRequestPermissionRationale(requirement.permission)
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationContextCastToActivity" style="display: none;">
-Casting Context to Activity is an error as Contexts are not always Activities. Use LocalActivity instead<br/>To suppress this error, use the issue id "ContextCastToActivity" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="vendor">
-Vendor: Jetpack Activity Compose<br/>
-Identifier: androidx.activity.compose<br/>
-Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">https://issuetracker.google.com/issues/new?component=612128</a><br/>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">ContextCastToActivity</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Correctness</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Error</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 3/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationContextCastToActivityLink" onclick="reveal('explanationContextCastToActivity');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="ContextCastToActivityCardLink" onclick="hideid('ContextCastToActivityCard');">
-Dismiss</button>            </div>
-            </div>
-          </section><a name="ModifierParameter"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="ModifierParameterCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Guidelines for Modifier parameters in a Composable function</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Theme.kt">../../src/main/java/com/loopjet/app/ui/Theme.kt</a>:408</span>: <span class="message">Modifier parameter should be the first optional parameter</span><br /><pre class="errorlines">
-<span class="lineno"> 405 </span><span class="javadoc"> * Identical geometry to `design/loopjet-mark.svg`, so the launcher icon, splash and UI never drift.
-</span><span class="lineno"> 406 </span><span class="javadoc"> */</span>
-<span class="lineno"> 407 </span><span class="annotation">@Composable</span>
-<span class="caretline"><span class="lineno"> 408 </span><span class="keyword">fun</span> FlowLinkMark(size: Int = <span class="number">72</span>, <span class="warning">modifier</span>: Modifier = Modifier, roundedBackground: Boolean = <span class="keyword">true</span>) {</span>
-<span class="lineno"> 409 </span>    Canvas(modifier = modifier.size(size.dp)) {
-<span class="lineno"> 410 </span>        <span class="keyword">val</span> s = <span class="keyword">this</span>.size.minDimension
-<span class="lineno"> 411 </span>        <span class="keyword">if</span> (roundedBackground) {
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationModifierParameter" style="display: none;">
-The first (or only) Modifier parameter in a Composable function should follow the following rules:<br/>
-- Be named <code>modifier</code><br/>
-- Have a type of <code>Modifier</code><br/>
-- Either have no default value, or have a default value of <code>Modifier</code><br/>
-- If optional, be the first optional parameter in the parameter list<br/>To suppress this error, use the issue id "ModifierParameter" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="vendor">
-Vendor: Jetpack Compose<br/>
-Identifier: androidx.compose.ui<br/>
-Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">https://issuetracker.google.com/issues/new?component=612128</a><br/>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">ModifierParameter</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Correctness</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Warning</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 3/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationModifierParameterLink" onclick="reveal('explanationModifierParameter');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="ModifierParameterCardLink" onclick="hideid('ModifierParameterCard');">
-Dismiss</button>            </div>
-            </div>
-          </section><a name="DiscouragedApi"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="DiscouragedApiCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Using discouraged APIs</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:114</span>: <span class="message">Use of <code>scheduleAtFixedRate</code> is strongly discouraged because it can lead to unexpected behavior when Android processes become cached (tasks may unexpectedly execute hundreds or thousands of times in quick succession when a process changes from cached to uncached); prefer using <code>scheduleWithFixedDelay</code></span><br /><pre class="errorlines">
-<span class="lineno"> 111 </span>  multicast = mc
-<span class="lineno"> 112 </span>  <span class="comment">// 900 ms, not 1.5 s: a sender that opens the peer list was staring at "searching" for up</span>
-<span class="lineno"> 113 </span>  <span class="comment">// to two announce periods before the other phone even appeared.</span>
-<span class="caretline"><span class="lineno"> 114 </span>  <span class="warning">pool.scheduleAtFixedRate({</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 115 </span>      <span class="keyword">if</span> (!running.get()) <span class="keyword">return</span><span class="annotation">@scheduleAtFixedRate</span>
-<span class="lineno"> 116 </span>      mc.announce(info.toJson(beaconPort))
-<span class="lineno"> 117 </span>  }, <span class="number">0</span>, <span class="number">900</span>, java.util.concurrent.TimeUnit.MILLISECONDS)
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationDiscouragedApi" style="display: none;">
-Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior).<br/>To suppress this error, use the issue id "DiscouragedApi" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">DiscouragedApi</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Correctness</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Warning</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 2/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationDiscouragedApiLink" onclick="reveal('explanationDiscouragedApi');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="DiscouragedApiCardLink" onclick="hideid('DiscouragedApiCard');">
-Dismiss</button>            </div>
-            </div>
           </section>
 <a name="Security"></a>
 <a name="DataExtractionRules"></a>
@@ -1301,14 +906,14 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/AndroidManifest.xml">../../src/main/AndroidManifest.xml</a>:88</span>: <span class="message">The attribute <code>android:allowBackup</code> is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute <code>android:dataExtractionRules</code> specifying an <code>@xml</code> resource which configures cloud backups and device transfers on Android 12 and higher.</span><br /><pre class="errorlines">
-<span class="lineno">  85 </span>
-<span class="lineno">  86 </span>    <span class="tag">&lt;application</span><span class="attribute">
-</span><span class="lineno">  87 </span><span class="attribute">        </span><span class="prefix">android:</span><span class="attribute">name</span>=<span class="value">".platform.FlowLinkApp"</span>
-<span class="caretline"><span class="lineno">  88 </span>        <span class="prefix">android:</span><span class="attribute">allowBackup</span>=<span class="value">"</span><span class="warning"><span class="value">false</span></span><span class="value">"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  89 </span>        <span class="prefix">android:</span><span class="attribute">icon</span>=<span class="value">"@mipmap/ic_launcher"</span>
-<span class="lineno">  90 </span>        <span class="prefix">android:</span><span class="attribute">label</span>=<span class="value">"@string/app_name"</span>
-<span class="lineno">  91 </span>        <span class="prefix">android:</span><span class="attribute">largeHeap</span>=<span class="value">"true"</span></pre>
+<span class="location"><a href="../../src/main/AndroidManifest.xml">../../src/main/AndroidManifest.xml</a>:41</span>: <span class="message">The attribute <code>android:allowBackup</code> is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute <code>android:dataExtractionRules</code> specifying an <code>@xml</code> resource which configures cloud backups and device transfers on Android 12 and higher.</span><br /><pre class="errorlines">
+<span class="lineno"> 38 </span>
+<span class="lineno"> 39 </span>    <span class="tag">&lt;application</span><span class="attribute">
+</span><span class="lineno"> 40 </span><span class="attribute">        </span><span class="prefix">android:</span><span class="attribute">name</span>=<span class="value">".DropApp"</span>
+<span class="caretline"><span class="lineno"> 41 </span>        <span class="prefix">android:</span><span class="attribute">allowBackup</span>=<span class="value">"</span><span class="warning"><span class="value">false</span></span><span class="value">"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 42 </span>        <span class="prefix">android:</span><span class="attribute">icon</span>=<span class="value">"@mipmap/ic_launcher"</span>
+<span class="lineno"> 43 </span>        <span class="prefix">android:</span><span class="attribute">label</span>=<span class="value">"@string/app_name"</span>
+<span class="lineno"> 44 </span>        <span class="prefix">android:</span><span class="attribute">roundIcon</span>=<span class="value">"@mipmap/ic_launcher_round"</span></pre>
 
 </div>
 <div class="metadata"><div class="explanation" id="explanationDataExtractionRules" style="display: none;">
@@ -1352,56 +957,6 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/apps/Apps.kt">../../src/main/java/com/loopjet/app/platform/apps/Apps.kt</a>:66</span>: <span class="message">Unnecessary; <code>SDK_INT</code> is always >= 26</span><br /><pre class="errorlines">
-<span class="lineno">  63 </span>          versionCode = packageVersionCode(pm, packageName),
-<span class="lineno">  64 </span>          size = totalSize,
-<span class="lineno">  65 </span>          apkPaths = paths,
-<span class="caretline"><span class="lineno">  66 </span>          minSdk = <span class="keyword">if</span> (<span class="warning">Build.VERSION.SDK_INT >= <span class="number">24</span></span>) info.minSdkVersion <span class="keyword">else</span> <span class="number">0</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  67 </span>          targetSdk = info.targetSdkVersion,
-<span class="lineno">  68 </span>          nativeAbis = nativeAbisOf(info),
-<span class="lineno">  69 </span>          system = system,
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:587</span>: <span class="message">Unnecessary; <code>SDK_INT</code> is always >= 29</span><br /><pre class="errorlines">
-<span class="lineno"> 584 </span>  GroupState(
-<span class="lineno"> 585 </span>      isGroupOwner = group.isGroupOwner,
-<span class="lineno"> 586 </span>      ownerAddress = group.owner?.deviceAddress,
-<span class="caretline"><span class="lineno"> 587 </span>      frequency = <span class="keyword">if</span> (<span class="warning">Build.VERSION.SDK_INT >= <span class="number">29</span></span>) group.frequency <span class="keyword">else</span> <span class="number">0</span>,</span>
-<span class="lineno"> 588 </span>      ssid = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.networkName }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>,
-<span class="lineno"> 589 </span>      passphrase = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.passphrase }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>
-<span class="lineno"> 590 </span>  )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:605</span>: <span class="message">Unnecessary; <code>Build.VERSION.SDK_INT >= 29</code> is never true here</span><br /><pre class="errorlines">
-<span class="lineno"> 602 </span>      isGroupOwner = group.isGroupOwner,
-<span class="lineno"> 603 </span>      ownerAddress = group.owner?.deviceAddress,
-<span class="lineno"> 604 </span>      <span class="comment">// getFrequency() is API 29+, the name/passphrase getters API 30+.</span>
-<span class="caretline"><span class="lineno"> 605 </span>      frequency = <span class="keyword">if</span> (<span class="warning">Build.VERSION.SDK_INT >= <span class="number">29</span></span>) group.frequency <span class="keyword">else</span> <span class="number">0</span>,</span>
-<span class="lineno"> 606 </span>      ssid = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.networkName }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>,
-<span class="lineno"> 607 </span>      passphrase = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.passphrase }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>
-<span class="lineno"> 608 </span>  )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:606</span>: <span class="message">Unnecessary; <code>Build.VERSION.SDK_INT >= 30</code> is never true here</span><br /><pre class="errorlines">
-<span class="lineno"> 603 </span>          ownerAddress = group.owner?.deviceAddress,
-<span class="lineno"> 604 </span>          <span class="comment">// getFrequency() is API 29+, the name/passphrase getters API 30+.</span>
-<span class="lineno"> 605 </span>          frequency = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">29</span>) group.frequency <span class="keyword">else</span> <span class="number">0</span>,
-<span class="caretline"><span class="lineno"> 606 </span>          ssid = <span class="keyword">if</span> (<span class="warning">Build.VERSION.SDK_INT >= <span class="number">30</span></span>) runCatching { group.networkName }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>,</span>
-<span class="lineno"> 607 </span>          passphrase = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.passphrase }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>
-<span class="lineno"> 608 </span>      )
-<span class="lineno"> 609 </span>  )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Discovery.kt">../../src/main/java/com/loopjet/app/platform/net/Discovery.kt</a>:607</span>: <span class="message">Unnecessary; <code>Build.VERSION.SDK_INT >= 30</code> is never true here</span><br /><pre class="errorlines">
-<span class="lineno"> 604 </span>              <span class="comment">// getFrequency() is API 29+, the name/passphrase getters API 30+.</span>
-<span class="lineno"> 605 </span>              frequency = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">29</span>) group.frequency <span class="keyword">else</span> <span class="number">0</span>,
-<span class="lineno"> 606 </span>              ssid = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) runCatching { group.networkName }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span>,
-<span class="caretline"><span class="lineno"> 607 </span>              passphrase = <span class="keyword">if</span> (<span class="warning">Build.VERSION.SDK_INT >= <span class="number">30</span></span>) runCatching { group.passphrase }.getOrNull() <span class="keyword">else</span> <span class="keyword">null</span></span>
-<span class="lineno"> 608 </span>          )
-<span class="lineno"> 609 </span>      )
-<span class="lineno"> 610 </span>  }
-</pre>
-
 <span class="location"><a href="../../src/main/res/mipmap-anydpi-v26">../../src/main/res/mipmap-anydpi-v26</a></span>: <span class="message">This folder configuration (<code>v26</code>) is unnecessary; <code>minSdkVersion</code> is 26. Merge all the resources in this folder into <code>mipmap-anydpi</code>.</span><br />
 </div>
 <div class="metadata"><div class="explanation" id="explanationObsoleteSdkInt" style="display: none;">
@@ -1432,55 +987,74 @@ To suppress this error, use the issue id "ObsoleteSdkInt" as explained in the <a
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="ObsoleteSdkIntCardLink" onclick="hideid('ObsoleteSdkIntCard');">
 Dismiss</button>            </div>
             </div>
-          </section><a name="StaticFieldLeak"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="StaticFieldLeakCard" style="display: block;">
+          </section><a name="AutoboxingStateCreation"></a>
+<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="AutoboxingStateCreationCard" style="display: block;">
             <div class="mdl-card mdl-cell mdl-cell--12-col">
   <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Static Field Leaks</h2>
+    <h2 class="mdl-card__title-text">State&amp;lt;T> will autobox values assigned to this state. Use a specialized state type instead.</h2>
   </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt">../../src/main/java/com/loopjet/app/platform/net/Hotspot.kt</a>:37</span>: <span class="message">Do not place Android context classes in static fields (static reference to <code>HotspotController</code> which has field <code>context</code> pointing to <code>Context</code>); this is a memory leak</span><br /><pre class="errorlines">
-<span class="lineno">  34 </span>  <span class="javadoc">/** requestNetwork's own timeout; the system sheet stays up for this long at most. */</span>
-<span class="lineno">  35 </span>  const <span class="keyword">val</span> JOIN_TIMEOUT_MS = <span class="number">60_000L</span>
-<span class="lineno">  36 </span>
-<span class="caretline"><span class="lineno">  37 </span>  <span class="warning"><span class="javadoc">/**</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="javadoc">
-</span><span class="lineno">  38 </span><span class="javadoc">   * One instance for the process. A joined network is released through the *same* object that
-</span><span class="lineno">  39 </span><span class="javadoc">   * requested it — creating a fresh controller to "release" leaves the callback registered and
-</span><span class="lineno">  40 </span><span class="javadoc">   * the network up (or tears down the wrong one), so join and release share this instance.
-</span></pre>
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/ui/HostScreen.kt">../../src/main/java/com/flowlink/drop/ui/HostScreen.kt</a>:83</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  80 </span>    onRestart: () -> Unit
+<span class="lineno">  81 </span>) {
+<span class="lineno">  82 </span>    <span class="keyword">val</span> clipboard = LocalClipboardManager.current
+<span class="caretline"><span class="lineno">  83 </span>    <span class="keyword">var</span> step by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">1</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  84 </span>
+<span class="lineno">  85 </span>    <span class="comment">// A hotspot restart invalidates the credentials: go back to step 1 rather than show a dead QR.</span>
+<span class="lineno">  86 </span>    LaunchedEffect(state.phase) {
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:99</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  96 </span>    onRestart: () -> Unit
+<span class="lineno">  97 </span>) {
+<span class="lineno">  98 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="caretline"><span class="lineno">  99 </span>    <span class="keyword">var</span> tab by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 100 </span>    <span class="keyword">var</span> refresh by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="lineno"> 101 </span>
+<span class="lineno"> 102 </span>    Scaffold(
+</pre>
+
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/MainActivity.kt">../../src/main/java/com/flowlink/drop/MainActivity.kt</a>:100</span>: <span class="message">Prefer <code>mutableIntStateOf</code> instead of <code>mutableStateOf</code></span><br /><pre class="errorlines">
+<span class="lineno">  97 </span>) {
+<span class="lineno">  98 </span>    <span class="keyword">val</span> state by DropHub.state.collectAsState()
+<span class="lineno">  99 </span>    <span class="keyword">var</span> tab by rememberSaveable { mutableStateOf(<span class="number">0</span>) }
+<span class="caretline"><span class="lineno"> 100 </span>    <span class="keyword">var</span> refresh by rememberSaveable { <span class="warning">mutableStateOf</span>(<span class="number">0</span>) }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 101 </span>
+<span class="lineno"> 102 </span>    Scaffold(
+<span class="lineno"> 103 </span>        containerColor = MaterialTheme.colorScheme.background,
+</pre>
 
 </div>
-<div class="metadata"><div class="explanation" id="explanationStaticFieldLeak" style="display: none;">
-A static field will leak contexts.<br/>
-<br/>
-Non-static inner classes have an implicit reference to their outer class. If that outer class is for example a <code>Fragment</code> or <code>Activity</code>, then this reference means that the long-running handler/loader/task will hold a reference to the activity which prevents it from getting garbage collected.<br/>
-<br/>
-Similarly, direct field references to activities and fragments from these longer running instances can cause leaks.<br/>
-<br/>
-ViewModel classes should never point to Views or non-application Contexts.<br/>To suppress this error, use the issue id "StaticFieldLeak" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<div class="metadata"><div class="explanation" id="explanationAutoboxingStateCreation" style="display: none;">
+Calling <code>mutableStateOf&lt;T>()</code> when <code>T</code> is either backed by a primitive type on the JVM or is a value class results in a state implementation that requires all state values to be boxed. This usually causes an additional allocation for each state write, and adds some additional work to auto-unbox values when reading the value of the state. Instead, prefer to use a specialized primitive state implementation for <code>Int</code>, <code>Long</code>, <code>Float</code>, and <code>Double</code> when the state does not need to track null values and does not override the default <code>SnapshotMutationPolicy</code>. See <code>mutableIntStateOf()</code>, <code>mutableLongStateOf()</code>, <code>mutableFloatStateOf()</code>, and <code>mutableDoubleStateOf()</code> for more information.<br/>To suppress this error, use the issue id "AutoboxingStateCreation" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
+<div class="vendor">
+Vendor: Jetpack Compose<br/>
+Identifier: androidx.compose.runtime<br/>
+Feedback: <a href="https://issuetracker.google.com/issues/new?component=612128">https://issuetracker.google.com/issues/new?component=612128</a><br/>
+</div>
 <div class="chips">
 <span class="mdl-chip">
-    <span class="mdl-chip__text">StaticFieldLeak</span>
+    <span class="mdl-chip__text">AutoboxingStateCreation</span>
 </span>
 <span class="mdl-chip">
     <span class="mdl-chip__text">Performance</span>
 </span>
 <span class="mdl-chip">
-    <span class="mdl-chip__text">Warning</span>
+    <span class="mdl-chip__text">Hint</span>
 </span>
 <span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 6/10</span>
+    <span class="mdl-chip__text">Priority 3/10</span>
 </span>
 </div>
               </div>
               <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationStaticFieldLeakLink" onclick="reveal('explanationStaticFieldLeak');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="StaticFieldLeakCardLink" onclick="hideid('StaticFieldLeakCard');">
+<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationAutoboxingStateCreationLink" onclick="reveal('explanationAutoboxingStateCreation');">
+Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="AutoboxingStateCreationCardLink" onclick="hideid('AutoboxingStateCreationCard');">
 Dismiss</button>            </div>
             </div>
           </section><a name="UnusedResources"></a>
@@ -1492,10 +1066,17 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
+<span class="location"><a href="../../src/main/res/drawable/ic_notification.xml">../../src/main/res/drawable/ic_notification.xml</a>:1</span>: <span class="message">The resource <code>R.drawable.ic_notification</code> appears to be unused</span><br /><pre class="errorlines">
+<span class="caretline"><span class="lineno"> 1 </span><span class="warning"><span class="tag">&lt;vector</span><span class="attribute"> </span><span class="prefix">xmlns:</span><span class="attribute">android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 2 </span>    <span class="prefix">android:</span><span class="attribute">width</span>=<span class="value">"24dp"</span> <span class="prefix">android:</span><span class="attribute">height</span>=<span class="value">"24dp"</span> <span class="prefix">android:</span><span class="attribute">viewportWidth</span>=<span class="value">"24"</span> <span class="prefix">android:</span><span class="attribute">viewportHeight</span>=<span class="value">"24"</span>>
+<span class="lineno"> 3 </span>    <span class="tag">&lt;path</span><span class="attribute"> </span><span class="prefix">android:</span><span class="attribute">fillColor</span>=<span class="value">"#FFFFFFFF"</span>
+<span class="lineno"> 4 </span>        <span class="prefix">android:</span><span class="attribute">pathData</span>=<span class="value">"M13.2,2.2 L5.4,13.4 a0.7,0.7 0 0,0 0.6,1.1 h4.1 l-1.4,7.1 a0.5,0.5 0 0,0 0.9,0.4 l8.2,-11.6 a0.7,0.7 0 0,0 -0.6,-1.1 h-4.3 l1.6,-6.6 a0.5,0.5 0 0,0 -0.9,-0.5 z"</span> />
+</pre>
+
 <span class="location"><a href="../../src/main/res/values/strings.xml">../../src/main/res/values/strings.xml</a>:4</span>: <span class="message">The resource <code>R.string.channel_transfer</code> appears to be unused</span><br /><pre class="errorlines">
 <span class="lineno">  1 </span><span class="tag">&lt;resources></span>
 <span class="lineno">  2 </span>    <span class="comment">&lt;!-- The product name lives in exactly one place. --></span>
-<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink<span class="tag">&lt;/string></span>
+<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink Drop<span class="tag">&lt;/string></span>
 <span class="caretline"><span class="lineno">  4 </span>    <span class="tag">&lt;string</span><span class="attribute"> </span><span class="warning"><span class="attribute">name</span>=<span class="value">"channel_transfer"</span></span>>Transfers<span class="tag">&lt;/string></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno">  5 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"channel_server"</span>>Sharing servers<span class="tag">&lt;/string></span>
 <span class="lineno">  6 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"notif_pause"</span>>Pause<span class="tag">&lt;/string></span>
@@ -1503,7 +1084,7 @@ Dismiss</button>            </div>
 
 <span class="location"><a href="../../src/main/res/values/strings.xml">../../src/main/res/values/strings.xml</a>:5</span>: <span class="message">The resource <code>R.string.channel_server</code> appears to be unused</span><br /><pre class="errorlines">
 <span class="lineno">  2 </span>    <span class="comment">&lt;!-- The product name lives in exactly one place. --></span>
-<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink<span class="tag">&lt;/string></span>
+<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink Drop<span class="tag">&lt;/string></span>
 <span class="lineno">  4 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"channel_transfer"</span>>Transfers<span class="tag">&lt;/string></span>
 <span class="caretline"><span class="lineno">  5 </span>    <span class="tag">&lt;string</span><span class="attribute"> </span><span class="warning"><span class="attribute">name</span>=<span class="value">"channel_server"</span></span>>Sharing servers<span class="tag">&lt;/string></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno">  6 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"notif_pause"</span>>Pause<span class="tag">&lt;/string></span>
@@ -1511,7 +1092,7 @@ Dismiss</button>            </div>
 <span class="lineno">  8 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"notif_cancel"</span>>Cancel<span class="tag">&lt;/string></span></pre>
 
 <span class="location"><a href="../../src/main/res/values/strings.xml">../../src/main/res/values/strings.xml</a>:6</span>: <span class="message">The resource <code>R.string.notif_pause</code> appears to be unused</span><br /><pre class="errorlines">
-<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink<span class="tag">&lt;/string></span>
+<span class="lineno">  3 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"app_name"</span>>FlowLink Drop<span class="tag">&lt;/string></span>
 <span class="lineno">  4 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"channel_transfer"</span>>Transfers<span class="tag">&lt;/string></span>
 <span class="lineno">  5 </span>    <span class="tag">&lt;string</span><span class="attribute"> name</span>=<span class="value">"channel_server"</span>>Sharing servers<span class="tag">&lt;/string></span>
 <span class="caretline"><span class="lineno">  6 </span>    <span class="tag">&lt;string</span><span class="attribute"> </span><span class="warning"><span class="attribute">name</span>=<span class="value">"notif_pause"</span></span>>Pause<span class="tag">&lt;/string></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -1596,74 +1177,6 @@ To suppress this error, use the issue id "UnusedResources" as explained in the <
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="UnusedResourcesCardLink" onclick="hideid('UnusedResourcesCard');">
 Dismiss</button>            </div>
             </div>
-          </section><a name="UsableSpace"></a>
-<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="UsableSpaceCard" style="display: block;">
-            <div class="mdl-card mdl-cell mdl-cell--12-col">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Using getUsableSpace()</h2>
-  </div>
-              <div class="mdl-card__supporting-text">
-<div class="issue">
-<div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:213</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno">  210 </span>            deviceName = prefs.deviceName,
-<span class="lineno">  211 </span>            avatar = prefs.avatar,
-<span class="lineno">  212 </span>            trustedCount = prefs.trustedDevices.size,
-<span class="caretline"><span class="lineno">  213 </span>            freeSpace = Fmt.bytes(application.filesDir.<span class="warning">usableSpace</span>),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  214 </span>            historyCount = runCatching { app.history.all().size }.getOrDefault(<span class="number">0</span>),
-<span class="lineno">  215 </span>            networkSummary = runCatching { deviceSummary() }.getOrDefault(<span class="string">""</span>)
-<span class="lineno">  216 </span>        )
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/AppViewModel.kt">../../src/main/java/com/loopjet/app/ui/AppViewModel.kt</a>:1044</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno"> 1041 </span>                networkSummary = summary,
-<span class="lineno"> 1042 </span>                historyCount = count,
-<span class="lineno"> 1043 </span>                trustedCount = prefs.trustedDevices.size,
-<span class="caretline"><span class="lineno"> 1044 </span>                freeSpace = Fmt.bytes(getApplication&lt;Application>().filesDir.<span class="warning">usableSpace</span>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 1045 </span>            )
-<span class="lineno"> 1046 </span>        }
-<span class="lineno"> 1047 </span>    }
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/core/Files.kt">../../src/main/java/com/loopjet/app/core/Files.kt</a>:475</span>: <span class="message">Consider also using <code>StorageManager#getAllocatableBytes</code> and <code>allocateBytes</code> which will consider clearable cached data</span><br /><pre class="errorlines">
-<span class="lineno"> 472 </span>    <span class="keyword">fun</span> usable(dir: File?): Long {
-<span class="lineno"> 473 </span>        <span class="keyword">var</span> probe = dir
-<span class="lineno"> 474 </span>        <span class="keyword">while</span> (probe != <span class="keyword">null</span> &amp;&amp; !probe.exists()) probe = probe.parentFile
-<span class="caretline"><span class="lineno"> 475 </span>        <span class="keyword">return</span> probe?.<span class="warning">usableSpace</span> ?: <span class="number">0L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 476 </span>    }
-<span class="lineno"> 477 </span>}
-</pre>
-
-</div>
-<div class="metadata"><div class="explanation" id="explanationUsableSpace" style="display: none;">
-When you need to allocate disk space for large files, consider using the new <code>allocateBytes(FileDescriptor, long)</code> API, which will automatically clear cached files belonging to other apps (as needed) to meet your request.<br/>
-<br/>
-When deciding if the device has enough disk space to hold your new data, call <code>getAllocatableBytes(UUID)</code> instead of using <code>getUsableSpace()</code>, since the former will consider any cached data that the system is willing to clear on your behalf.<br/>
-<br/>
-Note that these methods require API level 26. If your app is running on older devices, you will probably need to use both APIs, conditionally switching on <code>Build.VERSION.SDK_INT</code>. Lint only looks in the same compilation unit to see if you are already using both APIs, so if it warns even though you are already using the new API, consider moving the calls to the same file or suppressing the warning.<br/>To suppress this error, use the issue id "UsableSpace" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="chips">
-<span class="mdl-chip">
-    <span class="mdl-chip__text">UsableSpace</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Performance</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Warning</span>
-</span>
-<span class="mdl-chip">
-    <span class="mdl-chip__text">Priority 3/10</span>
-</span>
-</div>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationUsableSpaceLink" onclick="reveal('explanationUsableSpace');">
-Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="UsableSpaceCardLink" onclick="hideid('UsableSpaceCard');">
-Dismiss</button>            </div>
-            </div>
           </section>
 <a name="Productivity"></a>
 <a name="UseKtx"></a>
@@ -1675,303 +1188,86 @@ Dismiss</button>            </div>
               <div class="mdl-card__supporting-text">
 <div class="issue">
 <div class="warningslist">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:108</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 105 </span>      <span class="keyword">return</span> SoftwareIdentity.fromPkcs8(Bytes.fromB64(existing), Bytes.fromB64(existingPub))
-<span class="lineno"> 106 </span>  }
-<span class="lineno"> 107 </span>  <span class="keyword">val</span> identity = SoftwareIdentity.generate()
-<span class="caretline"><span class="lineno"> 108 </span>  <span class="warning">prefs.edit()</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 109 </span>      .putString(PREF_SOFT_KEY, Bytes.b64(identity.privateKeyPkcs8()))
-<span class="lineno"> 110 </span>      .putString(PREF_SOFT_PUB, Bytes.b64(identity.publicKeySpki))
-<span class="lineno"> 111 </span>      .apply()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:89</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  86 </span>
+<span class="lineno">  87 </span>    <span class="keyword">var</span> keepAwake: Boolean
+<span class="lineno">  88 </span>        get() = prefs.getBoolean(<span class="string">"keep.awake"</span>, <span class="keyword">true</span>)
+<span class="caretline"><span class="lineno">  89 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"keep.awake"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  90 </span>
+<span class="lineno">  91 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
+<span class="lineno">  92 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:160</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 157 </span>
-<span class="lineno"> 158 </span>    <span class="keyword">var</span> deviceName: String
-<span class="lineno"> 159 </span>        get() = prefs.getString(<span class="string">"device.name"</span>, <span class="keyword">null</span>) ?: defaultDeviceName()
-<span class="caretline"><span class="lineno"> 160 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"device.name"</span>, value.take(<span class="number">40</span>)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 161 </span>
-<span class="lineno"> 162 </span>    <span class="keyword">var</span> avatar: String
-<span class="lineno"> 163 </span>        get() = prefs.getString(<span class="string">"device.avatar"</span>, <span class="string">"\uD83D\uDE80"</span>) ?: <span class="string">"\uD83D\uDE80"</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:164</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 161 </span>
-<span class="lineno"> 162 </span>    <span class="keyword">var</span> avatar: String
-<span class="lineno"> 163 </span>        get() = prefs.getString(<span class="string">"device.avatar"</span>, <span class="string">"\uD83D\uDE80"</span>) ?: <span class="string">"\uD83D\uDE80"</span>
-<span class="caretline"><span class="lineno"> 164 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"device.avatar"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 165 </span>
-<span class="lineno"> 166 </span>    <span class="keyword">var</span> theme: String
-<span class="lineno"> 167 </span>        get() = prefs.getString(<span class="string">"theme"</span>, <span class="string">"system"</span>) ?: <span class="string">"system"</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:168</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 165 </span>
-<span class="lineno"> 166 </span>    <span class="keyword">var</span> theme: String
-<span class="lineno"> 167 </span>        get() = prefs.getString(<span class="string">"theme"</span>, <span class="string">"system"</span>) ?: <span class="string">"system"</span>
-<span class="caretline"><span class="lineno"> 168 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"theme"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 169 </span>
-<span class="lineno"> 170 </span>    <span class="keyword">var</span> speedMode: String
-<span class="lineno"> 171 </span>        get() = prefs.getString(<span class="string">"speed"</span>, <span class="string">"fast"</span>) ?: <span class="string">"fast"</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:172</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 169 </span>
-<span class="lineno"> 170 </span>    <span class="keyword">var</span> speedMode: String
-<span class="lineno"> 171 </span>        get() = prefs.getString(<span class="string">"speed"</span>, <span class="string">"fast"</span>) ?: <span class="string">"fast"</span>
-<span class="caretline"><span class="lineno"> 172 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"speed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 173 </span>
-<span class="lineno"> 174 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
-<span class="lineno"> 175 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:93</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  90 </span>
+<span class="lineno">  91 </span>    <span class="keyword">var</span> useFixedGroup: Boolean
+<span class="lineno">  92 </span>        get() = prefs.getBoolean(<span class="string">"hotspot.fixed"</span>, <span class="keyword">false</span>)
+<span class="caretline"><span class="lineno">  93 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"hotspot.fixed"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  94 </span>
+<span class="lineno">  95 </span>    <span class="keyword">var</span> fixedName: String
+<span class="lineno">  96 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
 </pre>
 
-<button class="mdl-button mdl-js-button mdl-button--primary" id="UseKtxDivLink" onclick="reveal('UseKtxDiv');" />+ 25 More Occurrences...</button>
-<div id="UseKtxDiv" style="display: none">
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:176</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 173 </span>
-<span class="lineno"> 174 </span>    <span class="keyword">var</span> autoAcceptTrusted: Boolean
-<span class="lineno"> 175 </span>        get() = prefs.getBoolean(<span class="string">"autoAccept"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 176 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"autoAccept"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 177 </span>
-<span class="lineno"> 178 </span>    <span class="keyword">var</span> saveFolderName: String
-<span class="lineno"> 179 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:180</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 177 </span>
-<span class="lineno"> 178 </span>    <span class="keyword">var</span> saveFolderName: String
-<span class="lineno"> 179 </span>        get() = prefs.getString(<span class="string">"save.folder"</span>, <span class="string">"FlowLink"</span>) ?: <span class="string">"FlowLink"</span>
-<span class="caretline"><span class="lineno"> 180 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.folder"</span>, sanitizeFolder(value)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>    <span class="keyword">var</span> saveTreeUri: String?
-<span class="lineno"> 183 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:97</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  94 </span>
+<span class="lineno">  95 </span>    <span class="keyword">var</span> fixedName: String
+<span class="lineno">  96 </span>        get() = prefs.getString(<span class="string">"hotspot.name"</span>, <span class="string">""</span>).orEmpty()
+<span class="caretline"><span class="lineno">  97 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  98 </span>
+<span class="lineno">  99 </span>    <span class="keyword">var</span> fixedPass: String
+<span class="lineno"> 100 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:184</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>    <span class="keyword">var</span> saveTreeUri: String?
-<span class="lineno"> 183 </span>        get() = prefs.getString(<span class="string">"save.tree"</span>, <span class="keyword">null</span>)
-<span class="caretline"><span class="lineno"> 184 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"save.tree"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 185 </span>
-<span class="lineno"> 186 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
-<span class="lineno"> 187 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:101</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno">  98 </span>
+<span class="lineno">  99 </span>    <span class="keyword">var</span> fixedPass: String
+<span class="lineno"> 100 </span>        get() = prefs.getString(<span class="string">"hotspot.pass"</span>, <span class="string">""</span>).orEmpty()
+<span class="caretline"><span class="lineno"> 101 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"hotspot.pass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 102 </span>
+<span class="lineno"> 103 </span>    <span class="keyword">var</span> preferPort80: Boolean
+<span class="lineno"> 104 </span>        get() = prefs.getBoolean(<span class="string">"port.eighty"</span>, <span class="keyword">true</span>)
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:188</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 185 </span>
-<span class="lineno"> 186 </span>    <span class="keyword">var</span> verifyAfterTransfer: Boolean
-<span class="lineno"> 187 </span>        get() = prefs.getBoolean(<span class="string">"verify.after"</span>, <span class="keyword">true</span>)
-<span class="caretline"><span class="lineno"> 188 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"verify.after"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 189 </span>
-<span class="lineno"> 190 </span>    <span class="keyword">var</span> onboardingDone: Boolean
-<span class="lineno"> 191 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:105</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 102 </span>
+<span class="lineno"> 103 </span>    <span class="keyword">var</span> preferPort80: Boolean
+<span class="lineno"> 104 </span>        get() = prefs.getBoolean(<span class="string">"port.eighty"</span>, <span class="keyword">true</span>)
+<span class="caretline"><span class="lineno"> 105 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"port.eighty"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 106 </span>
+<span class="lineno"> 107 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 108 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:192</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 189 </span>
-<span class="lineno"> 190 </span>    <span class="keyword">var</span> onboardingDone: Boolean
-<span class="lineno"> 191 </span>        get() = prefs.getBoolean(<span class="string">"onboarding.done"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 192 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"onboarding.done"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 193 </span>
-<span class="lineno"> 194 </span>    <span class="keyword">var</span> webPin: String
-<span class="lineno"> 195 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span></pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:196</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 193 </span>
-<span class="lineno"> 194 </span>    <span class="keyword">var</span> webPin: String
-<span class="lineno"> 195 </span>        get() = prefs.getString(<span class="string">"web.pin"</span>, <span class="string">""</span>) ?: <span class="string">""</span>
-<span class="caretline"><span class="lineno"> 196 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"web.pin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 197 </span>
-<span class="lineno"> 198 </span>    <span class="keyword">var</span> webRequirePin: Boolean
-<span class="lineno"> 199 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:109</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 106 </span>
+<span class="lineno"> 107 </span>    <span class="keyword">var</span> phoneName: String
+<span class="lineno"> 108 </span>        get() = prefs.getString(<span class="string">"phone.name"</span>, <span class="string">""</span>).orEmpty().ifBlank { defaultName() }
+<span class="caretline"><span class="lineno"> 109 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"phone.name"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 110 </span>
+<span class="lineno"> 111 </span>    <span class="javadoc">/** Kept small on purpose: the files themselves live in the gallery or Downloads. */</span>
+<span class="lineno"> 112 </span>    <span class="keyword">fun</span> history(): List&lt;ReceivedItem> {
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:200</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 197 </span>
-<span class="lineno"> 198 </span>    <span class="keyword">var</span> webRequirePin: Boolean
-<span class="lineno"> 199 </span>        get() = prefs.getBoolean(<span class="string">"web.requirePin"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 200 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"web.requirePin"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 201 </span>
-<span class="lineno"> 202 </span>    <span class="keyword">var</span> lastBenchmark: String?
-<span class="lineno"> 203 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:133</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 130 </span>            listOf(it.name, it.bytes.toString(), it.time.toString(), it.where)
+<span class="lineno"> 131 </span>                .joinToString(<span class="string">"\u001f"</span>)
+<span class="lineno"> 132 </span>        }
+<span class="caretline"><span class="lineno"> 133 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"history"</span>, text).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 134 </span>    }
+<span class="lineno"> 135 </span>
+<span class="lineno"> 136 </span>    <span class="keyword">fun</span> clearHistory() = prefs.edit().remove(<span class="string">"history"</span>).apply()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:204</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 201 </span>
-<span class="lineno"> 202 </span>    <span class="keyword">var</span> lastBenchmark: String?
-<span class="lineno"> 203 </span>        get() = prefs.getString(<span class="string">"bench.last"</span>, <span class="keyword">null</span>)
-<span class="caretline"><span class="lineno"> 204 </span>        set(value) = <span class="warning">prefs.edit()</span>.putString(<span class="string">"bench.last"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 205 </span>
-<span class="lineno"> 206 </span>    <span class="keyword">var</span> trustedDevices: Set&lt;String>
-<span class="lineno"> 207 </span>        get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
+<span class="location"><a href="../../src/main/java/com/flowlink/drop/DropApp.kt">../../src/main/java/com/flowlink/drop/DropApp.kt</a>:136</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
+<span class="lineno"> 133 </span>        prefs.edit().putString(<span class="string">"history"</span>, text).apply()
+<span class="lineno"> 134 </span>    }
+<span class="lineno"> 135 </span>
+<span class="caretline"><span class="lineno"> 136 </span>    <span class="keyword">fun</span> clearHistory() = <span class="warning">prefs.edit()</span>.remove(<span class="string">"history"</span>).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 137 </span>
+<span class="lineno"> 138 </span>    private <span class="keyword">fun</span> defaultName(): String {
+<span class="lineno"> 139 </span>        <span class="keyword">val</span> model = runCatching { Build.MODEL }.getOrNull().orEmpty()
 </pre>
 
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:208</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 205 </span>
-<span class="lineno"> 206 </span>  <span class="keyword">var</span> trustedDevices: Set&lt;String>
-<span class="lineno"> 207 </span>      get() = prefs.getStringSet(<span class="string">"trusted"</span>, emptySet()) ?: emptySet()
-<span class="caretline"><span class="lineno"> 208 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"trusted"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 209 </span>
-<span class="lineno"> 210 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
-<span class="lineno"> 211 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:213</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 210 </span>  <span class="javadoc">/** Permissions this install has already asked for, so a refusal can be told apart from a no. */</span>
-<span class="lineno"> 211 </span>  <span class="keyword">var</span> askedPermissions: Set&lt;String>
-<span class="lineno"> 212 </span>      get() = prefs.getStringSet(<span class="string">"asked.perms"</span>, emptySet()) ?: emptySet()
-<span class="caretline"><span class="lineno"> 213 </span>      set(value) = <span class="warning">prefs.edit()</span>.putStringSet(<span class="string">"asked.perms"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 214 </span>
-<span class="lineno"> 215 </span>  <span class="keyword">var</span> bypassBatteryOpt: Boolean
-<span class="lineno"> 216 </span>      get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:217</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 214 </span>
-<span class="lineno"> 215 </span>    <span class="keyword">var</span> bypassBatteryOpt: Boolean
-<span class="lineno"> 216 </span>        get() = prefs.getBoolean(<span class="string">"battery.bypass"</span>, <span class="keyword">false</span>)
-<span class="caretline"><span class="lineno"> 217 </span>        set(value) = <span class="warning">prefs.edit()</span>.putBoolean(<span class="string">"battery.bypass"</span>, value).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 218 </span>
-<span class="lineno"> 219 </span>    <span class="keyword">fun</span> trustedNames(): Map&lt;String, String> {
-<span class="lineno"> 220 </span>        <span class="keyword">val</span> raw = prefs.getString(<span class="string">"trusted.names"</span>, <span class="keyword">null</span>) ?: <span class="keyword">return</span> emptyMap()
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:233</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 230 </span>        trustedDevices = trustedDevices + fingerprint
-<span class="lineno"> 231 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
-<span class="lineno"> 232 </span>        map[fingerprint] = name
-<span class="caretline"><span class="lineno"> 233 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 234 </span>    }
-<span class="lineno"> 235 </span>
-<span class="lineno"> 236 </span>    <span class="keyword">fun</span> untrust(fingerprint: String) {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:240</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 237 </span>        trustedDevices = trustedDevices - fingerprint
-<span class="lineno"> 238 </span>        <span class="keyword">val</span> map = trustedNames().toMutableMap()
-<span class="lineno"> 239 </span>        map.remove(fingerprint)
-<span class="caretline"><span class="lineno"> 240 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"trusted.names"</span>, Json.stringify(map)).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 241 </span>    }
-<span class="lineno"> 242 </span>
-<span class="lineno"> 243 </span>    private <span class="keyword">fun</span> defaultDeviceName(): String {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:259</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 256 </span>        <span class="keyword">val</span> existing = prefs.getString(<span class="string">"device.id"</span>, <span class="keyword">null</span>)
-<span class="lineno"> 257 </span>        <span class="keyword">if</span> (existing != <span class="keyword">null</span>) <span class="keyword">return</span> existing
-<span class="lineno"> 258 </span>        <span class="keyword">val</span> id = UUID.randomUUID().toString().replace(<span class="string">"-"</span>, <span class="string">""</span>).take(<span class="number">12</span>)
-<span class="caretline"><span class="lineno"> 259 </span>        <span class="warning">prefs.edit()</span>.putString(<span class="string">"device.id"</span>, id).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 260 </span>        <span class="keyword">return</span> id
-<span class="lineno"> 261 </span>    }
-<span class="lineno"> 262 </span>}
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/App.kt">../../src/main/java/com/loopjet/app/platform/App.kt</a>:324</span>: <span class="message">Use the KTX extension function <code>SharedPreferences.edit</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 321 </span>    }
-<span class="lineno"> 322 </span>
-<span class="lineno"> 323 </span>    private <span class="keyword">fun</span> save(list: List&lt;HistoryEntry>) {
-<span class="caretline"><span class="lineno"> 324 </span>        <span class="warning">prefsFile.edit()</span>.putString(<span class="string">"entries"</span>, Json.stringify(list.map { it.toJson() })).apply()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 325 </span>    }
-<span class="lineno"> 326 </span>}
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/apps/Apps.kt">../../src/main/java/com/loopjet/app/platform/apps/Apps.kt</a>:256</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 253 </span>  }
-<span class="lineno"> 254 </span>
-<span class="lineno"> 255 </span>  <span class="keyword">fun</span> permissionIntent(): Intent =
-<span class="caretline"><span class="lineno"> 256 </span>      Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, <span class="warning">android.net.Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>)</span>
-<span class="lineno"> 257 </span>
-<span class="lineno"> 258 </span>  <span class="javadoc">/** Compatibility verdict shown before sending, using the receiver's advertised SDK. */</span>
-<span class="lineno"> 259 </span>  <span class="keyword">fun</span> compatibilityWarning(app: InstalledApp, receiverSdk: Int, receiverAbis: List&lt;String>): String? {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:160</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 157 </span>  <span class="keyword">fun</span> allFilesIntent(context: Context): Intent = <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">30</span>) {
-<span class="lineno"> 158 </span>      Intent(
-<span class="lineno"> 159 </span>          Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-<span class="caretline"><span class="lineno"> 160 </span>          <span class="warning">Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 161 </span>      )
-<span class="lineno"> 162 </span>  } <span class="keyword">else</span> {
-<span class="lineno"> 163 </span>      Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>))
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:163</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 160 </span>          Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)
-<span class="lineno"> 161 </span>      )
-<span class="lineno"> 162 </span>  } <span class="keyword">else</span> {
-<span class="caretline"><span class="lineno"> 163 </span>      Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, <span class="warning">Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>)</span>
-<span class="lineno"> 164 </span>  }
-<span class="lineno"> 165 </span>
-<span class="lineno"> 166 </span>  <span class="keyword">fun</span> isIgnoringBatteryOptimizations(context: Context): Boolean {
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:173</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 170 </span>
-<span class="lineno"> 171 </span>    <span class="keyword">fun</span> batteryIntent(context: Context): Intent = Intent(
-<span class="lineno"> 172 </span>        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-<span class="caretline"><span class="lineno"> 173 </span>        <span class="warning">Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 174 </span>    )
-<span class="lineno"> 175 </span>
-<span class="lineno"> 176 </span>    <span class="keyword">fun</span> canInstallPackages(context: Context): Boolean =
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:180</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 177 </span>      context.packageManager.canRequestPackageInstalls()
-<span class="lineno"> 178 </span>
-<span class="lineno"> 179 </span>  <span class="keyword">fun</span> installIntent(context: Context): Intent =
-<span class="caretline"><span class="lineno"> 180 </span>      Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, <span class="warning">Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>)</span>
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>  <span class="javadoc">/** The only route back once a permission has been refused "for good". */</span>
-<span class="lineno"> 183 </span>  <span class="keyword">fun</span> appDetailsIntent(context: Context): Intent =
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/Perms.kt">../../src/main/java/com/loopjet/app/platform/Perms.kt</a>:184</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 181 </span>
-<span class="lineno"> 182 </span>  <span class="javadoc">/** The only route back once a permission has been refused "for good". */</span>
-<span class="lineno"> 183 </span>  <span class="keyword">fun</span> appDetailsIntent(context: Context): Intent =
-<span class="caretline"><span class="lineno"> 184 </span>      Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, <span class="warning">Uri.parse(<span class="string">"package:${</span>context.packageName<span class="string">}"</span>)</span>)</span>
-<span class="lineno"> 185 </span>
-<span class="lineno"> 186 </span>  <span class="keyword">fun</span> notificationsEnabled(context: Context): Boolean =
-<span class="lineno"> 187 </span>      androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:933</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  930 </span>    <span class="keyword">if</span> (drawable <span class="keyword">is</span> android.graphics.drawable.BitmapDrawable) <span class="keyword">return</span> drawable.bitmap
-<span class="lineno">  931 </span>    <span class="keyword">val</span> width = <span class="keyword">if</span> (drawable.intrinsicWidth > <span class="number">0</span>) drawable.intrinsicWidth <span class="keyword">else</span> <span class="number">96</span>
-<span class="lineno">  932 </span>    <span class="keyword">val</span> height = <span class="keyword">if</span> (drawable.intrinsicHeight > <span class="number">0</span>) drawable.intrinsicHeight <span class="keyword">else</span> <span class="number">96</span>
-<span class="caretline"><span class="lineno">  933 </span>    <span class="keyword">return</span> <span class="warning">Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)</span>.also {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  934 </span>        <span class="keyword">val</span> canvas = android.graphics.Canvas(it)
-<span class="lineno">  935 </span>        drawable.setBounds(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height)
-<span class="lineno">  936 </span>        drawable.draw(canvas)
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Screens.kt">../../src/main/java/com/loopjet/app/ui/Screens.kt</a>:1471</span>: <span class="message">Use the KTX function <code>createBitmap</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1468 </span>               pixels[y * matrix.width + x] = <span class="keyword">if</span> (matrix.get(x, y)) fg <span class="keyword">else</span> <span class="number">0xFFFFFFFF.</span>toInt()
-<span class="lineno"> 1469 </span>           }
-<span class="lineno"> 1470 </span>       }
-<span class="caretline"><span class="lineno"> 1471 </span>       <span class="warning">Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)</span>.apply {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno"> 1472 </span>           setPixels(pixels, <span class="number">0</span>, matrix.width, <span class="number">0</span>, <span class="number">0</span>, matrix.width, matrix.height)
-<span class="lineno"> 1473 </span>       }
-<span class="lineno"> 1474 </span>   }.getOrNull()
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/ui/Thumbnails.kt">../../src/main/java/com/loopjet/app/ui/Thumbnails.kt</a>:54</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno">  51 </span>
-<span class="lineno">  52 </span>  suspend <span class="keyword">fun</span> load(context: Context, uri: String, mime: String): Bitmap? = withContext(Dispatchers.IO) {
-<span class="lineno">  53 </span>      <span class="keyword">if</span> (cache.get(uri) != <span class="keyword">null</span>) <span class="keyword">return</span><span class="annotation">@withContext</span> cache.get(uri)
-<span class="caretline"><span class="lineno">  54 </span>      <span class="keyword">val</span> parsed = runCatching { <span class="warning">Uri.parse(uri)</span> }.getOrNull() ?: <span class="keyword">return</span><span class="annotation">@withContext</span> <span class="keyword">null</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-<span class="lineno">  55 </span>      <span class="keyword">val</span> bitmap = runCatching {
-<span class="lineno">  56 </span>          <span class="keyword">if</span> (Build.VERSION.SDK_INT >= <span class="number">29</span>) {
-<span class="lineno">  57 </span>              context.contentResolver.loadThumbnail(parsed, android.util.Size(<span class="number">96</span>, <span class="number">96</span>), <span class="keyword">null</span>)
-</pre>
-
-<span class="location"><a href="../../src/main/java/com/loopjet/app/platform/TransferService.kt">../../src/main/java/com/loopjet/app/platform/TransferService.kt</a>:1405</span>: <span class="message">Use the KTX extension function <code>String.toUri</code> instead?</span><br /><pre class="errorlines">
-<span class="lineno"> 1402 </span>
-<span class="lineno"> 1403 </span>      <span class="keyword">fun</span> openSourceForItem(item: SendItem): RandomAccessSource {
-<span class="lineno"> 1404 </span>          item.filePath?.let { <span class="keyword">return</span> FileSource(File(it)) }
-<span class="caretline"><span class="lineno"> 1405 </span>          <span class="keyword">val</span> uri = item.uri?.let { <span class="warning">Uri.parse(it)</span> } ?: <span class="keyword">throw</span> IOException(<span class="string">"no source for ${</span>item.displayName<span class="string">}"</span>)</span>
-<span class="lineno"> 1406 </span>          <span class="keyword">return</span> UriSource(FlowLinkApp.context, uri)
-<span class="lineno"> 1407 </span>      }
-<span class="lineno"> 1408 </span>  }
-</pre>
-
-</div>
 </div>
 <div class="metadata"><div class="explanation" id="explanationUseKtx" style="display: none;">
 The Android KTX libraries decorates the Android platform SDK as well as various libraries with more convenient extension functions available from Kotlin, allowing you to use default parameters, named parameters, and more.<br/><br/>

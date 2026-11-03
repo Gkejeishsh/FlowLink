@@ -8,8 +8,10 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources UP-TO-DATE
 > Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileDebug
 > Task :app:checkDebugAarMetadata
+> Task :app:compileDebugJavaWithJavac
 > Task :app:mapDebugSourceSetPaths
 > Task :app:compileDebugNavigationResources
 > Task :app:createDebugCompatibleScreenManifests
@@ -18,36 +20,80 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugManifest
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
+> Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
 > Task :app:mergeDebugResources
 > Task :app:processDebugResources
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
 
-> Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:198:10 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:267:22 Return type of 'fun onLog(message: String): Int' is not a subtype of the return type of the overridden member 'fun onLog(message: String): Unit' defined in 'com.flowlink.drop.server.DropServer.Listener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:21 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:42 Unresolved reference 'joinGroup' on receiver of type 'DatagramSocket'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:199:17 Only expressions are allowed in this context.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:200:17 Unresolved reference 'style' on receiver of type 'String'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793718923718.json
+> Task :app:testDebugUnitTest
 
-[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+DropServerTest > anAbandonedUploadLeavesNothingBehind PASSED
+
+DropServerTest > unknownPathsAndMethodsAreRefused PASSED
+
+DropServerTest > chunkedBodiesAreDecoded PASSED
+
+DropServerTest > theRequestLogRemembersWhatHappened PASSED
+
+DropServerTest > theDropPageIsServed PASSED
+
+DropServerTest > multipartWorksWithoutJavaScript PASSED
+
+DropServerTest > aRawBodyLandsByteForByte PASSED
+
+DropServerTest > pingAnswersWithThePhoneName FAILED
+    java.lang.AssertionError
+        at org.junit.Assert.fail(Assert.java:87)
+        at org.junit.Assert.assertTrue(Assert.java:42)
+        at org.junit.Assert.assertTrue(Assert.java:53)
+        at com.flowlink.drop.DropServerTest.pingAnswersWithThePhoneName(DropServerTest.kt:105)
+
+DropServerTest > expectContinueIsAnswered PASSED
+
+NamesTest > traversalAndSeparatorsCannotEscape PASSED
+
+NamesTest > formattingStaysReadable PASSED
+
+NamesTest > longNamesKeepTheirExtension PASSED
+
+NamesTest > mimeComesFromTheExtensionNotFromTheClaim PASSED
+
+NamesTest > duplicatesGetASuffixBeforeTheExtension PASSED
+
+NamesTest > urlEncodingRoundTripsUnicode PASSED
+
+PageTest > phoneNameIsEscaped PASSED
+
+PageTest > thePageAsksForNothingOutsideThePhone PASSED
+
+PageTest > thePageWorksWithoutJavaScript PASSED
+
+WifiQrTest > reservedCharactersAreEscapedAndComeBack PASSED
+
+WifiQrTest > openNetworkHasNoPasswordField PASSED
+
+WifiQrTest > garbageIsNotParsed PASSED
+
+WifiQrTest > plainPayloadRoundTrips PASSED
+
+22 tests completed, 1 failed
+
+> Task :app:testDebugUnitTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719284242.json
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: SYNTAX
-       Kotlin compiler error
-         Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt line 198
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/FlowLink/FlowLink/app/build/reports/tests/testDebugUnitTest/index.html
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 25s
-19 actionable tasks: 12 executed, 1 from cache, 6 up-to-date
+BUILD FAILED in 37s
+26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date

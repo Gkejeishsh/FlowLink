@@ -8,37 +8,22 @@ Daemon will be stopped at the end of the build
 > Task :app:processReleaseNavigationResources UP-TO-DATE
 > Task :app:parseReleaseLocalResources UP-TO-DATE
 > Task :app:generateReleaseRFile UP-TO-DATE
+> Task :app:compileReleaseKotlin UP-TO-DATE
 > Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:extractDeepLinksRelease UP-TO-DATE
 > Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:generateReleaseLintReportModel
+> Task :app:lintAnalyzeRelease
 
-> Task :app:compileReleaseKotlin FAILED
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:198:10 Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt:267:22 Return type of 'fun onLog(message: String): Int' is not a subtype of the return type of the overridden member 'fun onLog(message: String): Unit' defined in 'com.flowlink.drop.server.DropServer.Listener'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:21 Cannot infer type for type parameter 'R'. Specify it explicitly.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/JoinWatcher.kt:127:42 Unresolved reference 'joinGroup' on receiver of type 'DatagramSocket'.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:199:17 Only expressions are allowed in this context.
-e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:200:17 Unresolved reference 'style' on receiver of type 'String'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719051804.json
+> Task :app:lintReportRelease
+Wrote HTML report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.html
+Wrote SARIF report to file:///home/runner/work/FlowLink/FlowLink/app/build/reports/lint-results-release.sarif
 
-[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
+> Task :app:lintRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793719492564.json
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileReleaseKotlin' (registered by plugin 'com.android.internal.application').
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Kotlin compiler: SYNTAX
-       Kotlin compiler error
-         Syntax error: Unexpected tokens (use ';' to separate expressions on the same line).
-         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/DropService.kt line 198
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 22s
-11 actionable tasks: 1 executed, 10 up-to-date
+BUILD SUCCESSFUL in 55s
+16 actionable tasks: 4 executed, 12 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
