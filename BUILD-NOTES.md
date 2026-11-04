@@ -1041,3 +1041,44 @@ Turning location on switched Wi-Fi off. Nothing in this app touches either switc
 Android 10 — so that is the phone's own power/radio policy (some OEM builds cut Wi-Fi when location or
 battery-saving modes change). The app now handles it the only way it can: it notices Wi-Fi is off,
 says so, and offers the switch.
+
+## 1.0.3 — the hotspot layer, rebuilt so it cannot report a failure over a working hotspot
+
+The report: *"it always says failed to start hotspot and crashes although I saw a hotspot hosted but
+the app never showed that it is hosted."* Every one of those words mapped to a defect in one file.
+
+| What the user saw | What the code did |
+|---|---|
+| a hotspot on the phone, "failed" in the app | `ACTION_RESTART` closed a live reservation, then Android delivered `onStopped` for it **after** the replacement had started; that stale callback pinned the UI to "hotspot stopped" permanently |
+| "failed: already running" | `host.start()` reported failure whenever the platform would not hand back the details of an AP it had just created |
+| never advanced past "starting" | callbacks from a superseded attempt were not ignored, so state arrived out of order |
+| Wi-Fi Direct never used | `WifiP2pConfig` rejects passwords under 8 characters, and the throw was swallowed — the route quietly never ran |
+| hotspot "busy" for ever | a group left behind by a previous run answers BUSY, and a stale local-only reservation answers `ERROR_INCOMPATIBLE_MODE`; neither was cleaned up before retrying |
+| a crash with no explanation | `startLocalOnlyHotspot` was handed a `HandlerThread` where a `Handler` is required, and a platform exception during callback dispatch took the process down |
+
+### The new shape
+
+* **Three routes, tried in order**: Wi-Fi Direct group (stable name and password, and it can report
+  who joined) → local-only hotspot → **your own hotspot**, where the app admits it cannot create one
+  and serves the page on the access point you switch on. The third route is never a "failure".
+* **A generation counter.** Any callback from an attempt that is no longer current is discarded —
+  that single rule kills the whole class of "the screen says stopped while the AP is running".
+* **`hosting` is set when the platform says it started**, and only cleared by an explicit stop or by a
+  failure of the *current* attempt. Nothing can report failure while this process owns an AP.
+* **A 2-second watchdog** in the service re-reads the access point and re-syncs the screen. If a
+  callback is late, dropped, or arrives on a dead thread, the screen is right within two seconds.
+* **Retries that actually retry**: BUSY → `removeGroup` then one more attempt; a stale reservation is
+  closed before a new one is requested; a group that cannot be read back is torn down rather than left
+  to block the next route.
+* **Credentials are validated before they reach the platform** (`HostRoutes`, unit-tested): a short
+  password in Settings is replaced, not passed through to throw.
+
+### Signing, again
+
+The keystore is gone a third time — `keys/` is gitignored and the sandbox has reset twice. New
+identity, SHA-256 `71:2D:72:68:…:88:49:73`, so this build needs **one uninstall** of 1.0.2 first.
+That is not a code problem and it will keep happening while the key lives only in this workspace.
+This can be ended: either export `keys/flowlink-release.p12` to your own machine, or tell me to commit
+an encrypted keystore to this branch so every future build keeps the same signer.
+
+29 unit tests.
