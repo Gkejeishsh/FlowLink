@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                     },
                     onOpenWifiSettings = { openWifiSettings() },
                     onRequestPermission = { requestNeeded(force = true) },
-                    onClearCrash = ::clearCrash
+                    onClearCrash = ::clearCrash,
+                    onDismissCrash = ::clearCrash
                 )
             }
         }
@@ -138,7 +139,8 @@ private fun AppRoot(
     onOpenLocationSettings: () -> Unit,
     onOpenWifiSettings: () -> Unit,
     onRequestPermission: () -> Unit,
-    onClearCrash: () -> Unit
+    onClearCrash: () -> Unit,
+    onDismissCrash: () -> Unit
 ) {
     val state by DropHub.state.collectAsState()
     var tab by rememberSaveable { mutableStateOf(0) }
@@ -183,7 +185,8 @@ private fun AppRoot(
                     onRestart = onRestart,
                     onOpenLocationSettings = onOpenLocationSettings,
                     onOpenWifiSettings = onOpenWifiSettings,
-                    onRequestPermission = onRequestPermission
+                    onRequestPermission = onRequestPermission,
+                    onDismissCrash = onDismissCrash
                 )
                 1 -> ReceivedScreen(state = state, onClear = {
                     prefs.clearHistory()

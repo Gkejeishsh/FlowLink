@@ -109,9 +109,12 @@ class JoinWatcher(
             }
         }
         val thread = Thread({
+            // mDNS port 5353 is almost always already held by the system's own responder. Binding
+            // it needs SO_REUSEADDR *before* the bind, which means constructing the socket unbound.
             val multicast = try {
-                java.net.MulticastSocket(5353).apply {
-                    reuseAddress = true
+                java.net.MulticastSocket(null).apply {
+                    runCatching { reuseAddress = true }
+                    bind(java.net.InetSocketAddress(5353))
                     soTimeout = 2_000
                 }
             } catch (t: Throwable) {

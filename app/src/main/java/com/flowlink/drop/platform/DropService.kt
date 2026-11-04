@@ -9,7 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import android.os.StatFs
 import android.util.Log
@@ -30,13 +32,14 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 /**
- * Owns the three things that must outlive the screen: the hotspot reservation, the HTTP server and
- * the join watcher.
+ * Owns the three things that must outlive the screen: the access point, the HTTP server and the
+ * join watcher.
  *
- * A foreground service rather than an activity-bound object because Android tears down the hotspot
- * the moment the process that requested it stops being important. `specialUse` rather than
- * `dataSync` because the platform time-limits data-sync services, and a session that waits for
- * files overnight is not a data sync.
+ * The rule this file exists to enforce: **the UI describes reality, not intentions.** A device
+ * report ("I could see the hotspot but the app said it failed") came from three separate ways the
+ * old code could lose track — a restart that tore down a working hotspot, a stale `onStopped`, and a
+ * failure path that fired when the reservation was alive but unreadable. All three are closed here,
+ * and a watchdog re-syncs the screen with the access point every two seconds regardless.
  */
 class DropService : Service() {
 
@@ -46,6 +49,15 @@ class DropService : Service() {
     private var watcher: JoinWatcher? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var phoneName: String = "this phone"
+    private var hosting = false
+
+    private val main = Handler(Looper.getMainLooper())
+    private val watchdog = object : Runnable {
+        override fun run() {
+            runCatching { reconcile() }
+            main.postDelayed(this, 2_000)
+        }
+    }
 
     companion object {
         const val ACTION_START = "com.flowlink.drop.START"
@@ -56,18 +68,23 @@ class DropService : Service() {
         private const val TAG = "DropService"
 
         fun start(context: Context) {
-            val intent = Intent(context, DropService::class.java).setAction(ACTION_START)
-            ContextCompat.startForegroundService(context, intent)
+            runCatching {
+                ContextCompat.startForegroundService(
+                    context, Intent(context, DropService::class.java).setAction(ACTION_START)
+                )
+            }
         }
 
         fun restart(context: Context) {
-            val intent = Intent(context, DropService::class.java).setAction(ACTION_RESTART)
-            ContextCompat.startForegroundService(context, intent)
+            runCatching {
+                ContextCompat.startForegroundService(
+                    context, Intent(context, DropService::class.java).setAction(ACTION_RESTART)
+                )
+            }
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, DropService::class.java).setAction(ACTION_STOP)
-            runCatching { context.startService(intent) }
+            runCatching { context.startService(Intent(context, DropService::class.java).setAction(ACTION_STOP)) }
                 .onFailure { context.stopService(Intent(context, DropService::class.java)) }
         }
     }
@@ -83,21 +100,17 @@ class DropService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action ?: ACTION_START
         if (action == ACTION_STOP) {
-            shutDown("stopped")
+            shutDown("stopped by you")
             return START_NOT_STICKY
         }
-        // startForeground must happen within seconds of the start request, before any network work.
-        promoteToForeground(if (host.running) currentUrl() else "Starting the hotspot…")
-        if (action == ACTION_RESTART) shutDownResources()
+        promoteToForeground(if (hosting) currentUrl() else "Starting the hotspot…")
+        main.removeCallbacks(watchdog)
+        main.post(watchdog)
         try {
-            begin()
+            ensureHosting(force = action == ACTION_RESTART)
         } catch (t: Throwable) {
-            // A service that dies silently is worse than one that fails loudly: the app used to
-            // vanish here with nothing on screen to explain it.
             Log.e(TAG, "hosting failed", t)
-            DropHub.update {
-                it.copy(phase = "failed", error = t.message ?: t.javaClass.simpleName)
-            }
+            DropHub.update { it.copy(phase = "failed", error = t.message ?: t.javaClass.simpleName) }
         }
         return START_STICKY
     }
@@ -105,9 +118,8 @@ class DropService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        shutDownResources()
-        // The service can be killed without ACTION_STOP; without this the screen keeps showing a
-        // hotspot and an address that no longer exist.
+        main.removeCallbacks(watchdog)
+        release()
         DropHub.update {
             it.copy(
                 phase = "idle",
@@ -116,22 +128,26 @@ class DropService : Service() {
                 address = "",
                 port = 0,
                 reachable = null,
-                clients = emptyList()
+                clients = emptyList(),
+                route = ""
             )
         }
         super.onDestroy()
     }
 
-    // ------------------------------------------------------------------ startup
+    // ------------------------------------------------------------------ hosting lifecycle
 
-    private fun begin() {
-        if (host.running && server != null) {
-            // Already hosting. Re-entering here used to bind a second server on the next free port,
-            // which silently changed the address on screen every time the activity resumed.
+    private fun ensureHosting(force: Boolean) {
+        if (force) {
+            // A deliberate restart: tear down first, so the platform is not asked for a second AP
+            // while ours is alive (that is what produced ERROR_INCOMPATIBLE_MODE for ever).
+            release()
+        } else if (hosting && server != null) {
+            // Already up. Re-entering here used to bind a second server on the next free port.
             updateNotification("Waiting for someone to join", currentUrl())
             return
         }
-        // Check the preconditions that make the platform throw, before it gets the chance to.
+
         val blocker = host.blocker()
         if (blocker != null) {
             DropHub.update {
@@ -147,16 +163,14 @@ class DropService : Service() {
                     ssid = "",
                     password = "",
                     address = "",
-                    port = 0
+                    port = 0,
+                    route = ""
                 )
             }
             updateNotification(LocationGate.title(blocker), LocationGate.detail(blocker))
             return
         }
-        host.onPlatformFailure = { message ->
-            DropHub.update { it.copy(phase = "failed", error = message) }
-            updateNotification("Hotspot failed", message)
-        }
+
         DropHub.update {
             it.copy(
                 phase = "starting",
@@ -167,67 +181,130 @@ class DropService : Service() {
                 clients = emptyList()
             )
         }
-        val fixedName = if (prefs.useFixedGroup) prefs.fixedName.ifBlank { defaultFixedName() } else null
-        val fixedPass = if (prefs.useFixedGroup) prefs.fixedPass.ifBlank { fixedPassphrase() } else null
-        host.start(fixedName, fixedPass) { info, message ->
-            if (info == null) {
-                DropHub.update { it.copy(phase = "failed", error = message, message = message) }
-                updateNotification("Hotspot unavailable", message)
-                Log.d(TAG, "hotspot failed: $message")
-                return@start
+
+        val useDirect = prefs.useFixedGroup
+        host.start(
+            preferDirectGroup = useDirect,
+            name = prefs.fixedName.ifBlank { "FlowLink-" + (100..999).random() },
+            passphrase = prefs.fixedPass.ifBlank { null },
+            listener = object : HotspotHost.Listener {
+                override fun onHosting(info: HotspotHost.Info) {
+                    hosting = true
+                    startServer(info)
+                }
+
+                override fun onRouteFailed(route: String, reason: String) {
+                    // Not a failure of the app, just this route: keep the screen honest and quiet.
+                    if (!hosting) {
+                        DropHub.update {
+                            it.copy(
+                                phase = "starting",
+                                message = when (route) {
+                                    "direct" -> "Trying Wi-Fi Direct…"
+                                    "os" -> "Trying the phone's own hotspot…"
+                                    else -> "Setting up…"
+                                },
+                                route = route
+                            )
+                        }
+                    }
+                    Log.d(TAG, "route $route: $reason")
+                }
+
+                override fun onAllRoutesFailed(reason: String) {
+                    hosting = false
+                    DropHub.update {
+                        it.copy(
+                            phase = "failed",
+                            error = reason,
+                            message = "",
+                            route = ""
+                        )
+                    }
+                    updateNotification("Hotspot unavailable", reason)
+                }
             }
-            startServer(info)
-        }
+        )
+    }
+
+    /**
+     * Re-syncs the screen with the access point. This is the safety net for every case where a
+     * callback is late, dropped, or delivered on a thread that is already gone: if the host says it
+     * is hosting, the screen says so too, within two seconds.
+     */
+    private fun reconcile() {
+        if (!host.hosting) return
+        hosting = true
+        val info = host.currentInfo() ?: return
+        if (server == null || DropHub.state.value.phase != "ready") startServer(info)
     }
 
     private fun startServer(info: HotspotHost.Info) {
-        val address = info.address.orEmpty()
-        // 8080 upward only: Android does not let an app bind a privileged port, so "try 80 first"
-        // was a promise the platform refuses to keep. The port is always shown in the URL.
+        val existing = server
+        if (existing != null && existing.boundPort != 0) {
+            publish(info, existing.boundPort)
+            return
+        }
         val ports = (8080..8095).toList()
         val factory = AndroidSinkFactory(this, SAVE_FOLDER)
         val dropServer = DropServer(
             sinkFactory = factory,
-            pageProvider = {
-                Page.render(phoneName, MAX_FILE_BYTES, BuildConfig.VERSION_NAME)
-            },
+            pageProvider = { Page.render(phoneName, MAX_FILE_BYTES, BuildConfig.VERSION_NAME) },
             listener = listener,
             maxFileBytes = MAX_FILE_BYTES
         )
         dropServer.phoneName = phoneName
         dropServer.freeSpace = { freeSpace() }
         val bound = try {
-            dropServer.start(ports, address.ifBlank { null })
+            dropServer.start(ports, info.address)
         } catch (t: Throwable) {
+            // The access point is up but the page is not. Say which half failed.
             DropHub.update {
-                it.copy(phase = "failed", error = "the page could not start: ${t.message}", message = "")
+                it.copy(
+                    phase = "failed",
+                    error = "The hotspot is up, but the page could not start: ${t.message}"
+                )
             }
             return
         }
-        server?.stop()
         server = dropServer
+        publish(info, bound)
+        watcher?.stop()
+        watcher = JoinWatcher(this) { remote, source -> onJoined(remote, source) }
+            .also { it.start(info.address) }
+        acquireWakeLock()
+    }
+
+    private fun publish(info: HotspotHost.Info, port: Int) {
+        val address = info.address.orEmpty()
+        val manual = info.route == "manual"
         DropHub.update {
             it.copy(
                 phase = "ready",
                 ssid = info.ssid,
                 password = info.passphrase,
                 address = address,
-                port = bound,
+                port = port,
                 band = info.band,
                 route = info.route,
-                message = if (address.isBlank()) {
-                    "The hotspot is up but its address could not be read — tap Restart."
-                } else "",
+                message = when {
+                    info.ssid.isBlank() && manual ->
+                        "Turn on this phone's own hotspot in Settings; the page is already running."
+                    address.isBlank() ->
+                        "The hotspot is up, but its address could not be read — tap Restart."
+                    else -> ""
+                },
                 reachable = null
             )
         }
-        probe(address, bound)
-        watcher?.stop()
-        watcher = JoinWatcher(this) { remote, source -> onJoined(remote, source) }.also {
-            it.start(address)
-        }
-        acquireWakeLock()
-        updateNotification("Waiting for someone to join", "$address:$bound")
+        if (address.isNotBlank()) probe(address, port)
+        updateNotification(
+            when {
+                info.ssid.isBlank() -> "Page running — turn on your hotspot"
+                else -> "Waiting for someone to join"
+            },
+            if (address.isBlank()) ":$port" else "$address:$port"
+        )
     }
 
     /**
@@ -235,7 +312,6 @@ class DropService : Service() {
      * guest types it, nothing happens, and neither side knows why.
      */
     private fun probe(address: String, port: Int) {
-        if (address.isBlank()) return
         Thread({
             val ok = runCatching {
                 Socket().use { socket ->
@@ -243,18 +319,19 @@ class DropService : Service() {
                     val request = "GET /api/ping HTTP/1.1\r\nHost: $address\r\nConnection: close\r\n\r\n"
                     socket.getOutputStream().write(request.toByteArray())
                     socket.getOutputStream().flush()
-                    val line = socket.getInputStream().bufferedReader().readLine()
-                    line?.contains("200") == true
+                    socket.getInputStream().bufferedReader().readLine()?.contains("200") == true
                 }
             }.getOrDefault(false)
-            DropHub.update {
-                it.copy(
+            DropHub.update { state ->
+                state.copy(
                     reachable = ok,
-                    message = if (ok) it.message
-                    else "The page is not answering on $address — tap Restart."
+                    message = when {
+                        ok -> state.message
+                        state.address.isBlank() -> state.message
+                        else -> "The page is not answering on $address — tap Restart."
+                    }
                 )
             }
-            Log.d(TAG, "reachability on $address:$port = $ok")
         }, "drop-probe").start()
     }
 
@@ -299,8 +376,8 @@ class DropService : Service() {
         }
 
         override fun onUploadFinished(name: String, path: String, bytes: Long) {
+            val item = ReceivedItem(name, bytes, System.currentTimeMillis(), path)
             DropHub.update { state ->
-                val item = ReceivedItem(name, bytes, System.currentTimeMillis(), path)
                 state.copy(
                     incoming = state.incoming.map {
                         if (it.name == name) it.copy(bytes = bytes, total = bytes, state = "done") else it
@@ -308,7 +385,7 @@ class DropService : Service() {
                     history = (state.history + item).takeLast(200)
                 )
             }
-            runCatching { prefs.remember(ReceivedItem(name, bytes, System.currentTimeMillis(), path)) }
+            runCatching { prefs.remember(item) }
             updateNotification("Received $name", "saved to $path")
         }
 
@@ -332,17 +409,15 @@ class DropService : Service() {
     private fun onJoined(remote: String, source: String) {
         DropHub.update { state ->
             if (state.clients.any { it.address == remote }) state
-            else state.copy(
-                clients = state.clients + ClientInfo(remote, "", System.currentTimeMillis())
-            )
+            else state.copy(clients = state.clients + ClientInfo(remote, "", System.currentTimeMillis()))
         }
         updateNotification("A device joined", "$remote via $source")
     }
 
-    // ------------------------------------------------------------------ lifecycle
+    // ------------------------------------------------------------------ teardown
 
     private fun shutDown(reason: String) {
-        shutDownResources()
+        release()
         DropHub.update {
             it.copy(
                 phase = "idle",
@@ -352,6 +427,7 @@ class DropService : Service() {
                 password = "",
                 address = "",
                 port = 0,
+                route = "",
                 clients = emptyList(),
                 incoming = emptyList()
             )
@@ -360,11 +436,13 @@ class DropService : Service() {
         stopSelf()
     }
 
-    private fun shutDownResources() {
+    private fun release() {
+        main.removeCallbacks(watchdog)
         watcher?.stop()
         watcher = null
         server?.stop()
         server = null
+        hosting = false
         host.stop()
         runCatching { wakeLock?.release() }
         wakeLock = null
@@ -384,11 +462,7 @@ class DropService : Service() {
 
     private fun createChannel() {
         val manager = getSystemService(NotificationManager::class.java) ?: return
-        val channel = NotificationChannel(
-            CHANNEL,
-            "Hosting",
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
+        val channel = NotificationChannel(CHANNEL, "Hosting", NotificationManager.IMPORTANCE_LOW).apply {
             description = "Shown while this phone is receiving files"
             setShowBadge(false)
         }
@@ -397,23 +471,18 @@ class DropService : Service() {
 
     private fun promoteToForeground(text: String) {
         val notification = buildNotification("FlowLink Drop", text)
-        val type = if (Build.VERSION.SDK_INT >= 34) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-        } else {
-            0
-        }
+        val type = if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0
         val started = runCatching {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
         }.isSuccess || runCatching {
-            // Some OEM builds reject the special-use type outright. Falling back to "no type" keeps
-            // the hotspot alive; staying silent would let the system kill the app ~5 s later.
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
         }.isSuccess
         if (!started) {
+            // Do not stopSelf: that would tear down an access point that may already be running.
+            Log.e(TAG, "startForeground refused")
             DropHub.update {
                 it.copy(phase = "failed", error = "This phone refused to keep the service running.")
             }
-            stopSelf()
         }
     }
 
@@ -459,17 +528,6 @@ class DropService : Service() {
         val stat = StatFs(filesDir.absolutePath)
         stat.availableBlocksLong * stat.blockSizeLong
     }.getOrDefault(-1L)
-
-    private fun defaultFixedName(): String {
-        val tail = (System.currentTimeMillis() % 1000).toString().padStart(3, '0')
-        return "FlowLink-$tail"
-    }
-
-    /** WPA2 requires 8–63 printable characters; this stays inside that window. */
-    private fun fixedPassphrase(): String {
-        val alphabet = "abcdefghjkmnpqrstuvwxyz23456789"
-        return (1..10).map { alphabet.random() }.joinToString("")
-    }
 }
 
 private const val SAVE_FOLDER = "FlowLink"

@@ -80,7 +80,8 @@ fun HostScreen(
     onRestart: () -> Unit,
     onOpenLocationSettings: () -> Unit,
     onOpenWifiSettings: () -> Unit,
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    onDismissCrash: () -> Unit
 ) {
     val clipboard = LocalClipboardManager.current
     var step by rememberSaveable { mutableStateOf(1) }
@@ -111,6 +112,11 @@ fun HostScreen(
                 .padding(top = 18.dp, bottom = 28.dp)
         ) {
             Header(state)
+
+            if (state.lastCrash.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                CrashBanner(state.lastCrash, clipboard, onDismissCrash)
+            }
 
             when (state.phase) {
                 "idle" -> IdleCard(onStart)
@@ -185,6 +191,44 @@ fun HostScreen(
     }
 }
 
+/**
+ * Shown once after the app has stopped unexpectedly, with the trace and a Copy button. A crash report
+ * that requires the user to go hunting through Settings never gets sent.
+ */
+@Composable
+private fun CrashBanner(
+    trace: String,
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    onDismiss: () -> Unit
+) {
+    Surface(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(
+                "FlowLink stopped unexpectedly last time",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                trace.lineSequence().take(3).joinToString("\n"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row {
+                TextButton(onClick = { clipboard.setText(AnnotatedString(trace)) }) { Text("Copy") }
+                TextButton(onClick = onDismiss) { Text("Dismiss") }
+            }
+        }
+    }
+}
+
 @Composable
 private fun Header(state: DropState) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -207,8 +251,10 @@ private fun Header(state: DropState) {
             )
             Text(
                 when (state.phase) {
-                    "ready" -> if (state.clients.isEmpty()) "Waiting for someone to join"
-                    else "${state.clients.size} device${if (state.clients.size == 1) "" else "s"} joined"
+                    "ready" -> if (state.clients.isEmpty()) {
+                        val base = "Waiting for someone to join"
+                        if (state.routeLabel.isBlank()) base else "$base · ${state.routeLabel}"
+                    } else "${state.clients.size} device${if (state.clients.size == 1) "" else "s"} joined"
                     "starting" -> "Starting the hotspot…"
                     "failed" -> "Hotspot not available"
                     else -> "Not hosting"
@@ -307,11 +353,34 @@ private fun JoinStep(
         Spacer(Modifier.height(14.dp))
         if (state.joinQr.isNotBlank()) {
             QrPanel(state.joinQr, Modifier.fillMaxWidth().aspectRatio(1f))
+            Spacer(Modifier.height(14.dp))
+            ValueRow("Network", state.ssid, clipboard, state.ssid)
+            Spacer(Modifier.height(8.dp))
+            ValueRow(
+                "Password",
+                state.password.ifBlank { "open network" },
+                clipboard,
+                state.password
+            )
+        } else {
+            // The app could not create an access point on this phone, so it serves the page on the
+            // one you turn on yourself. Say exactly that, instead of showing an empty card.
+            Surface(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Turn on your own hotspot", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "This phone would not let FlowLink create one. Open Settings → Hotspot and " +
+                            "turn it on; the page is already waiting on the address below.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
-        Spacer(Modifier.height(14.dp))
-        ValueRow("Network", state.ssid.ifBlank { "—" }, clipboard, state.ssid)
-        Spacer(Modifier.height(8.dp))
-        ValueRow("Password", state.password.ifBlank { "open network" }, clipboard, state.password)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onNext,
@@ -597,6 +666,18 @@ private fun StartingCard(state: DropState) {
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
+        if (state.route.isNotBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                when (state.route) {
+                    "direct" -> "Trying Wi-Fi Direct"
+                    "os" -> "Trying this phone's hotspot"
+                    else -> "Trying another way"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(Modifier.height(6.dp))
         Text(
             "This takes a second or two.",

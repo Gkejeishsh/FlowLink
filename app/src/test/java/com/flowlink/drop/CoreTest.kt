@@ -1,6 +1,7 @@
 package com.flowlink.drop
 
 import com.flowlink.drop.core.Fmt
+import com.flowlink.drop.core.HostRoutes
 import com.flowlink.drop.core.Names
 import com.flowlink.drop.platform.Blocker
 import com.flowlink.drop.platform.LocationGate
@@ -112,6 +113,39 @@ class LocationGateTest {
             assertTrue(LocationGate.title(it).isNotBlank())
             assertTrue(LocationGate.detail(it).isNotBlank())
         }
+    }
+}
+
+class HostRoutesTest {
+
+    @Test
+    fun wifiDirectIsOnlyTriedWhenItIsWantedAndAvailable() {
+        assertEquals(listOf("direct", "os", "manual"), HostRoutes.order(true, true))
+        assertEquals(listOf("os", "manual"), HostRoutes.order(false, true))
+        assertEquals(listOf("os", "manual"), HostRoutes.order(true, false))
+    }
+
+    @Test
+    fun aShortPasswordIsReplacedInsteadOfBreakingTheHotspot() {
+        // WifiP2pConfig.setPassphrase throws for anything under 8 characters: that used to mean the
+        // group was silently never created and the app fell through to a slower route.
+        val generated = HostRoutes.passphrase("1234")
+        assertTrue(HostRoutes.passphraseValid(generated))
+        assertEquals(10, generated.length)
+        assertEquals("longenough1", HostRoutes.passphrase("longenough1"))
+    }
+
+    @Test
+    fun networkNamesAreSanitised() {
+        assertEquals("FlowLink-Talal", HostRoutes.name("FlowLink-Talal"))
+        assertTrue(HostRoutes.name("").isNotBlank())
+        assertTrue(HostRoutes.name("x".repeat(64)).length <= 32)
+        assertTrue(HostRoutes.name("bad\u0000name").none { it.code < 32 })
+    }
+
+    @Test
+    fun everyRouteHasAReadableName() {
+        listOf("direct", "os", "manual").forEach { assertTrue(HostRoutes.label(it).isNotBlank()) }
     }
 }
 

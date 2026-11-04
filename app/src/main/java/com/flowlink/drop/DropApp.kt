@@ -60,12 +60,29 @@ data class DropState(
     val joinQr: String
         get() = if (ssid.isBlank()) "" else WifiQr.joinPayload(ssid, password)
 
+    /** Which access point this is, in words a person recognises. */
+    val routeLabel: String
+        get() = when (route) {
+            "direct" -> "Wi-Fi Direct"
+            "os" -> "Phone hotspot"
+            "manual" -> "Your own hotspot"
+            else -> ""
+        }
+
+    /** The page is being served on the phone's own hotspot, which the app could not create. */
+    val manualRoute: Boolean
+        get() = phase == "ready" && ssid.isBlank()
+
     /** The exact text someone can type if they cannot scan. */
     val instructions: String
         get() = buildString {
-            append("Join Wi-Fi: ").append(ssid)
-            if (password.isNotBlank()) append("\nPassword: ").append(password)
-            if (url.isNotBlank()) append("\nThen open: ").append(url)
+            if (ssid.isNotBlank()) {
+                append("Join Wi-Fi: ").append(ssid)
+                if (password.isNotBlank()) append("\nPassword: ").append(password)
+                if (url.isNotBlank()) append("\nThen open: ").append(url)
+            } else if (url.isNotBlank()) {
+                append("Join this phone's hotspot, then open: ").append(url)
+            }
         }
 }
 
