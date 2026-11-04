@@ -20,12 +20,12 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugManifest
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
+> Task :app:processDebugJavaRes
 > Task :app:mergeDebugResources
 > Task :app:processDebugResources
-> Task :app:bundleDebugClassesToCompileJar
 > Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
 > Task :app:compileDebugUnitTestKotlin
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugUnitTestJavaRes
@@ -89,8 +89,8 @@ WifiQrTest > openNetworkHasNoPasswordField PASSED
 WifiQrTest > garbageIsNotParsed PASSED
 
 WifiQrTest > plainPayloadRoundTrips PASSED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793771204473.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793771565126.json
 
-BUILD SUCCESSFUL in 26s
+BUILD SUCCESSFUL in 40s
 26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
