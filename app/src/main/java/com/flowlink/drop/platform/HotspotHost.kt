@@ -256,7 +256,6 @@ class HotspotHost(private val context: Context) {
         WifiP2pManager.BUSY -> "Wi-Fi Direct is busy (another group or hotspot is running)"
         WifiP2pManager.ERROR -> "Wi-Fi Direct hit an internal error"
         WifiP2pManager.P2P_UNSUPPORTED -> "Wi-Fi Direct is not supported on this phone"
-        WifiP2pManager.NO_SERVICE_REQ -> "Wi-Fi Direct is switched off (turn Wi-Fi on)"
         else -> "Wi-Fi Direct failed (code $reason)"
     }
 
