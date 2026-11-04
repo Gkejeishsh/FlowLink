@@ -1,8 +1,12 @@
-compile=0 tests=0 debug=0 release=0 wrapper=0
+compile=1 tests=1 debug=1 release=1 wrapper=0
 
 == first compile errors ==
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:259:24 Unresolved reference 'NO_SERVICE_REQ'.
+FAILURE: Build failed with an exception.
 
 == test failures ==
+> Task :app:compileDebugKotlin FAILED
+BUILD FAILED in 19s
 
 == benchmark lines ==
 
@@ -19,16 +23,28 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugRFile
 
 > Task :app:compileDebugKotlin
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/MainActivity.kt:160:48 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:85:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:293:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:333:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/HostScreen.kt:385:45 'interface ClipboardManager : Any' is deprecated. Use Clipboard instead, which supports suspend functions.
-w: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/ui/LibraryScreens.kt:143:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793722502308.json
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:259:24 Unresolved reference 'NO_SERVICE_REQ'.
+
+> Task :app:compileDebugKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793770909563.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 55s
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: UNRESOLVED_REFERENCE
+       Kotlin compiler error
+         Unresolved reference 'NO_SERVICE_REQ'.
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt line 259
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 44s
 7 actionable tasks: 7 executed
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

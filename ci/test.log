@@ -8,10 +8,8 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugNavigationResources UP-TO-DATE
 > Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:generateDebugRFile UP-TO-DATE
-> Task :app:compileDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileDebug
 > Task :app:checkDebugAarMetadata
-> Task :app:compileDebugJavaWithJavac
 > Task :app:mapDebugSourceSetPaths
 > Task :app:compileDebugNavigationResources
 > Task :app:createDebugCompatibleScreenManifests
@@ -20,69 +18,33 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugManifest
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :app:processDebugJavaRes
 > Task :app:processDebugManifestForPackage
 > Task :app:mergeDebugResources
 > Task :app:processDebugResources
-> Task :app:bundleDebugClassesToRuntimeJar
-> Task :app:bundleDebugClassesToCompileJar
-> Task :app:compileDebugUnitTestKotlin
-> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :app:processDebugUnitTestJavaRes
 
-> Task :app:testDebugUnitTest
+> Task :app:compileDebugKotlin
+e: file:///home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt:259:24 Unresolved reference 'NO_SERVICE_REQ'.
 
-DropServerTest > anAbandonedUploadLeavesNothingBehind PASSED
+> Task :app:compileDebugKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793770954386.json
 
-DropServerTest > unknownPathsAndMethodsAreRefused PASSED
+[Incubating] Problems report is available at: file:///home/runner/work/FlowLink/FlowLink/build/reports/problems/problems-report.html
 
-DropServerTest > chunkedBodiesAreDecoded PASSED
+FAILURE: Build failed with an exception.
 
-DropServerTest > theRequestLogRemembersWhatHappened PASSED
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: UNRESOLVED_REFERENCE
+       Kotlin compiler error
+         Unresolved reference 'NO_SERVICE_REQ'.
+         Location: /home/runner/work/FlowLink/FlowLink/app/src/main/java/com/flowlink/drop/platform/HotspotHost.kt line 259
 
-DropServerTest > theDropPageIsServed PASSED
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
 
-DropServerTest > multipartWorksWithoutJavaScript PASSED
-
-DropServerTest > aRawBodyLandsByteForByte PASSED
-
-DropServerTest > pingAnswersWithThePhoneName PASSED
-
-DropServerTest > anOversizedBodyIsRefusedBeforeItIsWritten PASSED
-
-DropServerTest > expectContinueIsAnswered PASSED
-
-LocationGateTest > everyBlockerHasAnInstruction PASSED
-
-LocationGateTest > permissionComesFirstThenServicesThenTheRadio PASSED
-
-NamesTest > traversalAndSeparatorsCannotEscape PASSED
-
-NamesTest > formattingStaysReadable PASSED
-
-NamesTest > longNamesKeepTheirExtension PASSED
-
-NamesTest > mimeComesFromTheExtensionNotFromTheClaim PASSED
-
-NamesTest > duplicatesGetASuffixBeforeTheExtension PASSED
-
-NamesTest > urlEncodingRoundTripsUnicode PASSED
-
-PageTest > phoneNameIsEscaped PASSED
-
-PageTest > thePageAsksForNothingOutsideThePhone PASSED
-
-PageTest > thePageWorksWithoutJavaScript PASSED
-
-WifiQrTest > reservedCharactersAreEscapedAndComeBack PASSED
-
-WifiQrTest > openNetworkHasNoPasswordField PASSED
-
-WifiQrTest > garbageIsNotParsed PASSED
-
-WifiQrTest > plainPayloadRoundTrips PASSED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793722557895.json
-
-BUILD SUCCESSFUL in 37s
-26 actionable tasks: 18 executed, 1 from cache, 7 up-to-date
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
+BUILD FAILED in 19s
+19 actionable tasks: 12 executed, 1 from cache, 6 up-to-date
